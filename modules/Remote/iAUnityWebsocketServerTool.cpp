@@ -590,7 +590,7 @@ public:
 			idItem->setData(Qt::UserRole, clientID);
 			m_clientTable->setItem(clientRow, iAClientTableColumn::ID, idItem);
 
-			auto theme = iAColorThemeManager::instance().theme("Brewer Paired (max. 12)");
+			auto theme = iAColorThemeManager::theme("Brewer Paired (max. 12)");
 			auto colorIdx = (2 * (clientID - ClientStartID)) % theme->size();
 			auto clientColorBody = theme->color(colorIdx);
 			auto clientColorVec = theme->color((colorIdx + 1) % theme->size());

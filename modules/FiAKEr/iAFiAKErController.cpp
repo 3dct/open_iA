@@ -190,7 +190,7 @@ const QString iAFiAKErController::FIAKERToolID("FIAKER");
 
 iAFiAKErController::iAFiAKErController(iAMainWindow* mainWnd, iAMdiChild* mdiChild) :
 	m_renderManager(new iARendererViewSync()),
-	m_resultColorTheme(iAColorThemeManager::instance().theme(DefaultResultColorTheme)),
+	m_resultColorTheme(iAColorThemeManager::theme(DefaultResultColorTheme)),
 	m_mainWnd(mainWnd),
 	m_mdiChild(mdiChild),
 	m_referenceID(NoResult),
@@ -447,13 +447,13 @@ void iAFiAKErController::setupSettingsView()
 
 	m_settingsView->sbHistogramBins->setValue(m_histogramBins);
 
-	m_settingsView->cmbboxStackedBarChartColors->addItems(iAColorThemeManager::instance().availableThemes());
+	m_settingsView->cmbboxStackedBarChartColors->addItems(iAColorThemeManager::availableThemes());
 	m_settingsView->cmbboxStackedBarChartColors->setCurrentText(DefaultStackedBarColorTheme);
 
 	m_settingsView->cmbboxDistributionColors->addItems(iALUT::colorMapNames());
 	m_settingsView->cmbboxDistributionColors->setCurrentIndex(0);
 
-	m_settingsView->cmbboxResultColors->addItems(iAColorThemeManager::instance().availableThemes());
+	m_settingsView->cmbboxResultColors->addItems(iAColorThemeManager::availableThemes());
 	m_settingsView->cmbboxResultColors->setCurrentText(DefaultResultColorTheme);
 
 	m_settingsView->cbShowPreviews->setChecked(m_showPreviews);
@@ -602,7 +602,7 @@ QWidget* iAFiAKErController::setupResultListView()
 		m_resultsListLayout->setColumnStretch(m_histogramColumn, static_cast<int>(2 * m_data->result.size()));
 	}
 
-	auto colorTheme = iAColorThemeManager::instance().theme(DefaultStackedBarColorTheme);
+	auto colorTheme = iAColorThemeManager::theme(DefaultStackedBarColorTheme);
 	m_stackedBarsHeaders = new iAStackedBarChart(colorTheme, m_resultsListLayout, 0, m_stackedBarColumn, true);
 	m_stackedBarsHeaders->setMinimumWidth(StackedBarMinWidth);
 
@@ -984,7 +984,7 @@ void iAFiAKErController::resultColorThemeChanged(int index)
 void iAFiAKErController::setResultColorTheme(QString const& colorThemeName)
 {
 	addInteraction(QString("Changed result color theme to '%1'.").arg(colorThemeName));
-	m_resultColorTheme = iAColorThemeManager::instance().theme(colorThemeName);
+	m_resultColorTheme = iAColorThemeManager::theme(colorThemeName);
 
 	if (m_showPreviews)
 	{
@@ -1032,7 +1032,7 @@ void iAFiAKErController::connectSensitivity()
 		return;
 	}
 	// "hack" go get results all to have same color; TODO: set in settings / use resultColorThemeChanged?
-	m_resultColorTheme = iAColorThemeManager::instance().theme(iASensitivityInfo::DefaultResultColorMap); // "Gray"
+	m_resultColorTheme = iAColorThemeManager::theme(iASensitivityInfo::DefaultResultColorMap); // "Gray"
 	m_colorOnlyShownResults = true;
 	connect(m_sensitivityInfo.get(), &iASensitivityInfo::aborted, this, &iAFiAKErController::resetSensitivity);
 	connect(m_sensitivityInfo.get(), &iASensitivityInfo::resultSelected, this, &iAFiAKErController::showMainVis);
@@ -1064,7 +1064,7 @@ void iAFiAKErController::stackedBarColorThemeChanged(int index)
 {
 	QString const colorThemeName = m_settingsView->cmbboxStackedBarChartColors->itemText(index);
 	addInteraction(QString("Changed stacked bar color theme to '%1'.").arg(colorThemeName));
-	auto colorTheme = iAColorThemeManager::instance().theme(colorThemeName);
+	auto colorTheme = iAColorThemeManager::theme(colorThemeName);
 	m_stackedBarsHeaders->setColorTheme(colorTheme);
 	for (size_t resultID = 0; resultID < m_data->result.size(); ++resultID)
 	{

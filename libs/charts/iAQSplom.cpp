@@ -208,7 +208,7 @@ iAQSplom::iAQSplom(QWidget * parent):
 	m_viewData(new iAScatterPlotViewData()),
 	m_popupHeight(0),
 	m_separationIdx(-1),
-	m_bgColorTheme(iAColorThemeManager::instance().theme("White")),
+	m_bgColorTheme(iAColorThemeManager::theme("White")),
 	m_contextMenu(new QMenu(this)),
 	m_settingsDlg(new iASPMSettingsDlg(this))
 {
@@ -293,7 +293,7 @@ iAQSplom::iAQSplom(QWidget * parent):
 	connect(m_settingsDlg->rbQualitative, &QRadioButton::toggled, this, &iAQSplom::setQualitativeParamMode);
 	connect(m_settingsDlg->cbColorRangeMode, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::colorRangeModeChanged);
 	m_settingsDlg->cbColorTheme->addItems(iALUT::colorMapNames());
-	m_settingsDlg->cbColorThemeQual->addItems(iAColorThemeManager::instance().availableThemes());
+	m_settingsDlg->cbColorThemeQual->addItems(iAColorThemeManager::availableThemes());
 	m_settingsDlg->cbColorThemeQual->setCurrentIndex(1); // to avoid "Black" default theme
 	connect(m_settingsDlg->cbColorTheme, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeFromComboBox);
 	connect(m_settingsDlg->cbColorThemeQual, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAQSplom::setColorThemeQualFromComboBox);
@@ -1613,7 +1613,7 @@ void iAQSplom::updateLookupTable()
 				m_lut->setRange(lutRange);
 				size_t numColors = static_cast<int>(std::ceil(lutRange[1] - lutRange[0])) + 1;
 				m_lut->allocate(numColors);
-				auto theme = iAColorThemeManager::instance().theme(settings.colorThemeQualName);
+				auto theme = iAColorThemeManager::theme(settings.colorThemeQualName);
 				for (size_t colorIdx = 0; colorIdx < numColors; ++colorIdx)
 				{
 					m_lut->setColor(colorIdx, theme->color(colorIdx % theme->size()));

@@ -1247,7 +1247,7 @@ void dlg_InSpectr::updateDecompositionGUI( QStringList elementsNames )
 	QVector<iAElementSpectralInfo*> elementSpectra;
 
 	size_t colorIdx = 0;
-	iAColorTheme const * theme = iAColorThemeManager::instance().theme( "Brewer Set1 (max. 9)" );
+	iAColorTheme const * theme = iAColorThemeManager::theme( "Brewer Set1 (max. 9)" );
 	for ( int i = 0; i < static_cast<int>(m_refSpectraLib->spectra.size()); ++i )
 	{
 		auto pos = elementsNames.indexOf( m_refSpectraLib->spectra[i].name() );

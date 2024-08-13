@@ -467,7 +467,7 @@ public:
 		cmbboxSpatialOverviewColorMap->addItems(iALUT::colorMapNames());	// TODO: filter for linear (non-diverging) color maps
 		cmbboxSpatialOverviewColorMap->setCurrentText("Matplotlib: Plasma");
 
-		cmbboxSPHighlightColorMap->addItems(iAColorThemeManager::instance().availableThemes());
+		cmbboxSPHighlightColorMap->addItems(iAColorThemeManager::availableThemes());
 		cmbboxSPHighlightColorMap->setCurrentText(iASensitivityInfo::DefaultResultColorMap);
 
 		cmbboxSPColorMap->setMinimumWidth(50);
@@ -935,7 +935,7 @@ public:
 
 	iAColorTheme const* selectedResultColorTheme() const override
 	{
-		return iAColorThemeManager::instance().theme(m_settings->cmbboxSPHighlightColorMap->currentText());
+		return iAColorThemeManager::theme(m_settings->cmbboxSPHighlightColorMap->currentText());
 	}
 };
 
@@ -1201,7 +1201,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_paramSP->setPickedPointFactor(1.5);
 	m_gui->m_paramSP->setFixPointsEnabled(true);
 	m_gui->m_paramSP->setHighlightColorTheme(
-		iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText()));
+		iAColorThemeManager::theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText()));
 	m_gui->m_paramSP->setHighlightDrawMode(iAScatterPlot::Enlarged | iAScatterPlot::CategoricalColor);
 	m_gui->m_paramSP->setSelectionEnabled(false);
 	auto sortedParams = m_gui->m_paramInfluenceView->paramIndicesSorted();
@@ -1216,7 +1216,7 @@ void iASensitivityInfo::createGUI()
 	m_gui->m_mdsSP->setPickedPointFactor(1.5);
 	m_gui->m_mdsSP->setFixPointsEnabled(true);
 	m_gui->m_mdsSP->setHighlightColorTheme(
-		iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText()));
+		iAColorThemeManager::theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText()));
 	m_gui->m_mdsSP->setHighlightDrawMode(iAScatterPlot::Enlarged | iAScatterPlot::CategoricalColor);
 	m_gui->m_mdsSP->setSelectionEnabled(false);
 	m_gui->m_mdsSP->setVisibleParameters(m_gui->spColIdxMDSX, m_gui->spColIdxMDSY);
@@ -1545,11 +1545,11 @@ void iASensitivityInfo::spPointHighlighted(size_t resultIdx, bool state)
 	int paramID = -1;
 	auto sender = qobject_cast<iAScatterPlotWidget*>(QObject::sender());
 	auto const& hp = sender->viewData()->highlightedPoints();
-	auto t = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText());
+	auto t = iAColorThemeManager::theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText());
 	QColor resultColor = t->color(hp.size() - 1);
 	if (!state)
 	{
-		auto theme = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText());
+		auto theme = iAColorThemeManager::theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText());
 		m_gui->m_paramInfluenceView->updateHighlightColors(hp, theme);
 	}
 	if (state && resultIdx % m_data->m_starGroupSize != 0)
@@ -1652,7 +1652,7 @@ void iASensitivityInfo::updateSPDifferenceColors()
 void iASensitivityInfo::updateSPHighlightColors()
 {
 	QString colorThemeName = m_gui->m_settings->cmbboxSPHighlightColorMap->currentText();
-	auto theme = iAColorThemeManager::instance().theme(colorThemeName);
+	auto theme = iAColorThemeManager::theme(colorThemeName);
 	m_gui->m_paramSP->setHighlightColorTheme(theme);
 	m_gui->m_mdsSP->setHighlightColorTheme(theme);
 	m_gui->m_paramInfluenceView->updateHighlightColors(m_gui->m_paramSP->viewData()->highlightedPoints(), theme);
@@ -1842,7 +1842,7 @@ void iASensitivityInfo::updateDifferenceView()
 	m_gui->m_diff3DRenderers.clear();
 	// TODO: determine "central" resultID to compare to / fixed comparison point determined by user?
 
-	auto t = iAColorThemeManager::instance().theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText());
+	auto t = iAColorThemeManager::theme(m_gui->m_settings->cmbboxSPHighlightColorMap->currentText());
 
 	auto createPolyFunc = (meshify) ? createPolyDifference : createPointDifference;
 	int measureIdx = m_gui->m_settings->dissimMeasIdx();

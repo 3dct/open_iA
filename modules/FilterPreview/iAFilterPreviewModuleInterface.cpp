@@ -160,7 +160,7 @@ void iAFilterPreviewModuleInterface::openSplitView(iASlicerImpl* slicer, const Q
 	// for a list of other available color themes, see libs/base/iAColorTheme.cpp:
 	// the themes are defined in the iAColorThemeManager constructor
 	// to use the colors elsewhere, use:
-	auto colorTheme = iAColorThemeManager::instance().theme(ColorThemeName);
+	auto colorTheme = iAColorThemeManager::theme(ColorThemeName);
 	chartsSpmWidget->setColorThemeQual(ColorThemeName);
 	
 	// improve point visibilility:

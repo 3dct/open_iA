@@ -75,13 +75,13 @@ struct iAOverlaySlicerData
 
 iALabelsDlg::iALabelsDlg(iAMdiChild* mdiChild) :
 	m_trackingSeeds(true),
-	m_colorTheme(iAColorThemeManager::instance().theme("Brewer Set3 (max. 12)")),
+	m_colorTheme(iAColorThemeManager::theme("Brewer Set3 (max. 12)")),
 	m_mdiChild(mdiChild),
 	m_ui(new Ui_labels()),
 	m_itemModel(new QStandardItemModel())
 {
 	m_ui->setupUi(this);
-	m_ui->cbColorTheme->addItems(iAColorThemeManager::instance().availableThemes());
+	m_ui->cbColorTheme->addItems(iAColorThemeManager::availableThemes());
 	m_ui->cbColorTheme->setCurrentText(m_colorTheme->name());
 	connect(m_ui->pbAdd, &QPushButton::clicked, this, &iALabelsDlg::add);
 	connect(m_ui->pbRemove, &QPushButton::clicked, this, &iALabelsDlg::remove);
@@ -1053,7 +1053,7 @@ QString const& iALabelsDlg::fileName()
 
 void iALabelsDlg::colorThemeChanged(QString const& newThemeName)
 {
-	m_colorTheme = iAColorThemeManager::instance().theme(newThemeName);
+	m_colorTheme = iAColorThemeManager::theme(newThemeName);
 	reInitChannelTF();
 	recolorItems();
 	updateChannels();

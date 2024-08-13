@@ -202,7 +202,7 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 	auto newID = id;
 	++id;
 	auto name = QString("Annotation %1").arg(newID);
-	QColor col = iAColorThemeManager::instance().theme("Brewer Dark2 (max. 8)")->color(newID);
+	QColor col = iAColorThemeManager::theme("Brewer Dark2 (max. 8)")->color(newID);
 	addAnnotation(iAAnnotation(newID, coord, name, col));
 	m_child->updateViews();
 	emit annotationsUpdated(m_ui->m_annotations);

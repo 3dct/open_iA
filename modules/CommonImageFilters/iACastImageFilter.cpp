@@ -190,7 +190,7 @@ void convertToRGB(iAFilter * filter, QVariantMap const & params)
 	labelToRGBFilter->SetBackgroundValue(params["Background value"].toUInt());
 	if (params["Color scheme"].toString() != "Default")
 	{
-		iAColorTheme const * theme = iAColorThemeManager::instance().theme(params["Color scheme"].toString());
+		iAColorTheme const * theme = iAColorThemeManager::theme(params["Color scheme"].toString());
 		labelToRGBFilter->ResetColors();
 		for (size_t c = 0; c < theme->size(); ++c)
 		{
@@ -246,7 +246,7 @@ iAConvertToRGBAFilter::iAConvertToRGBAFilter() :
 {
 	QStringList colorSchemes;
 	colorSchemes << "Default";
-	colorSchemes.append(iAColorThemeManager::instance().availableThemes());
+	colorSchemes.append(iAColorThemeManager::availableThemes());
 	addParameter("Background color", iAValueType::Color, "#000000");
 	addParameter("Background value", iAValueType::Discrete, 0);
 	addParameter("Background opacity", iAValueType::Discrete, 0, 0, 255);

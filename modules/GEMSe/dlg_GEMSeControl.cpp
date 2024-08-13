@@ -116,7 +116,7 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 {
 	connect(m_dlgSamplings, &dlg_samplings::AddSampling, this, &dlg_GEMSeControl::loadSamplingSlot);
 	m_simpleLabelInfo->setColorTheme(colorTheme);
-	cbColorThemes->addItems(iAColorThemeManager::instance().availableThemes());
+	cbColorThemes->addItems(iAColorThemeManager::availableThemes());
 	cbColorThemes->setCurrentText(colorTheme->name());
 
 	connect(pbSample, &QPushButton::clicked, this, &dlg_GEMSeControl::startSampling);
@@ -566,7 +566,7 @@ void dlg_GEMSeControl::SetIconSize(int newSize)
 void dlg_GEMSeControl::setColorTheme(int index)
 {
 	QString const themeName = cbColorThemes->itemText(index);
-	iAColorTheme const * theme = iAColorThemeManager::instance().theme(themeName);
+	iAColorTheme const * theme = iAColorThemeManager::theme(themeName);
 	m_simpleLabelInfo->setColorTheme(theme);
 	m_dlgGEMSe->setColorTheme(theme, m_simpleLabelInfo.get());
 }

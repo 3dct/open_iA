@@ -71,7 +71,7 @@ inline void updateLegendAndGraphVisibility(QCPPlottableLegendItem *ptliU, QCusto
 
 inline QPen getDatasetPen(qsizetype datasetIdx, qsizetype datasetCnt, int penWidth, QString themeName)
 {
-	auto theme = iAColorThemeManager::instance().theme(themeName);
+	auto theme = iAColorThemeManager::theme(themeName);
 	QPen datasetPen; datasetPen.setWidth(penWidth);
 	QColor datasetColor;
 	assert(datasetCnt > 0);

@@ -131,7 +131,7 @@ dlg_Consensus::dlg_Consensus(iAMdiChild* mdiChild, dlg_GEMSe* dlgGEMSe, int labe
 	m_dlgSamplings(dlgSamplings)
 {
 	QString defaultTheme("Brewer Paired (max. 12)");
-	m_colorTheme = iAColorThemeManager::instance().theme(defaultTheme);
+	m_colorTheme = iAColorThemeManager::theme(defaultTheme);
 
 	m_consensusCharts.push_back(CreateChartWidget("Undecided Pixels", "Mean Dice", mdiChild));
 	m_consensusCharts.push_back(CreateChartWidget("Consensus Method Parameter", "Mean Dice", mdiChild));
