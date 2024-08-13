@@ -525,7 +525,26 @@ public:
 		//child->renderer()->renderer()->AddObserver(vtkCommand::LeftButtonReleaseEvent, this, &Self::camModified);
 
 		quint16 port = getValue(iARemotePortSettings::defaultAttributes(), iARemotePortSettings::UnityPort).toInt();
-		if (!m_wsServer->listen(QHostAddress::Any, port))
+		bool connected = false;
+		const int MaxTries = 10;
+		int numTried = 0;
+		do
+		{
+			while (s_portsInUse.contains(port))
+			{
+				++port;
+			}
+			connected = m_wsServer->listen(QHostAddress::Any, port);
+			// If listening above fails, the port is in use by something else than this tool; even though ports only get
+			// cleared from s_portsInUse on closing this tool, we are anyway adding the current port number to
+			// s_portsInUse independent of whether listening was successful or not.
+			// This helps us from repeatedly trying ports that are _probably_ still in use; and
+			// we don't expect open_iA to be running so long that we run out of ports to try.
+			s_portsInUse.insert(port);
+			++numTried;
+		}
+		while (!connected && numTried < MaxTries);
+		if (!connected)
 		{
 			LOG(lvlError, QString("%1: Listening failed (error: %2)!")
 				.arg(iAUnityWebsocketServerTool::Name)
@@ -718,9 +737,11 @@ public:
 
 	void stop()
 	{
+		auto serverPort = m_wsServer->serverPort();
 		m_wsServer->close();
 		m_serverThread.quit();
 		m_serverThread.wait();
+		s_portsInUse.erase(serverPort);
 		LOG(lvlInfo, QString("%1 STOP").arg(iAUnityWebsocketServerTool::Name));
 	}
 
@@ -1235,9 +1256,6 @@ private:
 	QString m_dataSetFileName;
 	iAPlaneSliceTool* m_planeSliceTool;
 
-	// for object handling
-//	QTableWidget* m_objectTable;
-
 	QWidget* m_clientListContainer;
 	QTableWidget* m_clientTable;
 	iADockWidgetWrapper* m_clientListDW;
@@ -1246,8 +1264,10 @@ private:
 	double m_maxSize;
 	size_t m_dataSetID;
 	std::array<double, 3> m_spacing;
-	//std::array<double, 3> m_size;
 	iAVec3d m_camLastPos, m_camLastDir;
+
+	static std::set<quint16> s_portsInUse;
+
 private slots:
 	void camModified()
 	{
@@ -1281,6 +1301,8 @@ private slots:
 		}
 	}
 };
+
+std::set<quint16> iAUnityWebsocketServerToolImpl::s_portsInUse;
 
 const QString iAUnityWebsocketServerTool::Name("Unity Volume Interaction Server");
 
