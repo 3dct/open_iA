@@ -977,14 +977,14 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	if (m_curInd != iASPLOMData::NoDataIdx)
 	{
 		double pPM = settings.pickedPointMagnification;
-		double curPtSize = ptSize * linterp(1.0, pPM, anim);
+		double curPtSize = ptSize * std::lerp(1.0, pPM, anim);
 		glPointSize(curPtSize);
 		glBegin(GL_POINTS);
 		if (m_lut->initialized())
 		{
 			double val = m_splomData->paramData(m_colInd)[m_curInd];
 			double rgba[4]; m_lut->getColor(val, rgba);
-			glColor4f(rgba[0], rgba[1], rgba[2], linterp(rgba[3], 1.0, anim));
+			glColor4f(rgba[0], rgba[1], rgba[2], std::lerp(rgba[3], 1.0, anim));
 		}
 		double tx = p2tx(p0d[m_curInd]);
 		double ty = p2ty(p1d[m_curInd]);
@@ -1015,14 +1015,14 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	if (m_prevPtInd != iASPLOMData::NoDataIdx && anim > 0.0)
 	{
 		double pPM = settings.pickedPointMagnification;
-		double curPtSize = ptSize * linterp(1.0, pPM, anim);
+		double curPtSize = ptSize * std::lerp(1.0, pPM, anim);
 		glPointSize(curPtSize);
 		glBegin(GL_POINTS);
 		if (m_lut->initialized())
 		{
 			double val = m_splomData->paramData(m_colInd)[m_prevPtInd];
 			double rgba[4]; m_lut->getColor(val, rgba);
-			glColor4f(rgba[0], rgba[1], rgba[2], linterp(rgba[3], 1.0, anim));
+			glColor4f(rgba[0], rgba[1], rgba[2], std::lerp(rgba[3], 1.0, anim));
 		}
 		double tx = p2tx(p0d[m_prevPtInd]);
 		double ty = p2ty(p1d[m_prevPtInd]);
@@ -1043,10 +1043,10 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	if (m_curInd != iASPLOMData::NoDataIdx)
 	{
 		double pPM = settings.pickedPointMagnification;
-		double curPtRad = ptRad * linterp(1.0, pPM, anim);
+		double curPtRad = ptRad * std::lerp(1.0, pPM, anim);
 		double val = m_splomData->paramData(m_colInd)[m_curInd];
 		QColor color = m_lut->getQColor(val);
-		color.setAlphaF(linterp(static_cast<double>(color.alphaF()), 1.0, anim));
+		color.setAlphaF(std::lerp(static_cast<double>(color.alphaF()), 1.0, anim));
 		drawPoint(painter, p0d[m_curInd], p1d[m_curInd], curPtRad, color);
 	}
 	// Draw previous point
@@ -1054,10 +1054,10 @@ void iAScatterPlot::drawPoints( QPainter &painter )
 	if (m_prevPtInd != iASPLOMData::NoDataIdx && anim > 0.0)
 	{
 		double pPM = settings.pickedPointMagnification;
-		double curPtRad = ptRad * linterp(1.0, pPM, anim);
+		double curPtRad = ptRad * std::lerp(1.0, pPM, anim);
 		double val = m_splomData->paramData(m_colInd)[m_prevPtInd];
 		QColor color = m_lut->getQColor(val);
-		color.setAlphaF(linterp(static_cast<double>(color.alphaF()), 1.0, anim));
+		color.setAlphaF(std::lerp(static_cast<double>(color.alphaF()), 1.0, anim));
 		drawPoint(painter, p0d[m_prevPtInd], p1d[m_prevPtInd], curPtRad, color);
 	}
 

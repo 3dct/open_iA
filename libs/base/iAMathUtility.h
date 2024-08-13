@@ -172,19 +172,6 @@ T invertValue(T const * range, T const value)
 	return range[1] + range[0] - value;
 }
 
-//#if __cplusplus >= 202002L
-// TODO: replace with std::lerp when C++ standard is raised to C++20
-//#endif
-//! Linear interpolation in a given range.
-//! @param a minimum of the interpolation range
-//! @param b maximum of the interpolation range
-//! @param t a value from the range [0..1] specifying the interpolation position
-template <typename T>
-T linterp(const T a, const T b, const T t)
-{
-	return a + (b - a)*t;
-}
-
 //! Compute the fractional part of a floating-point type
 template <typename T>
 T frac(T val)
