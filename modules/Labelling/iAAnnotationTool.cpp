@@ -185,7 +185,7 @@ iAAnnotationTool::iAAnnotationTool(iAMainWindow* mainWnd, iAMdiChild* child):
 				auto sRange = std::max(s->sliceThickness()*2, (sMinMax.second - sMinMax.first) * LinearRampFraction);
 				double opacity = std::max(CaptionMinimumOpacity, // caption should have a minimum opacity
 					1 - dist / sRange);  // linearly decrease based on distance between current slice and annotation
-				auto vtkData = m_ui->m_vtkAnnotateData[a.m_id];
+				auto & vtkData = m_ui->m_vtkAnnotateData.at(a.m_id);
 				vtkData.m_txtActor[i]->GetProperty()->SetOpacity(opacity);
 				vtkData.m_txtActor[i]->GetTextActor()->GetProperty()->SetOpacity(opacity);
 				vtkData.m_txtActor[i]->GetCaptionTextProperty()->SetOpacity(opacity);
@@ -323,17 +323,22 @@ void iAAnnotationTool::renameAnnotation(size_t id, QString const& newName)
 			break;
 		}
 	}
-	for (size_t i = 0; i < m_ui->m_vtkAnnotateData[id].m_txtActor.size(); ++i)
+	for (size_t i = 0; i < m_ui->m_vtkAnnotateData.at(id).m_txtActor.size(); ++i)
 	{
-		m_ui->m_vtkAnnotateData[id].m_txtActor[i]->SetCaption(newName.toStdString().c_str());
+		m_ui->m_vtkAnnotateData.at(id).m_txtActor[i]->SetCaption(newName.toStdString().c_str());
 	}
-	m_ui->m_vtkAnnotateData[id].m_caption3D->GetCaptionActor2D()->SetCaption(newName.toStdString().c_str());
+	m_ui->m_vtkAnnotateData.at(id).m_caption3D->GetCaptionActor2D()->SetCaption(newName.toStdString().c_str());
 	m_child->updateViews();
 	emit annotationsUpdated(m_ui->m_annotations);
 }
 
 void iAAnnotationTool::removeAnnotation(size_t id)
 {
+	if (!m_ui->m_vtkAnnotateData.contains(id))
+	{
+		LOG(lvlWarn, QString("Invalid call to removeAnnotation - annotation with id=%1 not found!").arg(id));
+		return;
+	}
 	for (size_t i=0; i<m_ui->m_annotations.size(); ++i)
 	{
 		if (m_ui->m_annotations[i].m_id == id)
@@ -388,7 +393,6 @@ void iAAnnotationTool::showAnnotation(size_t id, bool show)
 		}
 	}
 	showActors(id, show);
-	//m_ui->m_vtkAnnotateData.erase(id);
 	m_child->updateViews();
 
 	emit annotationsUpdated(m_ui->m_annotations);
@@ -407,9 +411,9 @@ void iAAnnotationTool::showActors(size_t id, bool show)
 {
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
-		showActor(m_child->slicer(i)->renderWindow()->GetRenderers()->GetFirstRenderer(), m_ui->m_vtkAnnotateData[id].m_txtActor[i], show);
+		showActor(m_child->slicer(i)->renderWindow()->GetRenderers()->GetFirstRenderer(), m_ui->m_vtkAnnotateData.at(id).m_txtActor[i], show);
 	}
-	m_ui->m_vtkAnnotateData[id].m_caption3D->SetEnabled(show);
+	m_ui->m_vtkAnnotateData.at(id).m_caption3D->SetEnabled(show);
 }
 
 std::vector<iAAnnotation> const& iAAnnotationTool::annotations() const
