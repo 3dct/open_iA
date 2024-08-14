@@ -44,5 +44,4 @@ signals:
 	//! Called when image for a view changes;
 	//! used to communicate with web socket server thread
 	void imageHasChanged(std::shared_ptr<iAJPGImage> img, QString viewID);
-	void finished();
 };

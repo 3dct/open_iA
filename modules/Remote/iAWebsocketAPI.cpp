@@ -4,6 +4,7 @@
 
 #include "iAJPGImage.h"
 #include "iARemoteAction.h"
+#include "iARemotePortSettings.h"
 
 #include <iALog.h>
 
@@ -33,7 +34,7 @@ iAWebsocketAPI::iAWebsocketAPI(quint16 port):
 void iAWebsocketAPI::init()
 {
 	m_wsServer = new QWebSocketServer(QStringLiteral("Remote Server"), QWebSocketServer::NonSecureMode, this);
-	if (m_wsServer->listen(QHostAddress::Any, m_port))
+	if (connectWebSocket(m_wsServer, m_port) != 0)
 	{
 		connect(m_wsServer, &QWebSocketServer::newConnection, this, &iAWebsocketAPI::onNewConnection);
 		connect(m_wsServer, &QWebSocketServer::closed, this, &iAWebsocketAPI::closed);
@@ -42,7 +43,8 @@ void iAWebsocketAPI::init()
 	}
 	else
 	{
-		LOG(lvlError, QString("Could not bind to port %1!").arg(m_port));
+		LOG(lvlError, QString("Remote Rendering: Setting up WebSocket server failed (error: %1)!")
+			.arg(m_wsServer->errorString()));
 	}
 }
 
@@ -60,8 +62,9 @@ bool iAWebsocketAPI::setRenderedImage(std::shared_ptr<iAJPGImage> img, QString v
 
 void iAWebsocketAPI::close()
 {
-	//qDeleteAll(m_clients);	// any client QWebSockets are closed and deleted (see ~QWebSocketServer documentation)
-	m_wsServer->close();
+	auto port = m_wsServer->serverPort();
+	m_wsServer->close();  // client QWebSockets are closed and deleted (see ~QWebSocketServer documentation)
+	removeClosedPort(port);
 }
 
 void iAWebsocketAPI::onNewConnection()
@@ -296,6 +299,11 @@ QList<iARemoteAction*> iAWebsocketAPI::getQueuedActions()
 QString iAWebsocketAPI::listenAddress() const
 {
 	return QString("%1:%2").arg(m_wsServer->serverAddress().toString()).arg(m_wsServer->serverPort());
+}
+
+quint16 iAWebsocketAPI::serverPort() const
+{
+	return m_wsServer->serverPort();
 }
 
 void iAWebsocketAPI::sendImage(QWebSocket* client, QString viewID)

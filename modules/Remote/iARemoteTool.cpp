@@ -110,8 +110,7 @@ namespace
 
 iARemoteTool::iARemoteTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iATool(mainWnd, child),
-	m_wsPort(getValue(iARemotePortSettings::defaultAttributes(), iARemotePortSettings::RemoteWebSocketPort).toInt()),
-	m_remoteRenderer(std::make_unique<iARemoteRenderer>(m_wsPort))
+	m_remoteRenderer(std::make_unique<iARemoteRenderer>(getValue(iARemotePortSettings::defaultAttributes(), iARemotePortSettings::RemoteWebSocketPort).toInt()))
 #ifdef QT_HTTPSERVER
 	, m_httpServer(std::make_unique<QHttpServer>())
 #endif
@@ -207,20 +206,19 @@ void iARemoteTool::init()
 #ifdef QT_HTTPSERVER
 
 	QString path = QCoreApplication::applicationDirPath() + "/RemoteClient";
-	addDirectorytoServer(path, m_httpServer.get(), m_wsPort);
-	quint16 httpPort = getValue(iARemotePortSettings::defaultAttributes(), iARemotePortSettings::RemoteHTTPPort).toInt();
-	httpPort = m_httpServer->listen(QHostAddress::Any, httpPort);
-	if (httpPort == 0)
+	addDirectorytoServer(path, m_httpServer.get(), m_remoteRenderer->m_wsAPI->serverPort());
+	quint16 firstPort = getValue(iARemotePortSettings::defaultAttributes(), iARemotePortSettings::RemoteHTTPPort).toInt();
+	quint16 finalPort = connectHttp(m_httpServer.get(), firstPort);
+	if (finalPort == 0)
 	{
-		LOG(lvlError, QString("Could not bind HTTP server to port %1!").arg(httpPort));
+		LOG(lvlError, QString("Could not set up HTTP server (tried ports %1..%2!").arg(firstPort).arg(finalPort));
 		return;
 	}
-	auto ports = m_httpServer->serverPorts();
-	if (ports.size() != 1)
+	if (m_httpServer->serverPorts().size() != 1 || m_httpServer->serverPorts()[0] != finalPort)
 	{
-		LOG(lvlError, "Invalid number of server ports!");
+		LOG(lvlError, "Invalid port configuration!");
 	}
-	LOG(lvlImportant, QString("You can reach the webserver under http://localhost:%1").arg(httpPort));
+	LOG(lvlImportant, QString("You can reach the webserver under http://localhost:%1").arg(finalPort));
 #endif
 
 	connect(annotTool, &iAAnnotationTool::annotationsUpdated, m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::updateCaptionList);
@@ -237,7 +235,7 @@ void iARemoteTool::init()
 	clientContainer->layout()->setSpacing(1);
 	auto listenStr = QString("Listening (websocket: %1)").arg(m_remoteRenderer->m_wsAPI->listenAddress());
 #ifdef QT_HTTPSERVER
-	listenStr += QString("; http: localhost:%1").arg(httpPort);
+	listenStr += QString("; http: localhost:%1").arg(finalPort);
 #endif
 	clientContainer->layout()->addWidget(new iAQCropLabel(listenStr));
 	m_clientList = new QTableWidget(clientContainer);
@@ -291,6 +289,9 @@ void iARemoteTool::init()
 }
 
 
-iARemoteTool::~iARemoteTool() = default;
+iARemoteTool::~iARemoteTool()
+{
+	removeClosedPort(m_httpServer->serverPorts()[0]);  // m_httpServer is closed automatically in destructor
+}
 
 const QString iARemoteTool::Name("Remote Render Server");

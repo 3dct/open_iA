@@ -20,7 +20,7 @@ iARemoteRenderer::iARemoteRenderer(int port) :
 	m_wsAPI->moveToThread(m_wsThread.get());
 	connect(m_wsThread.get(), &QThread::started, m_wsAPI.get(), &iAWebsocketAPI::init);
 	connect(this, &iARemoteRenderer::imageHasChanged, m_wsAPI.get(), &iAWebsocketAPI::sendViewIDUpdate);
-	connect(this, &iARemoteRenderer::finished, m_wsAPI.get(), &iAWebsocketAPI::close);
+	connect(m_wsThread.get(), &QThread::finished, m_wsAPI.get(), &iAWebsocketAPI::close);
 	connect(this, &iARemoteRenderer::setRenderedImage, m_wsAPI.get(), &iAWebsocketAPI::setRenderedImage);
 }
 
@@ -31,7 +31,6 @@ void iARemoteRenderer::start()
 
 iARemoteRenderer::~iARemoteRenderer()
 {
-	emit finished();
 	m_wsThread->quit();
 	m_wsThread->wait();
 }

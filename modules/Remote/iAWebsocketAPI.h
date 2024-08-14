@@ -37,6 +37,8 @@ public:
 	QList<iARemoteAction*> getQueuedActions();
 	//! retrieve the address (interface / IP and port) this server listens to
 	QString listenAddress() const;
+	//! retrieve the server port that the websocket server ended up listening to
+	quint16 serverPort() const;
 
 public Q_SLOTS:
 	void init();

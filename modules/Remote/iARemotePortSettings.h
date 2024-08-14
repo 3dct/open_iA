@@ -26,3 +26,17 @@ public:
 		return attr;
 	}
 };
+
+class QHttpServer;
+class QWebSocketServer;
+
+#include <QtTypes>    // for quint16
+
+//! make the given server listen to a port, preferrably the one given as port parameter, but
+//! also a higher port number if not available; give up if  we haven't found a free port
+//! after maxTries tried ports
+//! @return the port to which the server is listening (or 0 if connection was unsuccessful)
+quint16 connectWebSocket(QWebSocketServer* server, quint16 port, int const maxTries = 10);
+quint16 connectHttp(QHttpServer* server, quint16 port, int const maxTries = 10);
+
+void removeClosedPort(quint16 port);

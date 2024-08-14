@@ -506,6 +506,7 @@ public:
 		m_child(child)
 	{
 		m_wsServer->moveToThread(&m_serverThread);
+		connect(&m_serverThread, &QThread::finished, m_wsServer, &QWebSocketServer::close);
 		m_serverThread.start();
 
 		m_planeSliceTool = getTool<iAPlaneSliceTool>(child);
@@ -524,29 +525,10 @@ public:
 		// potential improvement: send updates every x milliseconds only on modified, and send one final update on release?
 		//child->renderer()->renderer()->AddObserver(vtkCommand::LeftButtonReleaseEvent, this, &Self::camModified);
 
-		quint16 port = getValue(iARemotePortSettings::defaultAttributes(), iARemotePortSettings::UnityPort).toInt();
-		bool connected = false;
-		const int MaxTries = 10;
-		int numTried = 0;
-		do
-		{
-			while (s_portsInUse.contains(port))
-			{
-				++port;
-			}
-			connected = m_wsServer->listen(QHostAddress::Any, port);
-			// If listening above fails, the port is in use by something else than this tool; even though ports only get
-			// cleared from s_portsInUse on closing this tool, we are anyway adding the current port number to
-			// s_portsInUse independent of whether listening was successful or not.
-			// This helps us from repeatedly trying ports that are _probably_ still in use; and
-			// we don't expect open_iA to be running so long that we run out of ports to try.
-			s_portsInUse.insert(port);
-			++numTried;
-		}
-		while (!connected && numTried < MaxTries);
+		bool connected = connectWebSocket(m_wsServer, getValue(iARemotePortSettings::defaultAttributes(), iARemotePortSettings::UnityPort).toInt()) != 0;
 		if (!connected)
 		{
-			LOG(lvlError, QString("%1: Listening failed (error: %2)!")
+			LOG(lvlError, QString("%1: Setting up WebSocket server failed (error: %2)!")
 				.arg(iAUnityWebsocketServerTool::Name)
 				.arg(m_wsServer->errorString()));
 			return;
@@ -738,10 +720,10 @@ public:
 	void stop()
 	{
 		auto serverPort = m_wsServer->serverPort();
-		m_wsServer->close();
+		// m_wsServer->close(); is called through QThread::finish signal, to make sure it is called in the server's thread
 		m_serverThread.quit();
 		m_serverThread.wait();
-		s_portsInUse.erase(serverPort);
+		removeClosedPort(serverPort);
 		LOG(lvlInfo, QString("%1 STOP").arg(iAUnityWebsocketServerTool::Name));
 	}
 
@@ -1266,8 +1248,6 @@ private:
 	std::array<double, 3> m_spacing;
 	iAVec3d m_camLastPos, m_camLastDir;
 
-	static std::set<quint16> s_portsInUse;
-
 private slots:
 	void camModified()
 	{
@@ -1301,8 +1281,6 @@ private slots:
 		}
 	}
 };
-
-std::set<quint16> iAUnityWebsocketServerToolImpl::s_portsInUse;
 
 const QString iAUnityWebsocketServerTool::Name("Unity Volume Interaction Server");
 
