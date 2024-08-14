@@ -82,7 +82,7 @@ size_t iASingleColorTheme::size() const
 
 namespace
 {
-	QMap<QString, std::shared_ptr<iAColorTheme>> themes()
+	QMap<QString, std::shared_ptr<iAColorTheme>>& themes()
 	{
 		static QMap<QString, std::shared_ptr<iAColorTheme>> themes;
 		if (themes.empty())
