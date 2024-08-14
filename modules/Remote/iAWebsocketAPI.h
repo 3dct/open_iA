@@ -64,6 +64,7 @@ Q_SIGNALS:
 	void clientConnected(int clientID);
 	void clientDisconnected(int clientID);
 	void clientTransferUpdated(int clientID, quint64 rcvd, quint64 sent);
+	void clientSubscribed(int clientID, QString viewID);
 
 private Q_SLOTS:
 	void onNewConnection();
@@ -100,4 +101,6 @@ private:
 
 	void sendTextMessage(QByteArray const& data, QWebSocket* client);
 	void sendBinaryMessage(QByteArray const& data, QWebSocket* client);
+
+	void addSubscription(QWebSocket* client, QString viewIDString);
 };

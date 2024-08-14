@@ -188,7 +188,11 @@ void iAWebsocketAPI::commandAddObserver(QJsonDocument request, QWebSocket* clien
 		{"result", viewIDResponse}
 	};
 	sendTextMessage(QJsonDocument{ addObserverResponse }.toJson(), client);
+	addSubscription(client, viewIDString);
+}
 
+void iAWebsocketAPI::addSubscription(QWebSocket* client, QString viewIDString)
+{
 	if (subscriptions.contains(viewIDString))
 	{
 		subscriptions[viewIDString].append(client);
@@ -198,6 +202,8 @@ void iAWebsocketAPI::commandAddObserver(QJsonDocument request, QWebSocket* clien
 		subscriptions.insert(viewIDString,  QList<QWebSocket*>());
 		subscriptions[viewIDString].append(client);
 	}
+	auto it = findClient(m_clients, client);
+	emit clientSubscribed(it->id, viewIDString);
 }
 
 void iAWebsocketAPI::commandImagePush(QJsonDocument request, QWebSocket* client)
@@ -409,15 +415,7 @@ void iAWebsocketAPI::updateCaptionList(std::vector<iAAnnotation> captions)
 
 void iAWebsocketAPI::captionSubscribe(QWebSocket* client)
 {
-	if (subscriptions.contains(captionKey))
-	{
-		subscriptions[captionKey].append(client);
-	}
-	else
-	{
-		subscriptions.insert(captionKey, QList<QWebSocket*>());
-		subscriptions[captionKey].append(client);
-	}
+	addSubscription(client, captionKey);
 	sendCaptionUpdate();
 }
 

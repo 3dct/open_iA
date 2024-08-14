@@ -4,7 +4,6 @@
 
 #include <iATool.h>
 
-#include <QMap>
 #include <QObject>
 
 class iAMainWindow;
@@ -13,7 +12,6 @@ class iAQVTKWidget;
 class iARemoteRenderer;
 
 class QHttpServer;
-class QTableWidget;
 
 class iARemoteTool : public QObject, public iATool
 {
@@ -28,9 +26,7 @@ private slots:
 
 private:
 	std::unique_ptr<iARemoteRenderer> m_remoteRenderer;
-	QMap<QString, QWidget*> m_viewWidgets;
 #ifdef QT_HTTPSERVER
 	std::unique_ptr<QHttpServer> m_httpServer;
 #endif
-	QTableWidget* m_clientList;
 };

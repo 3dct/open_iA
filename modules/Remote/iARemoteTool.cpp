@@ -129,12 +129,10 @@ void iARemoteTool::init()
 		annotTool = newTool.get();
 	}
 	m_remoteRenderer->addRenderWindow(m_child->renderer()->renderWindow(), "3D");
-	m_viewWidgets.insert("3D", m_child->rendererWidget());
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
 		m_remoteRenderer->addRenderWindow(m_child->slicer(i)->renderWindow(), slicerModeString(i));
 		m_child->slicer(i)->setShowTooltip(false);
-		m_viewWidgets.insert(slicerModeString(i), m_child->slicer(i));
 	}
 	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::controlCommand, this, [this]()
 		{
@@ -238,34 +236,35 @@ void iARemoteTool::init()
 	listenStr += QString("; http: localhost:%1").arg(finalPort);
 #endif
 	clientContainer->layout()->addWidget(new iAQCropLabel(listenStr));
-	m_clientList = new QTableWidget(clientContainer);
-	QStringList columnNames = { "id", "status", "sent", "received" };
-	m_clientList->setColumnCount(static_cast<int>(columnNames.size()));
-	m_clientList->setHorizontalHeaderLabels(columnNames);
-	m_clientList->verticalHeader()->hide();
-	//m_clientList->setSelectionBehavior(QAbstractItemView::SelectRows);
-	//m_clientList->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
-	m_clientList->setEditTriggers(QAbstractItemView::NoEditTriggers);
-	m_clientList->resizeColumnsToContents();
-	clientContainer->layout()->addWidget(m_clientList);
+	auto clientList = new QTableWidget(clientContainer);
+	QStringList columnNames = { "ID", "Status", "View", "Sent", "Received" };
+	clientList->setColumnCount(static_cast<int>(columnNames.size()));
+	clientList->setHorizontalHeaderLabels(columnNames);
+	clientList->verticalHeader()->hide();
+	//clientList->setSelectionBehavior(QAbstractItemView::SelectRows);
+	//clientList->setSelectionMode(QAbstractItemView::SelectionMode::SingleSelection);
+	clientList->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	clientList->resizeColumnsToContents();
+	clientContainer->layout()->addWidget(clientList);
 	auto dw = new iADockWidgetWrapper(clientContainer, "Remote Rendering Clients", "RemoteClientList", "https://github.com/3dct/open_iA/wiki/Remote");
 	m_child->splitDockWidget(m_child->renderDockWidget(), dw, Qt::Vertical);
-
-	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientConnected, this, [this](quint64 id)
+	enum ColIndices { ColID, ColStatus, ColView, ColRcvd, ColSent };
+	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientConnected, this, [clientList](int id)
 		{
-			int row = m_clientList->rowCount();
-			m_clientList->insertRow(row);
-			m_clientList->setItem(row, 0, new QTableWidgetItem(QString::number(id)));
-			m_clientList->setItem(row, 1, new QTableWidgetItem("connected"));
-			m_clientList->setItem(row, 2, new QTableWidgetItem(QString::number(0)));
-			m_clientList->setItem(row, 3, new QTableWidgetItem(QString::number(0)));
-			m_clientList->resizeColumnsToContents();
+			int row = clientList->rowCount();
+			clientList->insertRow(row);
+			clientList->setItem(row, ColID, new QTableWidgetItem(QString::number(id)));
+			clientList->setItem(row, ColStatus, new QTableWidgetItem("connected"));
+			clientList->setItem(row, ColView, new QTableWidgetItem("unknown"));
+			clientList->setItem(row, ColRcvd, new QTableWidgetItem(QString::number(0)));
+			clientList->setItem(row, ColSent, new QTableWidgetItem(QString::number(0)));
+			clientList->resizeColumnsToContents();
 		});
-	auto findClientRow = [this](quint64 clientID) -> int
+	auto findClientRow = [clientList](int clientID) -> int
 		{
-			for (int row = 0; row < m_clientList->rowCount(); ++row)
+			for (int row = 0; row < clientList->rowCount(); ++row)
 			{
-				auto listClientID = m_clientList->item(row, 0)->text().toULongLong();
+				auto listClientID = clientList->item(row, ColID)->text().toInt();
 				if (listClientID == clientID)
 				{
 					return row;
@@ -273,18 +272,25 @@ void iARemoteTool::init()
 			}
 			return -1;
 		};
-	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientDisconnected, this, [this, findClientRow](quint64 id)
+	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientSubscribed, this, [clientList, findClientRow](int clientID, QString viewID)
 		{
-			int row = findClientRow(id);
-			m_clientList->item(row, 1)->setText("disconnected");
-			m_clientList->resizeColumnsToContents();
+			int row = findClientRow(clientID);
+			clientList->item(row, ColView)->setText(viewID);
+			clientList->resizeColumnsToContents();
+
 		});
-	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientTransferUpdated, this, [this, findClientRow](quint64 id, quint64 rcvd, quint64 sent)
+	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientDisconnected, this, [clientList, findClientRow](int id)
 		{
 			int row = findClientRow(id);
-			m_clientList->item(row, 2)->setText(dblToStringWithUnits(sent) + "B");
-			m_clientList->item(row, 3)->setText(dblToStringWithUnits(rcvd) + "B");
-			m_clientList->resizeColumnsToContents();
+			clientList->item(row, ColStatus)->setText("disconnected");
+			clientList->resizeColumnsToContents();
+		});
+	connect(m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::clientTransferUpdated, this, [clientList, findClientRow](int id, quint64 rcvd, quint64 sent)
+		{
+			int row = findClientRow(id);
+			clientList->item(row, ColRcvd)->setText(dblToStringWithUnits(sent) + "B");
+			clientList->item(row, ColSent)->setText(dblToStringWithUnits(rcvd) + "B");
+			clientList->resizeColumnsToContents();
 		});
 }
 
