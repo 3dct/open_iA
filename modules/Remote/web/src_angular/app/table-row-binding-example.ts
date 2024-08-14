@@ -35,7 +35,6 @@ export class TableRowBindingExample {
   WebSocket: WebSocketSubject<any>;
   addMode: Boolean = false;
   selectedID: int = -1;
-
   buttonColor:string ='primary';
 
   constructor(public dialog: MatDialog) {}
@@ -45,71 +44,56 @@ export class TableRowBindingExample {
     console.log("this.router.url");
     this.WebSocket = webSocket('ws://'+location.hostname+':1234');
     this.WebSocket. subscribe(messages => {
-		if(messages.id ==="caption.response"){
+		if (messages.id ==="caption.response") {
 			this.dataSource=messages.captionList;
 			this.addMode=false;
 		}
-		if(messages.id ==="caption.interactionUpdate"){
+		if (messages.id ==="caption.interactionUpdate") {
 			this.selectedID=messages.focusedId;
 		}
 	});
     let  methode:String = "subscribe.captions";
     this.WebSocket.next({method: methode } );
-
-}
-
-sendDelete(id: int){
-    let  methode:String = "remove.caption";
-    this.WebSocket.next({method: methode, id:id } );
-}
-
-sendSelect(id: int){
-  let  methode:String = "select.caption";
-  this.WebSocket.next({method: methode, id:id } );
-  this.selectedID = id;
-}
-
-addModeToggle(){
-	this.addMode=true;
-  let  methode:String = "addMode.caption";
-  this.WebSocket.next({method: methode, addMode:this.addMode } );
-}
-
-
-hideAnnotation(id: int){
-  let  methode:String = "hideAnnotation.caption";
-  this.WebSocket.next({method: methode, id:id } );
-}
-
-openDialog(id:int): void {
-
-  let title = "";
-
-  for(var element of this.dataSource){
-    if(element.id == id){
-      title = element.Title;
-    }
   }
 
-  const dialogRef = this.dialog.open(DialogComponent, {
-    width: '250px',
-    data: {title: title},
-  });
+  sendDelete(id: int){
+    let  methode:String = "remove.caption";
+    this.WebSocket.next({method: methode, id:id } );
+  }
 
-  dialogRef.afterClosed().subscribe(result => {
+  sendSelect(id: int){
+    let  methode:String = "select.caption";
+    this.WebSocket.next({method: methode, id:id } );
+    this.selectedID = id;
+  }
 
-    if(result){
-      let  methode:String = "nameChanged.caption";
-      this.WebSocket.next({method: methode, id:id , title:result} );
+  addModeToggle(){
+    this.addMode=true;
+    let  methode:String = "addMode.caption";
+    this.WebSocket.next({method: methode, addMode:this.addMode } );
+  }
+
+  hideAnnotation(id: int){
+    let  methode:String = "hideAnnotation.caption";
+    this.WebSocket.next({method: methode, id:id } );
+  }
+
+  openDialog(id:int): void {
+    let title = "";
+    for (var element of this.dataSource) {
+      if (element.id == id) {
+        title = element.Title;
+      }
     }
-
-  });
+    const dialogRef = this.dialog.open(DialogComponent, {
+      width: '250px',
+      data: {title: title},
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        let  methode:String = "nameChanged.caption";
+        this.WebSocket.next({method: methode, id:id , title:result} );
+      }
+    });
+  }
 }
-
-
-}
-
-
-/**  Copyright 2022 Google LLC. All Rights Reserved.
-    Use of this source code is governed by an MIT-style license that
-    can be found in the LICENSE file at https://angular.io/license */
