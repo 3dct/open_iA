@@ -27,7 +27,7 @@ quint16 connectPortInternal(ServerType* server, quint16 port, int const maxTries
 	{
 		while (portsInUse().contains(port))
 		{
-			//LOG(lvlDebug, QString("Skipping port %1 because it is still in use by open_iA").arg(port));
+			//LOG(lvlDebug, QString("Skipping port %1 because it is (probably) still in use").arg(port));
 			++port;
 		}
 		connected = server->listen(QHostAddress::Any, port);
