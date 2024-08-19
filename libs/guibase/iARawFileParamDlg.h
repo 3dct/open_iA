@@ -39,9 +39,15 @@ private:
 	iAParameterDlg* m_inputDlg;
 	bool m_accepted;
 	bool m_brightTheme;
+	bool m_previewShown;
+	QWidget* m_previewContainer;
 private slots:
 	//! update labels indicating whether current parameters fit the actual file size
 	void checkFileSize();
 	//! guess file parameters from file name
 	void guessParameters(QString fileName);
+	//! toggle preview visibility
+	void togglePreview();
+	//! update the preview if visible
+	void updatePreview(bool paramsOK);
 };

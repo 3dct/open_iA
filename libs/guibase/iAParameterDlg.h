@@ -20,6 +20,7 @@ class iAMainWindow;
 class iAMdiChild;
 
 class QDialogButtonBox;
+class QGridLayout;
 class QString;
 class QWidget;
 
@@ -41,7 +42,9 @@ public:
 	void setSourceMdi(iAMdiChild* child, iAMainWindow* mainWnd);
 	QWidget* paramWidget(QString const & key);
 	void setOKEnabled(bool enabled);
-	void setValue(QString const & key, QVariant const & value);
+	void setValue(QString const& key, QVariant const& value);
+	QGridLayout* formLayout();
+	QGridLayout* mainLayout();
 
 private slots:
 	void updatedROI(QVariant value);
@@ -58,6 +61,7 @@ private:
 	QVector<QWidget*> m_widgetList;
 	iAAttributes m_parameters;
 	QDialogButtonBox* m_buttonBox;
+	QGridLayout *m_formLayout, *m_mainLayout;
 
 	void updateROIPart(QString const& partName, QVariant value);
 };

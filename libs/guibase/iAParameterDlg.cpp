@@ -65,10 +65,11 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 	m_sourceMdiChild(nullptr),
 	m_sourceMdiChildClosed(false),
 	m_widgetList(parameters.size()),
-	m_parameters(parameters)
+	m_parameters(parameters),
+	m_mainLayout(new QGridLayout()),
+	m_formLayout(new QGridLayout())
 {
-	auto gridLayout = new QGridLayout();
-	gridLayout->setContentsMargins(4, 4, 4, 4);
+	m_formLayout->setContentsMargins(4, 4, 4, 4);
 	m_buttonBox = new QDialogButtonBox();
 	m_buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
 	connect(m_buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
@@ -83,6 +84,9 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 	//Generates a scrollable container for the widgets with a grid layout
 	auto scrollArea = new QScrollArea(this);
 
+	setLayout(m_mainLayout);
+	auto mainWidget = new QWidget();
+	m_mainLayout->addWidget(mainWidget);
 	if (!descr.isEmpty())
 	{
 		auto info = new QTextBrowser();
@@ -97,17 +101,17 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 		auto s = new QSplitter(Qt::Vertical);
 		s->addWidget(info);
 		auto w = new QWidget();
-		w->setLayout(gridLayout);
+		w->setLayout(m_formLayout);
 		s->addWidget(w);
 		s->setCollapsible(0, true);
 		s->setCollapsible(1, false);
-		setLayout(new QHBoxLayout);
+		mainWidget->setLayout(new QHBoxLayout);
 		layout()->addWidget(s);
 		layout()->setContentsMargins(4, 4, 4, 4);
 	}
 	else
 	{
-		setLayout(gridLayout);
+		mainWidget->setLayout(m_formLayout);
 	}
 
 	scrollArea->setObjectName("scrollArea");
@@ -263,8 +267,8 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 	pal.setColor(scrollArea->backgroundRole(), Qt::transparent);
 	scrollArea->setPalette(pal);
 
-	gridLayout->addWidget(scrollArea, 1, 0);
-	gridLayout->addWidget(m_buttonBox, 2, 0);
+	m_formLayout->addWidget(scrollArea, 1, 0);
+	m_formLayout->addWidget(m_buttonBox, 2, 0);
 }
 
 void iAParameterDlg::setValue(QString const& key, QVariant const& value)
@@ -580,4 +584,14 @@ int iAParameterDlg::exec()
 void iAParameterDlg::setOKEnabled(bool enabled)
 {
 	m_buttonBox->button(QDialogButtonBox::Ok)->setEnabled(enabled);
+}
+
+QGridLayout* iAParameterDlg::mainLayout()
+{
+	return m_mainLayout;
+}
+
+QGridLayout* iAParameterDlg::formLayout()
+{
+	return m_formLayout;
 }

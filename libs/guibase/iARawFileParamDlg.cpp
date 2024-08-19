@@ -17,10 +17,12 @@
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QSpinBox>
+#include <QToolButton>
 
 iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, QString const& title, QVariantMap & paramValues, bool brightTheme) :
 	m_accepted(false),
-	m_brightTheme(brightTheme)
+	m_brightTheme(brightTheme),
+	m_previewShown(false)
 {
 	QFileInfo info1(fileName);
 	m_fileSize = info1.size();
@@ -60,6 +62,13 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	connect(qobject_cast<QSpinBox*>(m_inputDlg->paramWidget(iARawFileIO::HeadersizeStr)), QOverload<int>::of(&QSpinBox::valueChanged), this, &iARawFileParamDlg::checkFileSize);
 	connect(qobject_cast<QComboBox*>(m_inputDlg->paramWidget(iARawFileIO::DataTypeStr)), QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iARawFileParamDlg::checkFileSize);
 
+
+	auto previewButton = new QToolButton(m_inputDlg);
+	previewButton->setText("Preview >>");
+	m_inputDlg->formLayout()->addWidget(previewButton);
+	connect(previewButton, &QToolButton::pressed, this, &iARawFileParamDlg::togglePreview);
+	//m_inputDlg->mainLayout()->addWidget()
+
 	checkFileSize();
 
 	if (m_inputDlg->exec() != QDialog::Accepted)
@@ -91,11 +100,14 @@ void iARawFileParamDlg::checkFileSize()
 	m_proposedSizeLabel->setText(valid ?
 		"Predicted file size: " + QString::number(proposedSize) + " bytes" :
 		"Invalid numbers in size, data type or header size (too large/negative)?");
+	bool paramsOK = proposedSize == m_fileSize;
 	m_proposedSizeLabel->setStyleSheet(
-		QString("QLabel { background-color : %1; }").arg(proposedSize == m_fileSize ?
+		QString("QLabel { background-color : %1; }").arg(paramsOK ?
 			(m_brightTheme ? "#BFB" : "#070"):
 			(m_brightTheme ? "#FBB" : "#700") ));
-	m_inputDlg->setOKEnabled(proposedSize == m_fileSize);
+	m_inputDlg->setOKEnabled(paramsOK);
+
+	updatePreview(paramsOK);
 }
 
 void iARawFileParamDlg::guessParameters(QString fileName)
@@ -162,4 +174,34 @@ QVariantMap iARawFileParamDlg::parameterValues() const
 iARawFileParamDlg::~iARawFileParamDlg()
 {
 	delete m_inputDlg;
+}
+
+void iARawFileParamDlg::togglePreview()
+{
+	if (m_previewShown)
+	{
+		m_previewContainer->hide();
+	}
+	else
+	{
+		if (m_previewContainer)
+		{
+			m_previewContainer = new QWidget();
+			auto text = new QLabel("Preview");
+			m_previewContainer->setLayout(new QHBoxLayout);
+			m_previewContainer->layout()->addWidget(text);
+			m_inputDlg->mainLayout()->addWidget(m_previewContainer, 0, 1, m_inputDlg->formLayout()->rowCount(), 1);
+		}
+		m_previewContainer->show();
+	}
+	m_previewShown = !m_previewShown;
+}
+
+void iARawFileParamDlg::updatePreview(bool paramsOK)
+{
+	if (!m_previewShown)
+	{
+		return;
+	}
+
 }
