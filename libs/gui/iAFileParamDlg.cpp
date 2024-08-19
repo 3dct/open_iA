@@ -96,8 +96,7 @@ public:
 		Q_UNUSED(parameters);    // iARawFileParamDlg knows which parameters to get
 		Q_UNUSED(ioName);
 		Q_UNUSED(dataSet);
-		iAAttributes additionalParams;
-		iARawFileParamDlg dlg(fileName, parent, "Raw file parameters", additionalParams, values, iAThemeHelper::brightMode());
+		iARawFileParamDlg dlg(fileName, parent, "Raw file parameters", values, iAThemeHelper::brightMode());
 		if (!dlg.accepted())
 		{
 			return false;

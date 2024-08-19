@@ -18,8 +18,7 @@
 #include <QRegularExpression>
 #include <QSpinBox>
 
-iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, QString const& title,
-	iAAttributes const& additionalParams, QVariantMap & paramValues, bool brightTheme) :
+iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, QString const& title, QVariantMap & paramValues, bool brightTheme) :
 	m_accepted(false),
 	m_brightTheme(brightTheme)
 {
@@ -38,7 +37,6 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	addAttr(params, iARawFileIO::HeadersizeStr, iAValueType::Discrete, paramValues[iARawFileIO::HeadersizeStr].toInt(), 0);
 	addAttr(params, iARawFileIO::DataTypeStr, iAValueType::Categorical, datatypeList);
 	addAttr(params, iARawFileIO::ByteOrderStr, iAValueType::Categorical, byteOrderList);
-	params.append(additionalParams);
 	m_inputDlg = new iAParameterDlg(parent, title, params);
 
 	auto fileNameLabel = new QLabel(QString("File Name: %1").arg(QFileInfo(fileName).fileName()));
