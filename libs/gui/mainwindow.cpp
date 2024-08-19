@@ -3,7 +3,6 @@
 #include "mainwindow.h"
 
 // gui
-#include "dlg_datatypeconversion.h"
 #include "iAAboutDlg.h"
 #include "iACheckOpenGL.h"
 #include "iAFileParamDlg.h"
@@ -20,7 +19,6 @@
 #include <iAModuleDispatcher.h>
 #include <iAParameterDlg.h>
 #include <iAQMenuHelper.h>
-#include <iARawFileParamDlg.h>
 #include <iARenderer.h>
 #include <iASavableProject.h>
 #include <iASlicer.h>        // for iASlicer and slicerModeString
@@ -292,7 +290,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	addActionIcon(m_ui->actionMagicLens3D, "magic_lens_3d");
 	addActionIcon(m_ui->actionSlicerSettings, "settings_slicer");
 	addActionIcon(m_ui->actionPreferences, "settings");
-	addActionIcon(m_ui->actionOpenWithDataTypeConversion, "open");
 	addActionIcon(m_ui->actionOpenTLGICTData, "open");
 	addActionIcon(m_ui->actionOpenRaw, "open");
 	addActionIcon(m_ui->actionOpenDataSet, "open");
@@ -1130,7 +1127,6 @@ void MainWindow::connectSignalsToSlots()
 		loadFiles(getOpenFileNames(), iAChildSource::make(true));
 	});
 	connect(m_ui->actionOpenRaw, &QAction::triggered, this, &MainWindow::openRaw);
-	connect(m_ui->actionOpenWithDataTypeConversion, &QAction::triggered, this, &MainWindow::openWithDataTypeConversion);
 	connect(m_ui->actionOpenTLGICTData, &QAction::triggered, this, &MainWindow::openTLGICTData);
 	connect(m_ui->actionSaveDataSet, &QAction::triggered, this, [childCall] { childCall(&MdiChild::save); });
 	connect(m_ui->actionSaveProject, &QAction::triggered, this, &MainWindow::saveProject);
@@ -1326,25 +1322,6 @@ void MainWindow::readSettings()
 		m_loadSaveSlice[m] = settings.value(QString("Parameters/loadSaveCamera%1").arg(slicerElemName(m)), true).toBool();
 	}
 	m_loadSaveApplyToAllOpenWindows = settings.value("Parameters/loadSaveApplyToAllOpenWindows", false).toBool();
-
-	m_owdtcs = settings.value("OpenWithDataTypeConversion/owdtcs", 1).toInt();
-	m_rawFileParams.m_size[0] = settings.value("OpenWithDataTypeConversion/owdtcx", 1).toInt();
-	m_rawFileParams.m_size[1] = settings.value("OpenWithDataTypeConversion/owdtcy", 1).toInt();
-	m_rawFileParams.m_size[2] = settings.value("OpenWithDataTypeConversion/owdtcz", 1).toInt();
-	m_rawFileParams.m_spacing[0] = settings.value("OpenWithDataTypeConversion/owdtcsx", 1.0).toDouble();
-	m_rawFileParams.m_spacing[1] = settings.value("OpenWithDataTypeConversion/owdtcsy", 1.0).toDouble();
-	m_rawFileParams.m_spacing[2] = settings.value("OpenWithDataTypeConversion/owdtcsz", 1.0).toDouble();
-	m_owdtcmin = settings.value("OpenWithDataTypeConversion/owdtcmin").toDouble();
-	m_owdtcmax = settings.value("OpenWithDataTypeConversion/owdtcmax").toDouble();
-	m_owdtcoutmin = settings.value("OpenWithDataTypeConversion/owdtcoutmin").toDouble();
-	m_owdtcoutmax = settings.value("OpenWithDataTypeConversion/owdtcoutmax").toDouble();
-	m_owdtcdov = settings.value("OpenWithDataTypeConversion/owdtcdov").toInt();
-	m_owdtcxori = settings.value("OpenWithDataTypeConversion/owdtcxori").toInt();
-	m_owdtcyori = settings.value("OpenWithDataTypeConversion/owdtcyori").toInt();
-	m_owdtczori = settings.value("OpenWithDataTypeConversion/owdtczori").toInt();
-	m_owdtcxsize = settings.value("OpenWithDataTypeConversion/owdtcxsize").toInt();
-	m_owdtcysize = settings.value("OpenWithDataTypeConversion/owdtcysize").toInt();
-	m_owdtczsize = settings.value("OpenWithDataTypeConversion/owdtczsize").toInt();
 }
 
 void MainWindow::writeSettings()
@@ -1384,25 +1361,6 @@ void MainWindow::writeSettings()
 	settings.setValue("Parameters/ShowToolbar", m_ui->actionShowToolbar->isChecked());
 	settings.setValue("Parameters/OpenLogOnNewMessages", m_ui->actionOpenLogOnNewMessage->isChecked());
 	settings.setValue("Parameters/OpenListOnAddedJob", m_ui->actionOpenListOnAddedJob->isChecked());
-
-	settings.setValue("OpenWithDataTypeConversion/owdtcs", m_owdtcs);
-	settings.setValue("OpenWithDataTypeConversion/owdtcx", m_rawFileParams.m_size[0]);
-	settings.setValue("OpenWithDataTypeConversion/owdtcy", m_rawFileParams.m_size[1]);
-	settings.setValue("OpenWithDataTypeConversion/owdtcz", m_rawFileParams.m_size[2]);
-	settings.setValue("OpenWithDataTypeConversion/owdtcsx", m_rawFileParams.m_spacing[0]);
-	settings.setValue("OpenWithDataTypeConversion/owdtcsy", m_rawFileParams.m_spacing[1]);
-	settings.setValue("OpenWithDataTypeConversion/owdtcsz", m_rawFileParams.m_spacing[2]);
-	settings.setValue("OpenWithDataTypeConversion/owdtcmin", m_owdtcmin);
-	settings.setValue("OpenWithDataTypeConversion/owdtcmax", m_owdtcmax);
-	settings.setValue("OpenWithDataTypeConversion/owdtcoutmin", m_owdtcoutmin);
-	settings.setValue("OpenWithDataTypeConversion/owdtcoutmax", m_owdtcoutmax);
-	settings.setValue("OpenWithDataTypeConversion/owdtcdov", m_owdtcdov);
-	settings.setValue("OpenWithDataTypeConversion/owdtcxori", m_owdtcxori);
-	settings.setValue("OpenWithDataTypeConversion/owdtcyori", m_owdtcyori);
-	settings.setValue("OpenWithDataTypeConversion/owdtczori", m_owdtczori);
-	settings.setValue("OpenWithDataTypeConversion/owdtcxsize", m_owdtcxsize);
-	settings.setValue("OpenWithDataTypeConversion/owdtcysize", m_owdtcysize);
-	settings.setValue("OpenWithDataTypeConversion/owdtczsize", m_owdtczsize);
 }
 
 void MainWindow::addRecentFile(const QString &fileName)
@@ -1911,77 +1869,6 @@ iAPreferences const & MainWindow::defaultPreferences() const
 iAModuleDispatcher & MainWindow::moduleDispatcher() const
 {
 	return *this->m_moduleDispatcher.data();
-}
-
-
-// Move to other places (modules?):
-
-void MainWindow::openWithDataTypeConversion()
-{
-	iARawFileIO io;
-	QString fileName = QFileDialog::getOpenFileName(this,
-		tr("Open File"),
-		m_path,
-		io.filterString()
-	);
-	if (fileName.isEmpty())
-	{
-		return;
-	}
-	iAAttributes params;
-	addAttr(params, "Slice sample rate", iAValueType::Discrete, m_owdtcs, 1);
-	auto map = rawParamsToMap(m_rawFileParams);
-	iARawFileParamDlg dlg(fileName, this, "Open With DataType Conversion", params, map, brightMode());
-	if (!dlg.accepted())
-	{
-		return;
-	}
-	m_rawFileParams = rawParamsFromMap(dlg.parameterValues());
-	m_owdtcs = clamp(1u, m_rawFileParams.m_size[2], static_cast<unsigned int>(dlg.parameterValues()["Slice sample rate"].toUInt()));
-
-	double convPara[11];
-	convPara[0] = m_owdtcmin;   convPara[1] = m_owdtcmax;  convPara[2] = m_owdtcoutmin; convPara[3] = m_owdtcoutmax; convPara[4] =  m_owdtcdov; convPara[5] = m_owdtcxori;
-	convPara[6] = m_owdtcxsize; convPara[7] = m_owdtcyori; convPara[8] = m_owdtcysize;  convPara[9] = m_owdtczori;   convPara[10] = m_owdtczsize;
-	try
-	{
-		dlg_datatypeconversion conversionwidget(this, fileName, m_rawFileParams, m_owdtcs, convPara);
-		if (conversionwidget.exec() != QDialog::Accepted)
-		{
-			return;
-		}
-
-		QString outDataType = conversionwidget.getDataType();
-		m_owdtcmin = conversionwidget.getRangeLower();   m_owdtcmax = conversionwidget.getRangeUpper();
-		m_owdtcoutmin = conversionwidget.getOutputMin(); m_owdtcoutmax = conversionwidget.getOutputMax();
-		m_owdtcdov = conversionwidget.getConvertROI();
-		m_owdtcxori = conversionwidget.getXOrigin(); m_owdtcxsize = conversionwidget.getXSize();
-		m_owdtcyori = conversionwidget.getYOrigin(); m_owdtcysize = conversionwidget.getYSize();
-		m_owdtczori = conversionwidget.getZOrigin(); m_owdtczsize = conversionwidget.getZSize();
-
-		double roi[6];
-		roi[0] = m_owdtcxori; roi[1] = m_owdtcxsize;
-		roi[2] = m_owdtcyori; roi[3] = m_owdtcysize;
-		roi[4] = m_owdtczori; roi[5] = m_owdtczsize;
-
-		QString finalfilename;
-		if (m_owdtcdov == 0)
-		{
-			finalfilename = conversionwidget.convert(fileName,
-				mapReadableDataTypeToVTKType(outDataType),
-				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax);
-		}
-		else
-		{
-			finalfilename = conversionwidget.convertROI(fileName, m_rawFileParams,
-				mapReadableDataTypeToVTKType(outDataType),
-				m_owdtcmin, m_owdtcmax, m_owdtcoutmin, m_owdtcoutmax, roi);
-		}
-		loadFile(finalfilename, iAChildSource::make(false, askWhichChild()));
-	}
-	catch (std::exception & e)
-	{
-		LOG(lvlError, QString("Open with datatype conversion: %1").arg(e.what()));
-	}
 }
 
 void MainWindow::openTLGICTData()

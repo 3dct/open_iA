@@ -100,7 +100,6 @@ signals:
 
 private slots:
 	void openRaw();
-	void openWithDataTypeConversion();
 	void openTLGICTData();
 	void loadSettings();
 	void saveSettings();
@@ -160,15 +159,6 @@ private:
 	bool m_useSystemTheme;
 	iASlicerSettings m_defaultSlicerSettings;
 	iAPreferences m_defaultPreferences;
-
-	//! @{ Open with DataType Conversion settings
-	unsigned int m_owdtcs;
-	int m_owdtcxori, m_owdtcyori, m_owdtczori,
-		m_owdtcxsize, m_owdtcysize, m_owdtczsize,
-		m_owdtcdov;
-	iARawFileParameters m_rawFileParams;
-	double m_owdtcoutmin, m_owdtcoutmax, m_owdtcmin, m_owdtcmax;
-	//! @}
 
 	QStringList m_settingsToLoadSave;  //!< list of default settings that by default are selected for loading from /saving to an XML settings file
 	bool m_loadSavePreferences, m_loadSaveSlicerSettings;
