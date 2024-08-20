@@ -4,6 +4,12 @@
 
 #include "iADefaultSettings.h"
 
+#if QT_VERSION >= QT_VERSION_CHECK(6,5,0)
+#include <QtTypes>    // for quint16
+#else
+#include <QtGlobal>
+#endif
+
 inline constexpr char RemotePortSettingsName[] = "Default Settings/Remote: Ports";
 //! Port settings for the remote rendering
 class iARemotePortSettings : iASettingsObject<RemotePortSettingsName, iARemotePortSettings>
@@ -29,8 +35,6 @@ public:
 
 class QHttpServer;
 class QWebSocketServer;
-
-#include <QtTypes>    // for quint16
 
 //! make the given server listen to a port, preferrably the one given as port parameter, but
 //! also a higher port number if not available; give up if  we haven't found a free port
