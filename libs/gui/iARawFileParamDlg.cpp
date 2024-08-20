@@ -5,6 +5,7 @@
 #include "iAAttributeDescriptor.h"    // for selectOption
 #include "iARawFileIO.h"
 #include "iALog.h"
+#include "iAParameterDlg.h"
 #include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
 #include "iAValueTypeVectorHelpers.h"
 

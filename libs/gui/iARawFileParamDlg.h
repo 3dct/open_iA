@@ -2,18 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iaguibase_export.h"
-
-#include "iAParameterDlg.h"
-
 #include <QObject>
+
+class iAParameterDlg;
 
 class QLabel;
 
 //! Shows a dialog specialized for reading parameters of a raw file.
 //! Adds a red/green bar depending on whether the currently specified dimensions
 //! match the size of the raw file.
-class iAguibase_API iARawFileParamDlg : public QObject
+class iARawFileParamDlg : public QObject
 {
 	Q_OBJECT
 
