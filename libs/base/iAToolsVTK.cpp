@@ -34,6 +34,22 @@
 // declared in iAVtkDraw.h
 vtkStandardNewMacro(iAvtkImageData);
 
+void iAvtkImageData::SetScalarRange(double min, double max)
+{
+	ScalarRangeComputeTime.Modified();
+	ScalarRange[0] = min;
+	ScalarRange[1] = max;
+}
+
+vtkSmartPointer<iAvtkImageData> allocateiAImage(int vtkType, int const dimensions[3], double const spacing[3], int numComponents)
+{
+	auto img = vtkSmartPointer<iAvtkImageData>::New();
+	img->SetDimensions(dimensions);
+	img->AllocateScalars(vtkType, numComponents);
+	img->SetSpacing(spacing);
+	return img;
+}
+
 
 vtkSmartPointer<vtkImageData> allocateImage(int vtkType, int const dimensions[3], double const spacing[3], int numComponents)
 {
