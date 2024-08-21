@@ -252,15 +252,15 @@ public:
 		std::array<qint64, 3> curCoords;
 		curCoords.fill(0);
 		curCoords[sliceZAxis] = m_sliceNr;
-		LOG(lvlDebug, QString("Mode %1: chunkSize: %2:")
-			.arg(slicerModeString(m_mode)).arg(chunkSize));
+		//LOG(lvlDebug, QString("Mode %1: chunkSize: %2; bytesToRead: %3")
+		//	.arg(slicerModeString(m_mode)).arg(chunkSize).arg(bytesToRead));
 		int readCnt = 0;
 		while (readSuccess && curIdx < totalValues)
 		{
 			qint64 idx = curCoords[0] + curCoords[1] * p.size[0] + curCoords[2] * p.size[0] * p.size[1];
 			qint64 seekPos = p.headerSize + (idx * p.voxelBytes());
-			LOG(lvlDebug, QString("    Mode %1: curIdx: %2; curCoords: %3; seekPos: %4; readCnt: %5")
-				.arg(slicerModeString(m_mode)).arg(curIdx).arg(arrayToString(curCoords)).arg(seekPos).arg(readCnt));
+			//LOG(lvlDebug, QString("    Mode %1: curIdx: %2; curCoords: %3; seekPos: %4; readCnt: %5")
+			//	.arg(slicerModeString(m_mode)).arg(curIdx).arg(arrayToString(curCoords)).arg(seekPos).arg(readCnt));
 			if (!file.seek(seekPos))
 			{
 				LOG(lvlError, QString("Seeking to position %1 failed while reading element %2 from file '%3' (error: %4)!")
@@ -268,6 +268,7 @@ public:
 				readSuccess = false;
 			}
 			auto result = file.read(reinterpret_cast<char*>(imgData + curIdx), bytesToRead);
+			//LOG(lvlDebug, QString("    Mode %1: values: %2").arg(slicerModeString(m_mode)).arg(arrayToString(imgData + curIdx, chunkSize)));
 			if (result != bytesToRead)
 			{
 				LOG(lvlError, QString("Could not read a full chunk of %1 bytes (only read %2 bytes) while reading element %3 from file '%4' (error: %5)!")
