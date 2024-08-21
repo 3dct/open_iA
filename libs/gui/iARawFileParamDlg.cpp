@@ -229,8 +229,8 @@ public:
 	template <typename T>
 	void readImageSlice(vtkSmartPointer<iAvtkImageData>& image, QString const& fileName, iARawFileParameters const& p, iAProgress& progress)
 	{
-		FILE* pFile = fopen(fileName.toStdString().c_str(), "rb");
-		if (pFile == nullptr)
+		QFile file(fileName);
+		if (!file.open(QIODevice::ReadOnly | QIODevice::Unbuffered))
 		{
 			QString msg(QString("Failed to open file %1!").arg(fileName));
 			throw std::runtime_error(msg.toStdString());
@@ -244,11 +244,12 @@ public:
 		int size[3] = { static_cast<int>(p.size[sliceXAxis]), static_cast<int>(p.size[sliceYAxis]), 1 };
 		image = allocateiAImage(p.scalarType, size, p.spacing.data(), 1);
 		m_sliceNr = p.size[sliceZAxis] / 2; // for now read "middle" slice
-		const int chunkSize = (m_mode == iASlicerMode::XY) ?
+		const qint64 chunkSize = (m_mode == iASlicerMode::XY) ?
 			p.size[sliceXAxis] * p.size[sliceYAxis] :  // read all in one chunk...
 			(m_mode == iASlicerMode::XZ ? p.size[sliceXAxis] : 1);
+		const qint64 bytesToRead = p.voxelBytes() * chunkSize;
 		T* imgData = static_cast<T*>(image->GetScalarPointer());
-		std::array<int, 3> curCoords;
+		std::array<qint64, 3> curCoords;
 		curCoords.fill(0);
 		curCoords[sliceZAxis] = m_sliceNr;
 		LOG(lvlDebug, QString("Mode %1: chunkSize: %2:")
@@ -256,28 +257,20 @@ public:
 		int readCnt = 0;
 		while (readSuccess && curIdx < totalValues)
 		{
-			auto seekPos = p.headerSize + curCoords[0] + curCoords[1] * p.size[0] + curCoords[2] * p.size[0] * p.size[1];
+			qint64 seekPos = p.headerSize + curCoords[0] + curCoords[1] * p.size[0] + curCoords[2] * p.size[0] * p.size[1];
 			LOG(lvlDebug, QString("    Mode %1: curIdx: %2; curCoords: %3; seekPos: %4; readCnt: %5")
 				.arg(slicerModeString(m_mode)).arg(curIdx).arg(arrayToString(curCoords)).arg(seekPos).arg(readCnt));
-			if (std::fseek(pFile, seekPos, SEEK_SET) != 0)
+			if (!file.seek(seekPos))
 			{
-				LOG(lvlError, QString("Seeking to position %1 failed while reading element %2 from file '%3' (eof: %4; error: %5)!")
-					.arg(seekPos)
-					.arg(curIdx)
-					.arg(fileName)
-					.arg(feof(pFile) ? "yes" : "no")
-					.arg(ferror(pFile) ? "yes" : "no"));
+				LOG(lvlError, QString("Seeking to position %1 failed while reading element %2 from file '%3' (error: %4)!")
+					.arg(seekPos).arg(curIdx).arg(fileName).arg(file.errorString()));
 				readSuccess = false;
 			}
-			size_t result = std::fread(reinterpret_cast<char*>(imgData + curIdx), p.voxelBytes(), chunkSize, pFile);
-			if (result != chunkSize)
+			auto result = file.read(reinterpret_cast<char*>(imgData + curIdx), bytesToRead);
+			if (result != bytesToRead)
 			{
-				LOG(lvlError, QString("Could not read a full chunk of size %1 (bytes) while reading element %2 from file '%3' (eof: %4; error: %5)!")
-					.arg(p.voxelBytes() * chunkSize)
-					.arg(curIdx)
-					.arg(fileName)
-					.arg(feof(pFile) ? "yes" : "no")
-					.arg(ferror(pFile) ? "yes" : "no"));
+				LOG(lvlError, QString("Could not read a full chunk of %1 bytes (only read %2 bytes) while reading element %3 from file '%4' (error: %5)!")
+					.arg(bytesToRead).arg(result).arg(curIdx).arg(fileName).arg(file.errorString()));
 				readSuccess = false;
 			}
 			curIdx += chunkSize;
@@ -299,7 +292,7 @@ public:
 		}
 		auto minmax = std::minmax_element(imgData, imgData + totalValues);
 		image->SetScalarRange(*minmax.first, *minmax.second);
-		std::fclose(pFile);
+		file.close();
 	}
 
 	void loadImage(QString const& fileName, iARawFileParameters const & params)
