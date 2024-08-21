@@ -153,12 +153,6 @@ public:
 	static const QString LittleEndianStr;
 	//! Returns a human-readable list of available byte orders (little/big endian)
 	static QStringList const& stringList();
-	//! Maps a given readable string to the according VTK byte order type.
-	//! Reverse to mapVTKByteOrderToReadable
-	static int mapStringToVTKType(QString const& name);
-	//! Maps a given VTK byte order type to the according readable string.
-	//! Reverse to mapReadableByteOrderToVTKType
-	static QString mapVTKTypeToString(int byteOrder);
 };
 
 

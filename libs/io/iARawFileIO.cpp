@@ -61,7 +61,7 @@ void readRawImage(QVariantMap const& params, QString const& fileName, iAConnecto
 {
 	auto io = itk::RawImageIO<T, iAITKIO::Dim>::New();
 	io->SetFileName(fileName.toStdString());
-	io->SetHeaderSize(params[iARawFileIO::HeadersizeStr].toInt());
+	io->SetHeaderSize(params[iARawFileIO::HeadersizeStr].toUInt());
 	auto dim = variantToVector<int>(params[iARawFileIO::SizeStr]);
 	auto spc = variantToVector<double>(params[iARawFileIO::SpacingStr]);
 	auto ori = variantToVector<double>(params[iARawFileIO::OriginStr]);
@@ -71,14 +71,7 @@ void readRawImage(QVariantMap const& params, QString const& fileName, iAConnecto
 		io->SetSpacing(i, spc[i]);
 		io->SetOrigin(i, ori[i]);
 	}
-	if (params[iARawFileIO::ByteOrderStr].toString() == iAByteOrder::LittleEndianStr)
-	{
-		io->SetByteOrderToLittleEndian();
-	}
-	else
-	{
-		io->SetByteOrderToBigEndian();
-	}
+	io->SetByteOrder(mapStringToITKByteOrder(params[iARawFileIO::ByteOrderStr].toString()));
 	auto reader = itk::ImageFileReader<itk::Image<T, iAITKIO::Dim>>::New();
 	reader->SetFileName(fileName.toStdString());
 	reader->SetImageIO(io);
@@ -127,7 +120,7 @@ std::shared_ptr<iADataSet> iARawFileIO::loadData(QString const& fileName, QVaria
 	//      165 (181), 165 (182), 162 (179) ms (including min/max computation)
 	// Quick tests with CFK-Probe_Stahlstift_10xavg_freebeam_448proj.raw (~5GB):
 	// VTK:  6690 (6956) ms
-	// ITK: 51837 (52087) ms (erstes Lesen von Hard disk), 5463 (5721) ms (zweites lesen, nach VTK)
+	// ITK: 51837 (52087) ms (first reading from hard disk), 5463 (5721) ms (second reading, after VTK)
 	//      -> ITK consistently faster, and much faster for small datasets!
 #endif
 	auto ds = std::make_shared<iAImageData>(img);
@@ -144,21 +137,7 @@ void writeRawImage(QString const& fileName, vtkImageData* img, QVariantMap param
 	auto writer = itk::ImageFileWriter<InputImageType>::New();
 	auto io = itk::RawImageIO<T, iAITKIO::Dim>::New();
 	io->SetFileName(fileName.toStdString());
-	//io->SetHeaderSize(0);
-	//for (int i = 0; i < DIM; i++)
-	//{
-	//	io->SetDimensions(i, img->GetDimensions()[i]);
-	//	io->SetSpacing(i, img->GetSpacing()[i]);
-	//	io->SetOrigin(i, img->GetOrigin()[i]);
-	//}
-	if (paramValues[iARawFileIO::ByteOrderStr].toString() == iAByteOrder::LittleEndianStr)
-	{
-		io->SetByteOrderToLittleEndian();
-	}
-	else
-	{
-		io->SetByteOrderToBigEndian();
-	}
+	io->SetByteOrder(mapStringToITKByteOrder(paramValues[iARawFileIO::ByteOrderStr].toString()));
 	writer->SetImageIO(io);
 	writer->SetFileName(fileName.toStdString());
 	writer->SetInput(dynamic_cast<InputImageType*>(con.itkImage()));
@@ -192,4 +171,9 @@ QString iARawFileIO::name() const
 QStringList iARawFileIO::extensions() const
 {
 	return QStringList{ "raw", "vol", "rec", "pro", "pre" };
+}
+
+itk::CommonEnums::IOByteOrder mapStringToITKByteOrder(QString const& byteOrder)
+{
+	return byteOrder == iAByteOrder::BigEndianStr ? itk::CommonEnums::IOByteOrder::BigEndian : itk::CommonEnums::IOByteOrder::LittleEndian;
 }

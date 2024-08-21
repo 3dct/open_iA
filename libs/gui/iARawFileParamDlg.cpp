@@ -6,6 +6,7 @@
 #include "iARawFileIO.h"
 #include "iALog.h"
 #include "iAParameterDlg.h"
+#include "iARawFileParameters.h"
 #include "iAToolsVTK.h"    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
 #include "iAValueTypeVectorHelpers.h"
 
@@ -88,27 +89,17 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 
 void iARawFileParamDlg::checkFileSize()
 {
-	auto values = m_inputDlg->parameterValues();
-	auto sizeVec = variantToVector<int>(values[iARawFileIO::SizeStr]);
-	qint64
-		sizeX = sizeVec[0],
-		sizeY = sizeVec[1],
-		sizeZ = sizeVec[2],
-		voxelSize = mapVTKTypeToSize(mapReadableDataTypeToVTKType(values["Data Type"].toString())),
-		headerSize = values[iARawFileIO::HeadersizeStr].toLongLong();
-	qint64 proposedSize = sizeX * sizeY * sizeZ * voxelSize + headerSize;
-	bool valid = !(sizeX <= 0 || sizeY <= 0 || sizeZ <= 0 || voxelSize <= 0 || headerSize < 0);
-	m_proposedSizeLabel->setText(valid ?
-		"Predicted file size: " + QString::number(proposedSize) + " bytes" :
-		"Invalid numbers in size, data type or header size (too large/negative)?");
-	bool paramsOK = proposedSize == m_fileSize;
+	m_params = iARawFileParameters::fromMap(m_inputDlg->parameterValues());
+	bool valid = m_params.has_value() && static_cast<qint64>(m_params->fileSize()) == m_fileSize;
+	m_proposedSizeLabel->setText(m_params.has_value() ?
+		"Predicted file size: " + QString::number(m_params->fileSize()) + " bytes" :
+		"Invalid number(s) in size, data type or header size (too large/negative)?");
 	m_proposedSizeLabel->setStyleSheet(
-		QString("QLabel { background-color : %1; }").arg(paramsOK ?
+		QString("QLabel { background-color : %1; }").arg(valid ?
 			(m_brightTheme ? "#BFB" : "#070"):
 			(m_brightTheme ? "#FBB" : "#700") ));
-	m_inputDlg->setOKEnabled(paramsOK);
-
-	updatePreview(paramsOK);
+	m_inputDlg->setOKEnabled(valid);
+	updatePreview(valid);
 }
 
 void iARawFileParamDlg::guessParameters(QString fileName)

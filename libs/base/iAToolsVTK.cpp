@@ -350,16 +350,6 @@ QStringList const& iAByteOrder::stringList()
 	return byteOrders;
 }
 
-QString iAByteOrder::mapVTKTypeToString(int byteOrder)
-{
-	return (byteOrder == VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN) ? LittleEndianStr : BigEndianStr;
-}
-
-int iAByteOrder::mapStringToVTKType(QString const& name)
-{
-	return (name == LittleEndianStr) ? VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN : VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
-}
-
 void setCamPosition(vtkCamera* cam, iACameraPosition pos)
 {
 	switch (pos)

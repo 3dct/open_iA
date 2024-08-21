@@ -7,7 +7,6 @@
 #include "iAMainWindow.h"
 #include "iAPreferences.h"
 #include "iASlicerSettings.h"
-#include "iARawFileParameters.h"
 
 #include <QMdiArea>
 #include <QPointer>

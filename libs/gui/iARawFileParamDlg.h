@@ -4,6 +4,8 @@
 
 #include <QObject>
 
+#include <iARawFileParameters.h>
+
 class iAParameterDlg;
 
 class QLabel;
@@ -39,6 +41,8 @@ private:
 	bool m_brightTheme;
 	bool m_previewShown;
 	QWidget* m_previewContainer;
+	std::optional<iARawFileParameters> m_params;
+
 private slots:
 	//! update labels indicating whether current parameters fit the actual file size
 	void checkFileSize();
