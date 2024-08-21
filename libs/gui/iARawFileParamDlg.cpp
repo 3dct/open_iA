@@ -99,7 +99,7 @@ void iARawFileParamDlg::checkFileSize()
 			(m_brightTheme ? "#BFB" : "#070"):
 			(m_brightTheme ? "#FBB" : "#700") ));
 	m_inputDlg->setOKEnabled(valid);
-	updatePreview(valid);
+	updatePreview();
 }
 
 void iARawFileParamDlg::guessParameters(QString fileName)
@@ -168,6 +168,95 @@ iARawFileParamDlg::~iARawFileParamDlg()
 	delete m_inputDlg;
 }
 
+//maybe use iASlicer?
+
+#include <iAQVTKWidget.h>
+#include <iASlicerMode.h>
+#include <iATransferFunction.h>
+
+#include <vtkActor.h>
+#include <vtkColorTransferFunction.h>
+#include <vtkImageActor.h>
+#include <vtkImageData.h>
+#include <vtkImageMapToColors.h>
+#include <vtkImageMapper3D.h>
+#include <vtkInteractorStyleImage.h>
+#include <vtkRenderer.h>
+#include <vtkRenderWindow.h>
+
+#include <QProgressBar>
+
+class iASlicerUIData
+{
+private:
+	iAQVTKWidget* slicerWidget = new iAQVTKWidget();
+	QProgressBar* progress = new QProgressBar();
+	QVBoxLayout* boxLayout = new QVBoxLayout();
+	iASlicerMode m_mode;
+public:
+	iASlicerUIData(iASlicerMode mode):
+		m_mode(mode)
+	{
+		QLabel* label = new QLabel(QString("%1").arg(slicerModeString(mode)));
+		label->setMinimumWidth(50);
+		label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		slicerWidget->setMinimumHeight(50);
+		//slicerWidget->setWindowTitle(QString("%1").arg(name));
+
+		auto window = slicerWidget->renderWindow();
+		window->SetNumberOfLayers(2);
+		auto imageStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
+		window->GetInteractor()->SetInteractorStyle(imageStyle);
+
+		boxLayout->addWidget(label);
+		boxLayout->addWidget(slicerWidget);
+	}
+	QVBoxLayout* layout()
+	{
+		return boxLayout;
+	}
+	void loadImage(QString fileName)
+	{
+		vtkNew<vtkImageData> image;
+		auto color = vtkSmartPointer<vtkImageMapToColors>::New();
+		auto table = defaultColorTF(image->GetScalarRange());
+		color->SetLookupTable(table);
+		color->SetInputData(image);
+		color->Update();
+		auto imageActor = vtkSmartPointer<vtkImageActor>::New();
+		imageActor->SetInputData(color->GetOutput());
+		imageActor->GetMapper()->BorderOn();
+
+		auto imageRenderer = vtkSmartPointer<vtkRenderer>::New();
+		imageRenderer->SetLayer(0);
+		imageRenderer->AddActor(imageActor);
+		imageRenderer->ResetCamera();
+
+		auto window = slicerWidget->renderWindow();
+		window->AddRenderer(imageRenderer);
+
+		/*
+		auto roiMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
+		roiMapper->SetInputConnection(roiSource->GetOutputPort());
+		auto roiActor = vtkSmartPointer<vtkActor>::New();
+		roiActor->SetVisibility(true);
+		roiActor->SetMapper(roiMapper);
+		roiActor->GetProperty()->SetColor(1, 0, 0);
+		roiActor->GetProperty()->SetOpacity(1);
+		roiActor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
+		roiMapper->Update();
+
+		auto roiRenderer = vtkSmartPointer<vtkRenderer>::New();
+		roiRenderer->SetLayer(1);
+		roiRenderer->AddActor(roiActor);
+		roiRenderer->SetInteractive(false);
+		roiRenderer->SetActiveCamera(imageRenderer->GetActiveCamera());
+
+		window->AddRenderer(roiRenderer);
+		*/
+	}
+};
+
 void iARawFileParamDlg::togglePreview()
 {
 	if (m_previewShown)
@@ -179,9 +268,14 @@ void iARawFileParamDlg::togglePreview()
 		if (m_previewContainer)
 		{
 			m_previewContainer = new QWidget();
-			auto text = new QLabel("Preview");
-			m_previewContainer->setLayout(new QHBoxLayout);
-			m_previewContainer->layout()->addWidget(text);
+			auto layout = new QHBoxLayout;
+			m_previewContainer->setLayout(layout);
+			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+			{
+				m_slicer.push_back(std::make_shared<iASlicerUIData>(static_cast<iASlicerMode>(i)));
+				layout->addLayout(m_slicer[i]->layout());
+
+			}
 			m_inputDlg->mainLayout()->addWidget(m_previewContainer, 0, 1, m_inputDlg->formLayout()->rowCount(), 1);
 		}
 		m_previewContainer->show();
@@ -189,11 +283,13 @@ void iARawFileParamDlg::togglePreview()
 	m_previewShown = !m_previewShown;
 }
 
-void iARawFileParamDlg::updatePreview(bool paramsOK)
+void iARawFileParamDlg::updatePreview()
 {
 	if (!m_previewShown)
 	{
 		return;
 	}
-
+	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+	{
+	}
 }

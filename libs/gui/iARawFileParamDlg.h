@@ -7,6 +7,7 @@
 #include <iARawFileParameters.h>
 
 class iAParameterDlg;
+class iASlicerUIData;
 
 class QLabel;
 
@@ -41,6 +42,7 @@ private:
 	bool m_brightTheme;
 	bool m_previewShown;
 	QWidget* m_previewContainer;
+	std::vector<std::shared_ptr<iASlicerUIData>> m_slicer;
 	std::optional<iARawFileParameters> m_params;
 
 private slots:
@@ -51,5 +53,5 @@ private slots:
 	//! toggle preview visibility
 	void togglePreview();
 	//! update the preview if visible
-	void updatePreview(bool paramsOK);
+	void updatePreview();
 };
