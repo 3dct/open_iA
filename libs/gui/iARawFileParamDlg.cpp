@@ -201,13 +201,15 @@ private:
 	iASlicerMode m_mode;
 	iARawFileParameters m_lastParams;
 	vtkSmartPointer<vtkRenderer> m_imageRenderer;
+	QLabel* m_label;
+	int m_sliceNr;
 public:
 	iASlicerUIData(iASlicerMode mode):
-		m_mode(mode)
+		m_mode(mode),
+		m_label(new QLabel(QString("%1").arg(slicerModeString(mode))))
 	{
-		QLabel* label = new QLabel(QString("%1").arg(slicerModeString(mode)));
-		label->setMinimumWidth(50);
-		label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		m_label->setMinimumWidth(50);
+		m_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		slicerWidget->setMinimumHeight(50);
 		//slicerWidget->setWindowTitle(QString("%1").arg(name));
 
@@ -216,7 +218,7 @@ public:
 		auto imageStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
 		window->GetInteractor()->SetInteractorStyle(imageStyle);
 
-		boxLayout->addWidget(label);
+		boxLayout->addWidget(m_label);
 		boxLayout->addWidget(slicerWidget);
 		boxLayout->addWidget(progressBar);
 	}
@@ -227,52 +229,76 @@ public:
 	template <typename T>
 	void readImageSlice(vtkSmartPointer<iAvtkImageData>& image, QString const& fileName, iARawFileParameters const& p, iAProgress& progress)
 	{
-		int size[3] = { static_cast<int>(p.size[0]), static_cast<int>(p.size[1]), static_cast<int>(p.size[2]) };
-		image = allocateiAImage(p.scalarType, size, p.spacing.data(), 1);
 		FILE* pFile = fopen(fileName.toStdString().c_str(), "rb");
 		if (pFile == nullptr)
 		{
 			QString msg(QString("Failed to open file %1!").arg(fileName));
 			throw std::runtime_error(msg.toStdString());
 		}
-		if (p.headerSize > 0)
-		{
-			std::fseek(pFile, p.headerSize, SEEK_SET);
-		}
 		bool readSuccess = true;
-		const int ElemCount = 1;
 		size_t curIdx = 0;
-		size_t totalValues = p.size[0] * p.size[1];
+		int sliceXAxis = mapSliceToGlobalAxis(m_mode, 0);
+		int sliceYAxis = mapSliceToGlobalAxis(m_mode, 1);
+		int sliceZAxis = mapSliceToGlobalAxis(m_mode, 2);
+		size_t totalValues = p.size[sliceXAxis] * p.size[sliceYAxis];
+		int size[3] = { static_cast<int>(p.size[sliceXAxis]), static_cast<int>(p.size[sliceYAxis]), 1 };
+		image = allocateiAImage(p.scalarType, size, p.spacing.data(), 1);
+		m_sliceNr = p.size[sliceZAxis] / 2; // for now read "middle" slice
+		const int chunkSize = (m_mode == iASlicerMode::XY) ?
+			p.size[sliceXAxis] * p.size[sliceYAxis] :  // read all in one chunk...
+			(m_mode == iASlicerMode::XZ ? p.size[sliceXAxis] : 1);
 		T* imgData = static_cast<T*>(image->GetScalarPointer());
-		T voxelData;
-		T minVal = std::numeric_limits<T>::max();
-		T maxVal = std::numeric_limits<T>::lowest();
+		std::array<int, 3> curCoords;
+		curCoords.fill(0);
+		curCoords[sliceZAxis] = m_sliceNr;
+		LOG(lvlDebug, QString("Mode %1: chunkSize: %2:")
+			.arg(slicerModeString(m_mode)).arg(chunkSize));
+		int readCnt = 0;
 		while (readSuccess && curIdx < totalValues)
 		{
-			size_t result = std::fread(reinterpret_cast<char*>(&voxelData), p.voxelBytes(), ElemCount, pFile);
-			if (result != ElemCount)
+			auto seekPos = p.headerSize + curCoords[0] + curCoords[1] * p.size[0] + curCoords[2] * p.size[0] * p.size[1];
+			LOG(lvlDebug, QString("    Mode %1: curIdx: %2; curCoords: %3; seekPos: %4; readCnt: %5")
+				.arg(slicerModeString(m_mode)).arg(curIdx).arg(arrayToString(curCoords)).arg(seekPos).arg(readCnt));
+			if (std::fseek(pFile, seekPos, SEEK_SET) != 0)
 			{
-				LOG(lvlError, QString("Could not read a full chunk of size %1 (bytes) while reading element %2 from file '%3' (eof: %4; error: %5)!")
-					.arg(p.voxelBytes() * ElemCount)
+				LOG(lvlError, QString("Seeking to position %1 failed while reading element %2 from file '%3' (eof: %4; error: %5)!")
+					.arg(seekPos)
 					.arg(curIdx)
 					.arg(fileName)
 					.arg(feof(pFile) ? "yes" : "no")
 					.arg(ferror(pFile) ? "yes" : "no"));
 				readSuccess = false;
 			}
-			imgData[curIdx] = voxelData;
-			if (voxelData < minVal)
+			size_t result = std::fread(reinterpret_cast<char*>(imgData + curIdx), p.voxelBytes(), chunkSize, pFile);
+			if (result != chunkSize)
 			{
-				minVal = voxelData;
+				LOG(lvlError, QString("Could not read a full chunk of size %1 (bytes) while reading element %2 from file '%3' (eof: %4; error: %5)!")
+					.arg(p.voxelBytes() * chunkSize)
+					.arg(curIdx)
+					.arg(fileName)
+					.arg(feof(pFile) ? "yes" : "no")
+					.arg(ferror(pFile) ? "yes" : "no"));
+				readSuccess = false;
 			}
-			if (voxelData > maxVal)
+			curIdx += chunkSize;
+			if (m_mode == iASlicerMode::XZ)
 			{
-				maxVal = voxelData;
+				curCoords[2] += 1;
 			}
-			++curIdx;
+			else if (m_mode == iASlicerMode::YZ)
+			{
+				curCoords[1] += 1;
+				if (curCoords[1] >= p.size[1])
+				{
+					curCoords[1] = 0;
+					curCoords[2] += 1;
+				}
+			}
+			readCnt++;
 			progress.emitProgress(100 * static_cast<double>(curIdx) / totalValues);
 		}
-		image->SetScalarRange(minVal, maxVal);
+		auto minmax = std::minmax_element(imgData, imgData + totalValues);
+		image->SetScalarRange(*minmax.first, *minmax.second);
 		std::fclose(pFile);
 	}
 
@@ -294,6 +320,7 @@ public:
 			progressBar->hide();
 			auto color = vtkSmartPointer<vtkImageMapToColors>::New();
 			auto range = (*image)->GetScalarRange();
+			LOG(lvlDebug, QString("Slicer %1, range: %2").arg(slicerModeString(m_mode)).arg(arrayToString(range, 2)));
 			auto table = defaultColorTF(range);
 			color->SetLookupTable(table);
 			color->SetInputData(*image);
@@ -312,6 +339,8 @@ public:
 			m_imageRenderer->SetLayer(0);
 			m_imageRenderer->AddActor(imageActor);
 			m_imageRenderer->ResetCamera();
+
+			m_label->setText(QString("%1 - # %2").arg(slicerModeString(m_mode)).arg(m_sliceNr));
 
 			window->AddRenderer(m_imageRenderer);
 			slicerWidget->updateAll();
@@ -373,7 +402,7 @@ void iARawFileParamDlg::togglePreview()
 
 void iARawFileParamDlg::updatePreview()
 {
-	// TODO: invalidate slice views if invalid params now but valid before
+	// TODO: clear slice view if invalid params now but valid before?
 	if (!m_previewShown || !m_params || static_cast<qint64>(m_params->fileSize()) != m_fileSize)
 	{
 		return;
