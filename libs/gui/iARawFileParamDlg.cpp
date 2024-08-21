@@ -257,7 +257,8 @@ public:
 		int readCnt = 0;
 		while (readSuccess && curIdx < totalValues)
 		{
-			qint64 seekPos = p.headerSize + curCoords[0] + curCoords[1] * p.size[0] + curCoords[2] * p.size[0] * p.size[1];
+			qint64 idx = curCoords[0] + curCoords[1] * p.size[0] + curCoords[2] * p.size[0] * p.size[1];
+			qint64 seekPos = p.headerSize + (idx * p.voxelBytes());
 			LOG(lvlDebug, QString("    Mode %1: curIdx: %2; curCoords: %3; seekPos: %4; readCnt: %5")
 				.arg(slicerModeString(m_mode)).arg(curIdx).arg(arrayToString(curCoords)).arg(seekPos).arg(readCnt));
 			if (!file.seek(seekPos))
