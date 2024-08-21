@@ -45,7 +45,13 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 
 	auto fileNameLabel = new QLabel(QString("File Name: %1").arg(QFileInfo(fileName).fileName()));
 	fileNameLabel->setToolTip(fileName);
-	m_inputDlg->layout()->addWidget(fileNameLabel);
+	auto fileNamePlusPreview = new QWidget();
+	fileNamePlusPreview->setContentsMargins(0, 0, 0, 0);
+	fileNamePlusPreview->setLayout(new QHBoxLayout);
+	fileNamePlusPreview->layout()->setSpacing(4);
+	fileNamePlusPreview->layout()->addWidget(fileNameLabel);
+	m_inputDlg->layout()->addWidget(fileNamePlusPreview);
+
 	auto guessFromFileNameButton = new QPushButton("Guess parameters from filename");
 	m_inputDlg->layout()->addWidget(guessFromFileNameButton);
 	connect(guessFromFileNameButton, &QAbstractButton::clicked, this, [this, fileName]{
@@ -64,12 +70,11 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	connect(qobject_cast<QSpinBox*>(m_inputDlg->paramWidget(iARawFileIO::HeadersizeStr)), QOverload<int>::of(&QSpinBox::valueChanged), this, &iARawFileParamDlg::checkFileSize);
 	connect(qobject_cast<QComboBox*>(m_inputDlg->paramWidget(iARawFileIO::DataTypeStr)), QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iARawFileParamDlg::checkFileSize);
 
-
 	auto previewButton = new QToolButton(m_inputDlg);
 	previewButton->setText("Preview >>");
-	m_inputDlg->formLayout()->addWidget(previewButton);
+	previewButton->setCheckable(true);
+	fileNamePlusPreview->layout()->addWidget(previewButton);
 	connect(previewButton, &QToolButton::pressed, this, &iARawFileParamDlg::togglePreview);
-	//m_inputDlg->mainLayout()->addWidget()
 
 	checkFileSize();
 
