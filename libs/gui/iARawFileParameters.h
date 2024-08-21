@@ -14,6 +14,8 @@ struct iARawFileParameters
 {
 	//! Create default raw file parameters
 	iARawFileParameters();
+	//! default comparison operator (only == required actually)
+	bool operator==(const iARawFileParameters&) const = default;
 	//! Size of the dataset in voxels in all 3 dimensions.
 	std::array<unsigned int, 3> size;
 	//! Voxel spacing of the dataset (dimension of a single voxel in  given unit).

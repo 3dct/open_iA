@@ -36,12 +36,14 @@ public:
 
 private:
 	qint64 m_fileSize;
-	QLabel * m_proposedSizeLabel;
-	iAParameterDlg* m_inputDlg;
-	bool m_accepted;
+	QLabel * m_proposedSizeLabel = nullptr;
+	iAParameterDlg* m_inputDlg = nullptr;
+	bool m_accepted = false;
 	bool m_brightTheme;
-	bool m_previewShown;
-	QWidget* m_previewContainer;
+	bool m_previewShown = false;
+	int m_previewWidth = 0;
+	QString m_fileName;
+	QWidget* m_previewContainer = nullptr;
 	std::vector<std::shared_ptr<iASlicerUIData>> m_slicer;
 	std::optional<iARawFileParameters> m_params;
 
