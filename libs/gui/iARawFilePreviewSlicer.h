@@ -96,6 +96,10 @@ public:
 		boxLayout->addWidget(slicerWidget);
 		boxLayout->addWidget(progressBar);
 	}
+	~iARawFilePreviewSlicer()
+	{
+		stopUpdate();
+	}
 	QVBoxLayout* layout()
 	{
 		return boxLayout;
@@ -191,17 +195,24 @@ public:
 		m_validParams = true;
 		updateImage();
 	}
-	void updateImage()
+	void stopUpdate()
 	{
+		if (!m_fw)
+		{
+			return;
+		}
+		QObject::disconnect(m_fw, &QFutureWatcher<void>::finished, this, &iARawFilePreviewSlicer::showImage);
+		cancellation_token = true;
+		m_fw->waitForFinished();
+		m_fw = nullptr;
+	}
+	void updateImage()
+	{	// maybe protect method by a mutex to avoid the (slim chance of) starting two computations in parallel if triggered within a very short time?
 		auto progress = std::make_shared<iAProgress>();
 		QObject::connect(progress.get(), &iAProgress::progress, progressBar, &QProgressBar::setValue);
+		stopUpdate();
+		progressBar->setValue(0);
 		progressBar->show();
-		if (m_fw)    // currently running
-		{
-			QObject::disconnect(m_fw, &QFutureWatcher<void>::finished, this, &iARawFilePreviewSlicer::showImage);
-			cancellation_token = true;
-			m_fw->waitForFinished();
-		}
 		cancellation_token = false;
 		m_fw = new QFutureWatcher<void>(progressBar);
 		QObject::connect(m_fw, &QFutureWatcher<void>::finished, this, &iARawFilePreviewSlicer::showImage);
