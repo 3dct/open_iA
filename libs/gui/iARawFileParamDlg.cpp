@@ -207,13 +207,19 @@ void iARawFileParamDlg::togglePreview()
 
 void iARawFileParamDlg::updatePreview()
 {
-	// TODO: clear slice view if invalid params now but valid before?
-	if (!m_previewShown || !m_params || static_cast<qint64>(m_params->fileSize()) != m_fileSize)
+	if (!m_previewShown)
 	{
 		return;
 	}
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
-		m_slicer[i]->loadImage(*m_params);
+		if (!m_params || static_cast<qint64>(m_params->fileSize()) != m_fileSize)
+		{
+			m_slicer[i]->setOutOfDate();
+		}
+		else
+		{
+			m_slicer[i]->loadImage(*m_params);
+		}
 	}
 }
