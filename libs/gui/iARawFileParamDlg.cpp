@@ -62,40 +62,44 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	addAttr(params, iARawFileIO::HeadersizeStr, iAValueType::Discrete, paramValues[iARawFileIO::HeadersizeStr].toInt(), 0);
 	addAttr(params, iARawFileIO::DataTypeStr, iAValueType::Categorical, datatypeList);
 	addAttr(params, iARawFileIO::ByteOrderStr, iAValueType::Categorical, byteOrderList);
-	m_inputDlg = new iAParameterDlg(parent, title, params);
 
 	auto fileNameLabel = new QLabel(QString("File Name: %1").arg(QFileInfo(fileName).fileName()));
 	fileNameLabel->setToolTip(fileName);
-	auto fileNamePlusPreview = new QWidget();
-	fileNamePlusPreview->setContentsMargins(0, 0, 0, 0);
-	fileNamePlusPreview->setLayout(new QHBoxLayout);
-	fileNamePlusPreview->layout()->setSpacing(4);
-	fileNamePlusPreview->layout()->addWidget(fileNameLabel);
-	m_inputDlg->layout()->addWidget(fileNamePlusPreview);
 
 	auto guessFromFileNameButton = new QPushButton("Guess parameters from filename");
-	m_inputDlg->layout()->addWidget(guessFromFileNameButton);
-	connect(guessFromFileNameButton, &QAbstractButton::clicked, this, [this, fileName]{
+	connect(guessFromFileNameButton, &QAbstractButton::clicked, this, [this, fileName] {
 		guessParameters(fileName);
 	});
 
+	auto previewButton = new QPushButton(m_inputDlg);
+	previewButton->setText("Preview >>");
+	previewButton->setCheckable(true);
+	connect(previewButton, &QPushButton::clicked, this, &iARawFileParamDlg::togglePreview);
+
+	auto fileNameAndButtons = new QWidget();
+	fileNameAndButtons->setLayout(new QHBoxLayout);
+	fileNameAndButtons->layout()->setContentsMargins(0, 0, 0, 0);
+	fileNameAndButtons->layout()->setSpacing(4);
+	fileNameAndButtons->layout()->addWidget(fileNameLabel);
+	fileNameAndButtons->layout()->addWidget(guessFromFileNameButton);
+	fileNameAndButtons->layout()->addWidget(previewButton);
+
 	auto actualSizeLabel = new QLabel("Actual file size: " + QString::number(m_fileSize) + " bytes");
 	actualSizeLabel->setAlignment(Qt::AlignRight);
-	m_inputDlg->layout()->addWidget(actualSizeLabel);
 
 	m_proposedSizeLabel = new QLabel("Predicted file size: ");
 	m_proposedSizeLabel->setAlignment(Qt::AlignRight);
+
+	m_inputDlg = new iAParameterDlg(parent, title, params);
+	m_inputDlg->layout()->addWidget(fileNameAndButtons);
+	m_inputDlg->layout()->addWidget(actualSizeLabel);
 	m_inputDlg->layout()->addWidget(m_proposedSizeLabel);
 
 	connect(qobject_cast<iAVectorInput*>(m_inputDlg->paramWidget(iARawFileIO::SizeStr)), &iAVectorInput::valueChanged, this, &iARawFileParamDlg::checkFileSize);
 	connect(qobject_cast<QSpinBox*>(m_inputDlg->paramWidget(iARawFileIO::HeadersizeStr)), QOverload<int>::of(&QSpinBox::valueChanged), this, &iARawFileParamDlg::checkFileSize);
 	connect(qobject_cast<QComboBox*>(m_inputDlg->paramWidget(iARawFileIO::DataTypeStr)), QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iARawFileParamDlg::checkFileSize);
-
-	auto previewButton = new QToolButton(m_inputDlg);
-	previewButton->setText("Preview >>");
-	previewButton->setCheckable(true);
-	fileNamePlusPreview->layout()->addWidget(previewButton);
-	connect(previewButton, &QToolButton::pressed, this, &iARawFileParamDlg::togglePreview);
+	// only need to updatePreview, but also the parameter reading currently only contained in checkFileSize:
+	connect(qobject_cast<QComboBox*>(m_inputDlg->paramWidget(iARawFileIO::ByteOrderStr)), QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iARawFileParamDlg::checkFileSize);
 
 	checkFileSize();
 
@@ -335,6 +339,7 @@ public:
 		auto image = std::make_shared<vtkSmartPointer<iAvtkImageData>>();  // additional level of indirection required to be able to modify smartpointer
 		auto progress = std::make_shared<iAProgress>();
 		QObject::connect(progress.get(), &iAProgress::progress, progressBar, &QProgressBar::setValue);
+		progressBar->show();
 		auto fw = runAsync([this, fileName, params, image, progress]()
 		{
 			VTK_TYPED_CALL(readImageSlice, params.scalarType, *image, fileName, params, *progress.get());
@@ -410,10 +415,10 @@ void iARawFileParamDlg::togglePreview()
 			auto layout = new QHBoxLayout;
 			layout->setSpacing(4);
 			m_previewContainer->setLayout(layout);
-			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
+			for (int i = iASlicerMode::SlicerCount-1; i >= 0; --i)
 			{
 				m_slicer.push_back(std::make_shared<iASlicerUIData>(static_cast<iASlicerMode>(i)));
-				layout->addLayout(m_slicer[i]->layout());
+				layout->addLayout(m_slicer.back()->layout());
 			}
 			m_inputDlg->mainLayout()->addWidget(m_previewContainer, 0, 1, m_inputDlg->formLayout()->rowCount(), 1);
 		}
