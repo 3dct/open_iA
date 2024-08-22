@@ -22,6 +22,27 @@
 #include <QSpinBox>
 #include <QToolButton>
 
+// source https://stackoverflow.com/a/4956493
+template <typename T>
+T swap_endian(T u)
+{
+	//static_assert (CHAR_BIT == 8, "CHAR_BIT != 8"); // can be assumed to be true on all systems we are building
+	union
+	{
+		T u;
+		unsigned char u8[sizeof(T)];
+	} source, dest;
+
+	source.u = u;
+
+	for (size_t k = 0; k < sizeof(T); k++)
+	{
+		dest.u8[k] = source.u8[sizeof(T) - k - 1];
+	}
+
+	return dest.u;
+}
+
 iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, QString const& title, QVariantMap & paramValues, bool brightTheme) :
 	m_brightTheme(brightTheme),
 	m_fileName(fileName)
@@ -291,6 +312,13 @@ public:
 			}
 			readCnt++;
 			progress.emitProgress(100 * static_cast<double>(curIdx) / totalValues);
+		}
+		if (p.byteOrder == itk::CommonEnums::IOByteOrder::BigEndian)
+		{
+			for (size_t i = 0; i < totalValues; ++i)
+			{
+				imgData[i] = swap_endian(imgData[i]);
+			}
 		}
 		auto minmax = std::minmax_element(imgData, imgData + totalValues);
 		image->SetScalarRange(*minmax.first, *minmax.second);
