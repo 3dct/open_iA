@@ -7,7 +7,7 @@
 #include <iARawFileParameters.h>
 
 class iAParameterDlg;
-class iASlicerUIData;
+class iARawFilePreviewSlicer;
 
 class QLabel;
 
@@ -44,7 +44,7 @@ private:
 	int m_previewWidth = 0;
 	QString m_fileName;
 	QWidget* m_previewContainer = nullptr;
-	std::vector<std::shared_ptr<iASlicerUIData>> m_slicer;
+	std::vector<std::shared_ptr<iARawFilePreviewSlicer>> m_slicer;
 	std::optional<iARawFileParameters> m_params;
 
 private slots:
