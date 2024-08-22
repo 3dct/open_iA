@@ -224,26 +224,40 @@ private:
 	QProgressBar* progressBar = new QProgressBar();
 	QVBoxLayout* boxLayout = new QVBoxLayout();
 	iASlicerMode m_mode;
-	iARawFileParameters m_lastParams;
+	QString m_fileName;
+	iARawFileParameters m_params;
 	vtkSmartPointer<vtkRenderer> m_imageRenderer;
 	QLabel* m_label;
-	int m_sliceNr;
+	QSpinBox* m_sliceSB;
+	const int SliceNrInit = -1;
+	int m_sliceNr = SliceNrInit;
+	bool m_validParams = false;
 public:
-	iASlicerUIData(iASlicerMode mode):
+	iASlicerUIData(iASlicerMode mode, QString const & fileName):
 		m_mode(mode),
-		m_label(new QLabel(QString("%1").arg(slicerModeString(mode))))
+		m_fileName(fileName),
+		m_label(new QLabel(QString("%1").arg(slicerModeString(mode)))),
+		m_sliceSB(new QSpinBox())
 	{
 		m_label->setMinimumWidth(50);
 		m_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		m_sliceSB->setMinimum(0);
+		QObject::connect(m_sliceSB, &QSpinBox::valueChanged, m_sliceSB, [this]
+		{
+			m_sliceNr = m_sliceSB->value();
+			updateImage();
+		});
 		slicerWidget->setMinimumHeight(50);
-		//slicerWidget->setWindowTitle(QString("%1").arg(name));
+		auto headerLayout = new QHBoxLayout();
+		headerLayout->addWidget(m_label);
+		headerLayout->addWidget(m_sliceSB);
 
 		auto window = slicerWidget->renderWindow();
 		window->SetNumberOfLayers(2);
 		auto imageStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
 		window->GetInteractor()->SetInteractorStyle(imageStyle);
 
-		boxLayout->addWidget(m_label);
+		boxLayout->addLayout(headerLayout);
 		boxLayout->addWidget(slicerWidget);
 		boxLayout->addWidget(progressBar);
 	}
@@ -268,7 +282,6 @@ public:
 		size_t totalValues = p.size[sliceXAxis] * p.size[sliceYAxis];
 		int size[3] = { static_cast<int>(p.size[sliceXAxis]), static_cast<int>(p.size[sliceYAxis]), 1 };
 		image = allocateiAImage(p.scalarType, size, p.spacing.data(), 1);
-		m_sliceNr = p.size[sliceZAxis] / 2; // for now read "middle" slice
 		const qint64 chunkSize = (m_mode == iASlicerMode::XY) ?
 			p.size[sliceXAxis] * p.size[sliceYAxis] :  // read all in one chunk...
 			(m_mode == iASlicerMode::XZ ? p.size[sliceXAxis] : 1);
@@ -329,26 +342,38 @@ public:
 		file.close();
 	}
 
-	void loadImage(QString const& fileName, iARawFileParameters const & params)
+	void loadImage(iARawFileParameters const& params)
 	{
-		if (params == m_lastParams)
+		if (params == m_params)
 		{
 			return;
 		}
-		m_lastParams = params;
+		auto sliceAxisSize = params.size[mapSliceToGlobalAxis(m_mode, 2)];
+		m_sliceSB->setMaximum(sliceAxisSize-1);
+		if (m_sliceNr == SliceNrInit || m_sliceNr >= sliceAxisSize)
+		{
+			m_sliceNr = sliceAxisSize / 2; // start with "middle" slice
+			QSignalBlocker sb(m_sliceSB);
+			m_sliceSB->setValue(m_sliceNr);
+		}
+		m_params = params;
+		m_validParams = true;
+		updateImage();
+	}
+	void updateImage()
+	{
 		auto image = std::make_shared<vtkSmartPointer<iAvtkImageData>>();  // additional level of indirection required to be able to modify smartpointer
 		auto progress = std::make_shared<iAProgress>();
 		QObject::connect(progress.get(), &iAProgress::progress, progressBar, &QProgressBar::setValue);
 		progressBar->show();
-		auto fw = runAsync([this, fileName, params, image, progress]()
+		auto fw = runAsync([this,  image, progress]()
 		{
-			VTK_TYPED_CALL(readImageSlice, params.scalarType, *image, fileName, params, *progress.get());
+			VTK_TYPED_CALL(readImageSlice, m_params.scalarType, *image, m_fileName, m_params, *progress.get());
 		}, [this, image]
 		{
 			progressBar->hide();
 			auto color = vtkSmartPointer<vtkImageMapToColors>::New();
 			auto range = (*image)->GetScalarRange();
-			LOG(lvlDebug, QString("Slicer %1, range: %2").arg(slicerModeString(m_mode)).arg(arrayToString(range, 2)));
 			auto table = defaultColorTF(range);
 			color->SetLookupTable(table);
 			color->SetInputData(*image);
@@ -368,7 +393,7 @@ public:
 			m_imageRenderer->AddActor(imageActor);
 			m_imageRenderer->ResetCamera();
 
-			m_label->setText(QString("%1 - # %2").arg(slicerModeString(m_mode)).arg(m_sliceNr));
+			m_label->setText(QString("%1 - #%2").arg(slicerModeString(m_mode)).arg(m_sliceNr));
 
 			window->AddRenderer(m_imageRenderer);
 			slicerWidget->updateAll();
@@ -417,7 +442,7 @@ void iARawFileParamDlg::togglePreview()
 			m_previewContainer->setLayout(layout);
 			for (int i = iASlicerMode::SlicerCount-1; i >= 0; --i)
 			{
-				m_slicer.push_back(std::make_shared<iASlicerUIData>(static_cast<iASlicerMode>(i)));
+				m_slicer.push_back(std::make_shared<iASlicerUIData>(static_cast<iASlicerMode>(i), m_fileName));
 				layout->addLayout(m_slicer.back()->layout());
 			}
 			m_inputDlg->mainLayout()->addWidget(m_previewContainer, 0, 1, m_inputDlg->formLayout()->rowCount(), 1);
@@ -437,6 +462,6 @@ void iARawFileParamDlg::updatePreview()
 	}
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
-		m_slicer[i]->loadImage(m_fileName, *m_params);
+		m_slicer[i]->loadImage(*m_params);
 	}
 }
