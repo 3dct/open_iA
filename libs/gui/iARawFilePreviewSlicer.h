@@ -25,6 +25,7 @@
 #include <QObject>
 #include <QProgressBar>
 #include <QSpinBox>
+#include <QToolButton>
 #include <QVBoxLayout>
 
 // source https://stackoverflow.com/a/4956493
@@ -48,19 +49,29 @@ T swap_endian(T u)
 	return dest.u;
 }
 
+template <typename LayoutType>
+LayoutType* createLayout()
+{
+	auto layout = new LayoutType();
+	layout->setContentsMargins(0, 0, 0, 0);
+	layout->setSpacing(4);
+	return layout;
+}
+
 class iARawFilePreviewSlicer: public QObject
 {
 	Q_OBJECT
 private:
+	iASlicerMode m_mode;
+	QString m_fileName;
 	iAQVTKWidget* slicerWidget = new iAQVTKWidget();
 	QProgressBar* progressBar = new QProgressBar();
 	QVBoxLayout* boxLayout = new QVBoxLayout();
-	iASlicerMode m_mode;
-	QString m_fileName;
+	QSpinBox* m_sliceSB = new QSpinBox();
+	QWidget* m_progressControls = new QWidget();
+	QLabel* m_label;
 	iARawFileParameters m_params;
 	vtkSmartPointer<vtkRenderer> m_imageRenderer;
-	QLabel* m_label;
-	QSpinBox* m_sliceSB;
 	const int SliceNrInit = -1;
 	int m_sliceNr = SliceNrInit;
 	bool m_validParams = false;
@@ -71,8 +82,7 @@ public:
 	iARawFilePreviewSlicer(iASlicerMode mode, QString const& fileName) :
 		m_mode(mode),
 		m_fileName(fileName),
-		m_label(new QLabel(QString("%1").arg(slicerModeString(mode)))),
-		m_sliceSB(new QSpinBox())
+		m_label(new QLabel(QString("%1").arg(slicerModeString(mode))))
 	{
 		m_label->setMinimumWidth(50);
 		m_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -92,9 +102,20 @@ public:
 		auto imageStyle = vtkSmartPointer<vtkInteractorStyleImage>::New();
 		window->GetInteractor()->SetInteractorStyle(imageStyle);
 
+		auto abortButton = new QToolButton();
+		abortButton->setProperty("qssClass", "tbAbort");
+		connect(abortButton, &QToolButton::clicked, this, [this]
+		{
+			stopUpdate();
+			m_progressControls->hide();
+		});
+		m_progressControls->setLayout(createLayout<QHBoxLayout>());
+		m_progressControls->layout()->addWidget(progressBar);
+		m_progressControls->layout()->addWidget(abortButton);
+
 		boxLayout->addLayout(headerLayout);
 		boxLayout->addWidget(slicerWidget);
-		boxLayout->addWidget(progressBar);
+		boxLayout->addWidget(m_progressControls);
 	}
 	~iARawFilePreviewSlicer()
 	{
@@ -212,7 +233,7 @@ public:
 		QObject::connect(progress.get(), &iAProgress::progress, progressBar, &QProgressBar::setValue);
 		stopUpdate();
 		progressBar->setValue(0);
-		progressBar->show();
+		m_progressControls->show();
 		cancellation_token = false;
 		m_fw = new QFutureWatcher<void>(progressBar);
 		QObject::connect(m_fw, &QFutureWatcher<void>::finished, this, &iARawFilePreviewSlicer::showImage);
@@ -226,7 +247,7 @@ public:
 	void showImage()
 	{
 		m_fw = nullptr;
-		progressBar->hide();
+		m_progressControls->hide();
 		auto color = vtkSmartPointer<vtkImageMapToColors>::New();
 		auto range = m_image->GetScalarRange();
 		auto table = defaultColorTF(range);

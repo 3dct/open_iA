@@ -20,7 +20,6 @@
 #include <QPushButton>
 #include <QRegularExpression>
 #include <QSpinBox>
-#include <QToolButton>
 
 iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, QString const& title, QVariantMap & paramValues, bool brightTheme) :
 	m_brightTheme(brightTheme),
@@ -56,9 +55,7 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	connect(previewButton, &QPushButton::clicked, this, &iARawFileParamDlg::togglePreview);
 
 	auto fileNameAndButtons = new QWidget();
-	fileNameAndButtons->setLayout(new QHBoxLayout);
-	fileNameAndButtons->layout()->setContentsMargins(0, 0, 0, 0);
-	fileNameAndButtons->layout()->setSpacing(4);
+	fileNameAndButtons->setLayout(createLayout<QHBoxLayout>());
 	fileNameAndButtons->layout()->addWidget(fileNameLabel);
 	fileNameAndButtons->layout()->addWidget(guessFromFileNameButton);
 	fileNameAndButtons->layout()->addWidget(previewButton);
@@ -192,9 +189,7 @@ void iARawFileParamDlg::togglePreview()
 		if (!m_previewContainer)
 		{
 			m_previewContainer = new QWidget();
-			m_previewContainer->setContentsMargins(0, 0, 0, 0);
-			auto layout = new QHBoxLayout;
-			layout->setSpacing(4);
+			auto layout = createLayout<QHBoxLayout>();
 			m_previewContainer->setLayout(layout);
 			for (int i = iASlicerMode::SlicerCount-1; i >= 0; --i)
 			{
