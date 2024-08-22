@@ -67,6 +67,7 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	m_proposedSizeLabel->setAlignment(Qt::AlignRight);
 
 	m_inputDlg = new iAParameterDlg(parent, title, params);
+	m_inputDlg->mainWidget()->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
 	m_inputDlg->layout()->addWidget(fileNameAndButtons);
 	m_inputDlg->layout()->addWidget(actualSizeLabel);
 	m_inputDlg->layout()->addWidget(m_proposedSizeLabel);
@@ -196,7 +197,7 @@ void iARawFileParamDlg::togglePreview()
 				m_slicer.push_back(std::make_shared<iARawFilePreviewSlicer>(static_cast<iASlicerMode>(i), m_fileName));
 				layout->addLayout(m_slicer.back()->layout());
 			}
-			m_inputDlg->mainLayout()->addWidget(m_previewContainer, 0, 1, m_inputDlg->formLayout()->rowCount(), 1);
+			m_inputDlg->mainLayout()->addWidget(m_previewContainer, 0, 1, m_inputDlg->mainLayout()->rowCount(), 1);
 		}
 		m_previewContainer->show();
 		m_previewContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);

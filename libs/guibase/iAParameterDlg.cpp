@@ -66,10 +66,10 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 	m_sourceMdiChildClosed(false),
 	m_widgetList(parameters.size()),
 	m_parameters(parameters),
-	m_mainLayout(new QGridLayout()),
-	m_formLayout(new QGridLayout())
+	m_mainLayout(new QGridLayout())
 {
-	m_formLayout->setContentsMargins(4, 4, 4, 4);
+	auto formLayout = new QGridLayout();
+	formLayout->setContentsMargins(4, 4, 4, 4);
 	m_buttonBox = new QDialogButtonBox();
 	m_buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
 	connect(m_buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
@@ -85,8 +85,8 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 	auto scrollArea = new QScrollArea(this);
 
 	setLayout(m_mainLayout);
-	auto mainWidget = new QWidget();
-	m_mainLayout->addWidget(mainWidget);
+	m_mainWidget = new QWidget();
+	m_mainLayout->addWidget(m_mainWidget);
 	if (!descr.isEmpty())
 	{
 		auto info = new QTextBrowser();
@@ -101,17 +101,17 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 		auto s = new QSplitter(Qt::Vertical);
 		s->addWidget(info);
 		auto w = new QWidget();
-		w->setLayout(m_formLayout);
+		w->setLayout(formLayout);
 		s->addWidget(w);
 		s->setCollapsible(0, true);
 		s->setCollapsible(1, false);
-		mainWidget->setLayout(new QHBoxLayout);
+		m_mainWidget->setLayout(new QHBoxLayout);
 		layout()->addWidget(s);
 		layout()->setContentsMargins(4, 4, 4, 4);
 	}
 	else
 	{
-		mainWidget->setLayout(m_formLayout);
+		m_mainWidget->setLayout(formLayout);
 	}
 
 	scrollArea->setObjectName("scrollArea");
@@ -267,8 +267,8 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 	pal.setColor(scrollArea->backgroundRole(), Qt::transparent);
 	scrollArea->setPalette(pal);
 
-	m_formLayout->addWidget(scrollArea, 1, 0);
-	m_formLayout->addWidget(m_buttonBox, 2, 0);
+	formLayout->addWidget(scrollArea, 1, 0);
+	formLayout->addWidget(m_buttonBox, 2, 0);
 }
 
 void iAParameterDlg::setValue(QString const& key, QVariant const& value)
@@ -591,7 +591,7 @@ QGridLayout* iAParameterDlg::mainLayout()
 	return m_mainLayout;
 }
 
-QGridLayout* iAParameterDlg::formLayout()
+QWidget* iAParameterDlg::mainWidget()
 {
-	return m_formLayout;
+	return m_mainWidget;
 }

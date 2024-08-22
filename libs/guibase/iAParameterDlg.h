@@ -43,7 +43,7 @@ public:
 	QWidget* paramWidget(QString const & key);
 	void setOKEnabled(bool enabled);
 	void setValue(QString const& key, QVariant const& value);
-	QGridLayout* formLayout();
+	QWidget* mainWidget();
 	QGridLayout* mainLayout();
 
 private slots:
@@ -52,7 +52,7 @@ private slots:
 	void selectFilter();
 
 private:
-	QWidget * m_container;
+	QWidget * m_container, * m_mainWidget;
 	int m_roi[6];
 	QVector<qsizetype> m_filterWithParameters;
 	iAMdiChild * m_sourceMdiChild;
@@ -61,7 +61,7 @@ private:
 	QVector<QWidget*> m_widgetList;
 	iAAttributes m_parameters;
 	QDialogButtonBox* m_buttonBox;
-	QGridLayout *m_formLayout, *m_mainLayout;
+	QGridLayout * m_mainLayout;
 
 	void updateROIPart(QString const& partName, QVariant value);
 };
