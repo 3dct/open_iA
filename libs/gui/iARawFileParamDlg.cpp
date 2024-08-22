@@ -199,6 +199,7 @@ void iARawFileParamDlg::togglePreview()
 			m_inputDlg->mainLayout()->addWidget(m_previewContainer, 0, 1, m_inputDlg->formLayout()->rowCount(), 1);
 		}
 		m_previewContainer->show();
+		m_previewContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		m_inputDlg->resize(m_inputDlg->width() + m_previewWidth, m_inputDlg->height());
 		updatePreview();
 	}

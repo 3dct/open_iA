@@ -21,7 +21,7 @@
 #include <vtkRenderer.h>
 #include <vtkRenderWindow.h>
 
-#include <QLabel>
+#include <QCheckBox>
 #include <QObject>
 #include <QProgressBar>
 #include <QSpinBox>
@@ -69,12 +69,13 @@ private:
 	QVBoxLayout* boxLayout = new QVBoxLayout();
 	QSpinBox* m_sliceSB = new QSpinBox();
 	QWidget* m_progressControls = new QWidget();
-	QLabel* m_label;
+	QCheckBox* m_label;
 	iARawFileParameters m_params;
 	vtkSmartPointer<vtkRenderer> m_imageRenderer;
 	const int SliceNrInit = -1;
 	int m_sliceNr = SliceNrInit;
 	bool m_validParams = false;
+	bool m_enabled = false;
 	QFutureWatcher<void>* m_fw = nullptr;
 	vtkSmartPointer<iAvtkImageData> m_image;
 	std::atomic_bool cancellation_token = ATOMIC_VAR_INIT(false);
@@ -82,16 +83,22 @@ public:
 	iARawFilePreviewSlicer(iASlicerMode mode, QString const& fileName) :
 		m_mode(mode),
 		m_fileName(fileName),
-		m_label(new QLabel(QString("%1").arg(slicerModeString(mode))))
+		m_label(new QCheckBox(QString("%1").arg(slicerModeString(mode))))
 	{
+		m_enabled = m_mode != iASlicerMode::YZ;
+		m_label->setChecked(m_enabled);
 		m_label->setMinimumWidth(50);
 		m_label->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		m_sliceSB->setMinimum(0);
 		QObject::connect(m_sliceSB, &QSpinBox::valueChanged, m_sliceSB, [this]
-			{
-				m_sliceNr = m_sliceSB->value();
-				updateImage();
-			});
+		{
+			m_sliceNr = m_sliceSB->value();
+			updateImage();
+		});
+		QObject::connect(m_label, &QCheckBox::toggled, this, [this] {
+			m_enabled = m_label->isChecked();
+			updateImage();
+		});
 		slicerWidget->setMinimumHeight(50);
 		auto headerLayout = new QHBoxLayout();
 		headerLayout->addWidget(m_label);
@@ -110,12 +117,14 @@ public:
 			m_progressControls->hide();
 		});
 		m_progressControls->setLayout(createLayout<QHBoxLayout>());
+		m_progressControls->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		m_progressControls->layout()->addWidget(progressBar);
 		m_progressControls->layout()->addWidget(abortButton);
 
 		boxLayout->addLayout(headerLayout);
 		boxLayout->addWidget(slicerWidget);
 		boxLayout->addWidget(m_progressControls);
+		m_progressControls->hide();
 	}
 	~iARawFilePreviewSlicer()
 	{
@@ -228,10 +237,15 @@ public:
 		m_fw = nullptr;
 	}
 	void updateImage()
-	{	// maybe protect method by a mutex to avoid the (slim chance of) starting two computations in parallel if triggered within a very short time?
+	{
+		if (!m_enabled)
+		{
+			return;
+		}
+		stopUpdate();
+		// maybe protect method by a mutex to avoid the (slim chance of) starting two computations in parallel if triggered within a very short time?
 		auto progress = std::make_shared<iAProgress>();
 		QObject::connect(progress.get(), &iAProgress::progress, progressBar, &QProgressBar::setValue);
-		stopUpdate();
 		progressBar->setValue(0);
 		m_progressControls->show();
 		cancellation_token = false;
