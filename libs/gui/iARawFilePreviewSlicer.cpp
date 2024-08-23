@@ -70,7 +70,8 @@ struct iARawFilePreviewSlicerImpl
 	QLabel* statusLabel = new QLabel();
 	QCheckBox* label;
 	iARawFileParameters params;
-	vtkSmartPointer<vtkRenderer> imageRenderer;
+	vtkSmartPointer<vtkRenderer> imageRenderer = vtkSmartPointer<vtkRenderer>::New();
+	vtkSmartPointer<vtkImageMapToColors> color = vtkSmartPointer<vtkImageMapToColors>::New();
 	vtkScalarsToColors* tf;
 	int sliceNr = SliceNrInit;
 	bool validParams = false;
@@ -305,13 +306,11 @@ void iARawFilePreviewSlicer::showImage()
 	emit loadDone();
 	m->fw = nullptr;
 	setStatus(StatusUpToDate);
-	auto color = vtkSmartPointer<vtkImageMapToColors>::New();
-	auto range = m->image->GetScalarRange();
-	color->SetLookupTable(m->tf);
-	color->SetInputData(m->image);
-	color->Update();
+	m->color->SetLookupTable(m->tf);
+	m->color->SetInputData(m->image);
+	m->color->Update();
 	auto imageActor = vtkSmartPointer<vtkImageActor>::New();
-	imageActor->SetInputData(color->GetOutput());
+	imageActor->SetInputData(m->color->GetOutput());
 	imageActor->GetMapper()->BorderOn();
 	imageActor->SetInterpolate(false);
 
@@ -320,7 +319,6 @@ void iARawFilePreviewSlicer::showImage()
 	{
 		window->RemoveRenderer(m->imageRenderer);
 	}
-	m->imageRenderer = vtkSmartPointer<vtkRenderer>::New();
 	m->imageRenderer->SetLayer(0);
 	m->imageRenderer->AddActor(imageActor);
 	m->imageRenderer->ResetCamera();
@@ -359,4 +357,14 @@ vtkImageData * iARawFilePreviewSlicer::image() const
 int iARawFilePreviewSlicer::sliceNr() const
 {
 	return m->sliceNr;
+}
+
+void iARawFilePreviewSlicer::updateColors()
+{
+	if (!m->enabled || !m->color->GetInput())
+	{
+		return;
+	}
+	m->color->Update();
+	m->slicerWidget->updateAll();
 }

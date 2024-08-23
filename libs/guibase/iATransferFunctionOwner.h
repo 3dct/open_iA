@@ -36,11 +36,12 @@ public:
 	void resetFunctions() override;
 	//! @}
 
+	//! for resetting to a specified range
+	void resetFunctions(double const range[2]);
+
 private:
 	//! there should always be only one owner of the same set of transfer functions
 	Q_DISABLE_COPY_MOVE(iATransferFunctionOwner);
-	//! internal helper function for resetting to a specified range (could be made public if required)
-	void resetFunctions(double const range[2]);
 
 
 	vtkSmartPointer<vtkColorTransferFunction> m_ctf; //!< the color transfer function

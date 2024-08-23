@@ -41,6 +41,7 @@ public:
 	void setOutOfDate();
 	vtkImageData * image() const;
 	int sliceNr() const;
+	void updateColors();
 
 signals:
 	void loadDone();

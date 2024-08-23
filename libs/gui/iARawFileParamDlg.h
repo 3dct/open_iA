@@ -6,14 +6,11 @@
 
 #include <iARawFileParameters.h>
 
-#include <vtkSmartPointer.h>
-
 class iAChartWithFunctionsWidget;
 class iAParameterDlg;
 class iARawFilePreviewSlicer;
 struct iASliceMergedValues;
-
-class vtkColorTransferFunction;
+class iATransferFunctionOwner;
 
 class QLabel;
 
@@ -54,7 +51,7 @@ private:
 	std::vector<std::shared_ptr<iARawFilePreviewSlicer>> m_slicer;
 	std::optional<iARawFileParameters> m_params;
 	std::unique_ptr<iASliceMergedValues> m_dataValues;
-	vtkSmartPointer<vtkColorTransferFunction> m_tf;
+	std::unique_ptr<iATransferFunctionOwner> m_tf;
 
 private slots:
 	//! update labels indicating whether current parameters fit the actual file size

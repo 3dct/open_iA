@@ -14,7 +14,7 @@
 #include <iAParameterDlg.h>
 #include <iARawFileParameters.h>
 #include <iAToolsVTK.h>    // for mapVTKTypeToReadableDataType, readableDataTypes, ...
-#include <iATransferFunction.h>    // for defaultColorTF
+#include <iATransferFunctionOwner.h>    // for defaultColorTF
 #include <iAValueTypeVectorHelpers.h>
 
 #include <vtkColorTransferFunction.h>
@@ -82,7 +82,7 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	m_brightTheme(brightTheme),
 	m_fileName(fileName),
 	m_dataValues(std::make_unique<iASliceMergedValues>()),
-	m_tf(vtkSmartPointer<vtkColorTransferFunction>::New())
+	m_tf(std::make_unique<iATransferFunctionOwner>())
 {
 	QFileInfo info1(fileName);
 	m_fileSize = info1.size();
@@ -249,13 +249,14 @@ void iARawFileParamDlg::togglePreview()
 		m_inputDlg->resize(m_previewWidth, m_inputDlg->height());   // restore previous width
 		if (!m_previewContainer)
 		{
+			m_chart = new iAChartWithFunctionsWidget(m_inputDlg, "Greyvalue", "Frequency");
 			m_previewContainer = new QWidget();
 			auto slicersWidget = new QWidget();
 			auto layout = createLayout<QHBoxLayout>();
 			slicersWidget->setLayout(layout);
 			for (int i = iASlicerMode::SlicerCount-1; i >= 0; --i)
 			{
-				m_slicer.push_back(std::make_shared<iARawFilePreviewSlicer>(static_cast<iASlicerMode>(i), m_fileName, m_tf));
+				m_slicer.push_back(std::make_shared<iARawFilePreviewSlicer>(static_cast<iASlicerMode>(i), m_fileName, m_tf->colorTF()));
 				connect(m_slicer.back().get(), &iARawFilePreviewSlicer::loadDone, this, [this, i]
 				{
 					auto slicer = dynamic_cast<iARawFilePreviewSlicer*>(QObject::sender());
@@ -264,21 +265,22 @@ void iARawFileParamDlg::togglePreview()
 					auto type = isVtkIntegerImage(slicer->image()) ? iAValueType::Discrete : iAValueType::Continuous;
 					auto histogramData = iAHistogramData::create("Greyvalue",
 						type, m_dataValues->values, NumBins);
-					auto const tfRange = m_tf->GetRange();
+					auto const tfRange = m_tf->colorTF()->GetRange();
 					auto histRange = histogramData->xBounds();
 					if (tfRange[0] != histRange[0] || tfRange[1] != histRange[1])
 					{
-						defaultColorTF(m_tf, histRange);
+						m_tf->resetFunctions(histRange);
 					}
 					m_chart->addPlot(std::make_shared<iABarGraphPlot>(histogramData, QApplication::palette().color(QPalette::Shadow)));
 					m_chart->update();
 				});
+				connect(m_chart, &iAChartWithFunctionsWidget::transferFunctionChanged, m_slicer.back().get(), &iARawFilePreviewSlicer::updateColors);
 				layout->addLayout(m_slicer.back()->layout());
 			}
 			m_previewContainer->setLayout(createLayout<QVBoxLayout>());
 			m_previewContainer->layout()->addWidget(slicersWidget);
 
-			m_chart = new iAChartWithFunctionsWidget(m_inputDlg, "Greyvalue", "Frequency");
+			m_chart->setTransferFunction(m_tf.get());
 			m_previewContainer->layout()->addWidget(m_chart);
 			m_inputDlg->mainLayout()->addWidget(m_previewContainer, 0, 1, m_inputDlg->mainLayout()->rowCount(), 1);
 		}
