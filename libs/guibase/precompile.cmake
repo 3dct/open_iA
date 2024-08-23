@@ -39,7 +39,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAQDockTitleWidget.h>
 <iAQMenuHelper.h>
 <iAQVTKWidget.h>
-<iARenderer.h>
 <iARunAsync.h>
 <iASettings.h>
 <iASlicer.h>
@@ -53,7 +52,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <iAValueType.h>
 <iAValueTypeVectorHelpers.h>
 <iAVec3.h>
-<iAVectorInput.h>
 <iAVolumeRenderer.h>
 <iAVolumeViewer.h>
 <iAvtkActorHelper.h>
@@ -71,7 +69,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <QFrame>
 <QHBoxLayout>
 <QLabel>
-<QLayout>
 <QLineEdit>
 <QList>
 <QMainWindow>
@@ -80,7 +77,6 @@ set(OPENIA_PRECOMPILE_HEADERS
 <QObject>
 <QPainter>
 <QPushButton>
-<QRegularExpression>
 <QScrollArea>
 <QSettings>
 <QSpinBox>

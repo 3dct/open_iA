@@ -14,6 +14,7 @@ set(OPENIA_PRECOMPILE_HEADERS
 <vtkInteractorStyleTrackballCamera.h>
 <vtkPlane.h>
 <vtkRenderer.h>
+<vtkRenderWindow.h>
 <vtkRenderWindowInteractor.h>
 <vtkSmartPointer.h>
 )
