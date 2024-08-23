@@ -10,6 +10,7 @@
 #include <iATransferFunction.h>
 #include <iATypedCallHelper.h>
 #include <iAVtkDraw.h>    // for iAvtkImageData
+#include <iAToolsVTK.h>   // for FOR_VTKIMG_PIXELS
 
 #include <vtkActor.h>
 #include <vtkColorTransferFunction.h>
@@ -171,7 +172,7 @@ void iARawFilePreviewSlicer::loadImage(iARawFileParameters const& params)
 	{
 		return;
 	}
-	auto sliceAxisSize = params.size[mapSliceToGlobalAxis(m->mode, 2)];
+	auto sliceAxisSize = params.size[mapSliceToGlobalAxis(m->mode, iAAxisIndex::Z)];
 	QSignalBlocker sb(m->sliceSB);  // setMaximum might already trigger a changed value (if maximum is reduced)...
 	m->sliceSB->setMaximum(sliceAxisSize - 1);
 	if (m->sliceNr == SliceNrInit || static_cast<unsigned int>(m->sliceNr) >= sliceAxisSize)
@@ -215,9 +216,9 @@ void readImageSlice(iAProgress& progress, std::shared_ptr<iARawFilePreviewSlicer
 	}
 	bool readSuccess = true;
 	size_t curIdx = 0;
-	int sliceXAxis = mapSliceToGlobalAxis(m->mode, 0);
-	int sliceYAxis = mapSliceToGlobalAxis(m->mode, 1);
-	int sliceZAxis = mapSliceToGlobalAxis(m->mode, 2);
+	int sliceXAxis = mapSliceToGlobalAxis(m->mode, iAAxisIndex::X);
+	int sliceYAxis = mapSliceToGlobalAxis(m->mode, iAAxisIndex::Y);
+	int sliceZAxis = mapSliceToGlobalAxis(m->mode, iAAxisIndex::Z);
 	size_t totalValues = m->params.size[sliceXAxis] * m->params.size[sliceYAxis];
 	int size[3] = { static_cast<int>(m->params.size[sliceXAxis]), static_cast<int>(m->params.size[sliceYAxis]), 1 };
 	m->image = allocateiAImage(m->params.scalarType, size, m->params.spacing.data(), 1);
@@ -283,7 +284,7 @@ void iARawFilePreviewSlicer::updateImage()
 		return;
 	}
 	stopUpdate();
-	// maybe protect method by a mutex to avoid the (slim chance of) starting two computations in parallel if triggered within a very short time?
+	// maybe protect method by a mutex to avoid (the slim chance of) starting two computations in parallel if triggered within a very short time?
 	auto progress = std::make_shared<iAProgress>();
 	QObject::connect(progress.get(), &iAProgress::progress, m->progressBar, &QProgressBar::setValue);
 	m->progressBar->setValue(0);
@@ -301,6 +302,7 @@ void iARawFilePreviewSlicer::updateImage()
 
 void iARawFilePreviewSlicer::showImage()
 {
+	emit loadDone();
 	m->fw = nullptr;
 	setStatus(StatusUpToDate);
 	auto color = vtkSmartPointer<vtkImageMapToColors>::New();
@@ -348,4 +350,14 @@ void iARawFilePreviewSlicer::showImage()
 
 	window->AddRenderer(roiRenderer);
 	*/
+}
+
+vtkImageData * iARawFilePreviewSlicer::image() const
+{
+	return m->image;
+}
+
+int iARawFilePreviewSlicer::sliceNr() const
+{
+	return m->sliceNr;
 }

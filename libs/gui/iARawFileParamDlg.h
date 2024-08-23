@@ -6,8 +6,10 @@
 
 #include <iARawFileParameters.h>
 
+class iAChartWithFunctionsWidget;
 class iAParameterDlg;
 class iARawFilePreviewSlicer;
+struct iASliceMergedValues;
 
 class QLabel;
 
@@ -46,6 +48,8 @@ private:
 	QWidget* m_previewContainer = nullptr;
 	std::vector<std::shared_ptr<iARawFilePreviewSlicer>> m_slicer;
 	std::optional<iARawFileParameters> m_params;
+	std::unique_ptr<iASliceMergedValues> m_dataValues;
+	iAChartWithFunctionsWidget* m_chart;
 
 private slots:
 	//! update labels indicating whether current parameters fit the actual file size

@@ -3,6 +3,9 @@
 #include "iARawFileParamDlg.h"
 
 #include "iAAttributeDescriptor.h"    // for selectOption
+#include "iAChartWithFunctionsWidget.h"
+#include "iAHistogramData.h"
+#include "iAPlotTypes.h"
 #include "iARawFileIO.h"
 #include "iALog.h"
 #include "iAParameterDlg.h"
@@ -13,6 +16,9 @@
 
 #include "iAVectorInput.h"
 
+#include <vtkImageData.h>
+
+#include <QApplication>
 #include <QComboBox>
 #include <QFileInfo>
 #include <QLabel>
@@ -21,9 +27,60 @@
 #include <QRegularExpression>
 #include <QSpinBox>
 
+struct iASliceMergedValues
+{
+	std::vector<double> values;
+	std::set<std::pair<iASlicerMode, int>> slices;
+	void clear()
+	{
+		values.clear();
+		slices.clear();
+	}
+	void addValues(vtkImageData * i, iASlicerMode mode, int sliceNr)
+	{
+		if (slices.contains(std::make_pair(mode, sliceNr)))
+		{
+			return;
+		}
+		LOG(lvlDebug, QString("%1: values: %2; slices: %3").arg(slicerModeString(mode))
+			.arg(values.size()).arg(slices.size()));
+		int skipped = 0;
+		FOR_VTKIMG_PIXELS(i, x, y, z)
+		{
+			// avoid adding values twice:
+			int coord[2] = { x, y };
+			bool skip = false;
+			for (auto s : slices)
+			{
+				if (mode == s.first)  // if same slice mode, only skip if same slice - already checked at top of method
+				{
+					continue;
+				}
+				auto existingSliceAxis = mapSliceToGlobalAxis(s.first, iAAxisIndex::Z);
+				auto thisSliceAxis = mapGlobalToSliceAxis(mode, existingSliceAxis);
+				if (coord[thisSliceAxis] == s.second)
+				{
+					skip = true;
+					break;
+				}
+			}
+			if (skip)
+			{
+				++skipped;
+				continue;
+			}
+			auto data = i->GetScalarComponentAsDouble(x, y, z, 0);
+			values.push_back(data);
+		}
+		LOG(lvlDebug, QString("%1: skipped %2").arg(slicerModeString(mode)).arg(skipped));
+		slices.insert(std::make_pair(mode, sliceNr));
+	}
+};
+
 iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, QString const& title, QVariantMap & paramValues, bool brightTheme) :
 	m_brightTheme(brightTheme),
-	m_fileName(fileName)
+	m_fileName(fileName),
+	m_dataValues(std::make_unique<iASliceMergedValues>())
 {
 	QFileInfo info1(fileName);
 	m_fileSize = info1.size();
@@ -177,6 +234,7 @@ iARawFileParamDlg::~iARawFileParamDlg()
 
 void iARawFileParamDlg::togglePreview()
 {
+	const size_t NumBins = 2048;
 	m_previewShown = !m_previewShown;
 	if (!m_previewShown)
 	{
@@ -190,13 +248,30 @@ void iARawFileParamDlg::togglePreview()
 		if (!m_previewContainer)
 		{
 			m_previewContainer = new QWidget();
+			auto slicersWidget = new QWidget();
 			auto layout = createLayout<QHBoxLayout>();
-			m_previewContainer->setLayout(layout);
+			slicersWidget->setLayout(layout);
 			for (int i = iASlicerMode::SlicerCount-1; i >= 0; --i)
 			{
 				m_slicer.push_back(std::make_shared<iARawFilePreviewSlicer>(static_cast<iASlicerMode>(i), m_fileName));
+				connect(m_slicer.back().get(), &iARawFilePreviewSlicer::loadDone, this, [this, i]
+				{
+					auto slicer = dynamic_cast<iARawFilePreviewSlicer*>(QObject::sender());
+					m_dataValues->addValues(slicer->image(), static_cast<iASlicerMode>(i), slicer->sliceNr());
+					m_chart->clearPlots();
+					auto type = isVtkIntegerImage(slicer->image()) ? iAValueType::Discrete : iAValueType::Continuous;
+					auto histogramData = iAHistogramData::create("Greyvalue",
+						type, m_dataValues->values, NumBins);
+					m_chart->addPlot(std::make_shared<iABarGraphPlot>(histogramData, QApplication::palette().color(QPalette::Shadow)));
+					m_chart->update();
+				});
 				layout->addLayout(m_slicer.back()->layout());
 			}
+			m_previewContainer->setLayout(createLayout<QVBoxLayout>());
+			m_previewContainer->layout()->addWidget(slicersWidget);
+
+			m_chart = new iAChartWithFunctionsWidget(m_inputDlg, "Greyvalue", "Frequency");
+			m_previewContainer->layout()->addWidget(m_chart);
 			m_inputDlg->mainLayout()->addWidget(m_previewContainer, 0, 1, m_inputDlg->mainLayout()->rowCount(), 1);
 		}
 		m_previewContainer->show();
@@ -211,6 +286,7 @@ void iARawFileParamDlg::updatePreview()
 	{
 		return;
 	}
+	m_dataValues->clear();
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 	{
 		if (!m_params || static_cast<qint64>(m_params->fileSize()) != m_fileSize)

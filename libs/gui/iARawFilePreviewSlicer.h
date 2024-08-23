@@ -7,6 +7,8 @@
 
 #include <QObject>
 
+class vtkImageData;
+
 template <typename LayoutType>
 LayoutType* createLayout()
 {
@@ -36,4 +38,9 @@ public:
 	void loadImage(iARawFileParameters const& params);
 	void updateImage();
 	void setOutOfDate();
+	vtkImageData * image() const;
+	int sliceNr() const;
+
+signals:
+	void loadDone();
 };
