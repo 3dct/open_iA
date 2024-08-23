@@ -14,7 +14,6 @@
 #include <vtkActor.h>
 #include <vtkColorTransferFunction.h>
 #include <vtkImageActor.h>
-//#include <vtkImageData.h>
 #include <vtkImageMapToColors.h>
 #include <vtkImageMapper3D.h>
 #include <vtkInteractorStyleImage.h>
@@ -233,7 +232,6 @@ void readImageSlice(iAProgress& progress, std::shared_ptr<iARawFilePreviewSlicer
 	int readCnt = 0;
 	while (readSuccess && curIdx < totalValues && !m->cancellationToken)
 	{
-		QThread::sleep(1);
 		qint64 idx = curCoords[0] + curCoords[1] * m->params.size[0] + curCoords[2] * m->params.size[0] * m->params.size[1];  // instead of recomputation each time, instead compute stride between chunks?
 		qint64 seekPos = m->params.headerSize + (idx * m->params.voxelBytes());
 		if (!file.seek(seekPos))
