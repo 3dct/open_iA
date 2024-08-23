@@ -137,23 +137,27 @@ QString iAHistogramData::toolTipText(DataType dataX) const
 	return QString("%1 (%2): %3").arg(name()).arg(range).arg(freq);
 }
 
-size_t iAHistogramData::finalNumBin(vtkImageData* img, size_t desiredBins)
+size_t iAHistogramData::finalNumBin(vtkImageData* img, size_t desiredNumBin)
 {
-	auto newBinCount = desiredBins;
-	if (desiredBins > std::numeric_limits<int>::max())
-	{
-		newBinCount = std::numeric_limits<int>::max();
-	}
 	int d[3];
 	img->GetDimensions(d);
 	auto voxelCount = static_cast<size_t>(d[0]) * d[1] * d[2];
-	auto maxNumBins = static_cast<size_t>(std::ceil(2 * std::sqrt(voxelCount))); // use a custom upper bound for bins (esp. relevant for smaller datasets)
+	return finalNumBin(voxelCount, isVtkIntegerImage(img) ? iAValueType::Discrete: iAValueType::Continuous, img->GetScalarRange(), desiredNumBin);
+}
+
+size_t iAHistogramData::finalNumBin(size_t numValues, iAValueType type, double const valueRange[2], size_t desiredNumBin)
+{
+	auto newBinCount = desiredNumBin;
+	if (desiredNumBin > std::numeric_limits<int>::max())
+	{
+		newBinCount = std::numeric_limits<int>::max();
+	}
+	auto maxNumBins = static_cast<size_t>(std::ceil(2 * std::sqrt(numValues))); // use a custom upper bound for bins (esp. relevant for smaller datasets)
 	newBinCount = std::min(newBinCount, maxNumBins);
-	if (isVtkIntegerImage(img))	// for images with discrete pixel data types...
+	if (type == iAValueType::Discrete)	// for images with discrete pixel data types...
 	{
 		// ...the maximum number of bins that makes sense is the number of different values
-		auto const scalarRange = img->GetScalarRange();
-		double rangeSize = (scalarRange[1] - scalarRange[0]) + 1;
+		double rangeSize = (valueRange[1] - valueRange[0]) + 1;
 		newBinCount = std::min(newBinCount, static_cast<size_t>(rangeSize));
 		// ...and make sure we have bins of integer step size; round to closest integral number, so that actual numBin is closest to desired numBin
 		double stepSize = std::round(rangeSize / newBinCount);
@@ -311,6 +315,8 @@ std::shared_ptr<iAHistogramData> iAHistogramData::create(QString const& name, iA
 	{
 		maxX = *std::max_element(data.begin(), data.end());
 	}
+	double range[2]  = {minX, maxX};
+	numBin = finalNumBin(data.size(), type, range, numBin);
 	DataType* histoData;
 	if (dblApproxEqual(minX, maxX))
 	{   // if min == max, there is only one bin - one in which all values are contained!
