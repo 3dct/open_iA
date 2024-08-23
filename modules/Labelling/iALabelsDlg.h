@@ -44,7 +44,7 @@ public:
 	bool load(QString const& filename);
 	bool store(QString const& filename, bool extendedFormat);
 
-	int addSlicer(iASlicer* slicer, QString name, int* extent, double* spacing, uint channelId);
+	int addSlicer(iASlicer* slicer, QString name, int const dim[3], double const spacing[3], uint channelId);
 	void addSlicer(iASlicer* slicer, int imageId, uint channelId = 0);
 	void removeSlicer(iASlicer* slicer);
 

@@ -100,7 +100,7 @@ void iANModalController::privateInitialize()
 		auto dataSet = m_dataSets[i];
 
 		auto slicer = initializeSlicer(dataSet);
-		int id = m_dlg_labels->addSlicer(slicer, dataSet->name(), dataSet->vtkImage()->GetExtent(),
+		int id = m_dlg_labels->addSlicer(slicer, dataSet->name(), dataSet->vtkImage()->GetDimensions(),
 			dataSet->vtkImage()->GetSpacing(), m_slicerChannel_label);
 		m_slicers[i] = slicer;
 		m_mapOverlayImageId2dataSet.insert(id, dataSet);

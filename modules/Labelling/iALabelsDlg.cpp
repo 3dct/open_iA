@@ -106,13 +106,13 @@ iALabelsDlg::iALabelsDlg(iAMdiChild* mdiChild) :
 	auto img = m_mdiChild->firstImageData();
 	if (img)
 	{
-		int id = addSlicer(m_mdiChild->slicer(iASlicerMode::XY), "Main XY", img->GetExtent(), img->GetSpacing(), channelId);
+		int id = addSlicer(m_mdiChild->slicer(iASlicerMode::XY), "Main XY", img->GetDimensions(), img->GetSpacing(), channelId);
 		addSlicer(m_mdiChild->slicer(iASlicerMode::XZ), id, channelId);
 		addSlicer(m_mdiChild->slicer(iASlicerMode::YZ), id, channelId);
 	}
 }
 
-int iALabelsDlg::addSlicer(iASlicer* slicer, QString name, int* extent, double* spacing, uint channelId)
+int iALabelsDlg::addSlicer(iASlicer* slicer, QString name, int const dim[3], double const spacing[3], uint channelId)
 {
 	if (m_mapSlicer2data.contains(slicer))
 	{
@@ -120,7 +120,7 @@ int iALabelsDlg::addSlicer(iASlicer* slicer, QString name, int* extent, double* 
 		return -1;
 	}
 	int imageId = m_nextId++;
-	auto labelOverlayImg = allocateiAImage(VTK_INT, extent, spacing, 1);
+	auto labelOverlayImg = allocateiAImage(VTK_INT, dim, spacing, 1);
 	clearImage<LabelPixelType>(labelOverlayImg, 0);
 
 	m_mapId2image.insert(imageId, std::make_shared<iAOverlayImage>(imageId, name, labelOverlayImg));
