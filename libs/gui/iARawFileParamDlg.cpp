@@ -180,13 +180,13 @@ void iARawFileParamDlg::togglePreview()
 	m_previewShown = !m_previewShown;
 	if (!m_previewShown)
 	{
-		m_previewWidth = m_previewContainer->width();
+		m_previewWidth = m_inputDlg->width();
 		m_previewContainer->hide();
-		auto newWidth = m_inputDlg->width() - m_previewWidth;
-		m_inputDlg->resize(newWidth, m_inputDlg->height());
+		m_inputDlg->adjustSize();  // works better than any resize call
 	}
 	else
 	{
+		m_inputDlg->resize(m_previewWidth, m_inputDlg->height());   // restore previous width
 		if (!m_previewContainer)
 		{
 			m_previewContainer = new QWidget();
@@ -201,7 +201,6 @@ void iARawFileParamDlg::togglePreview()
 		}
 		m_previewContainer->show();
 		m_previewContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		m_inputDlg->resize(m_inputDlg->width() + m_previewWidth, m_inputDlg->height());
 		updatePreview();
 	}
 }
