@@ -42,9 +42,9 @@ struct iASliceMergedValues
 		{
 			return;
 		}
-		LOG(lvlDebug, QString("%1: values: %2; slices: %3").arg(slicerModeString(mode))
-			.arg(values.size()).arg(slices.size()));
-		int skipped = 0;
+		//LOG(lvlDebug, QString("%1: values: %2; slices: %3").arg(slicerModeString(mode))
+		//	.arg(values.size()).arg(slices.size()));
+		//int skipped = 0;
 		FOR_VTKIMG_PIXELS(i, x, y, z)
 		{
 			// avoid adding values twice:
@@ -56,8 +56,7 @@ struct iASliceMergedValues
 				{
 					continue;
 				}
-				auto existingSliceAxis = mapSliceToGlobalAxis(s.first, iAAxisIndex::Z);
-				auto thisSliceAxis = mapGlobalToSliceAxis(mode, existingSliceAxis);
+				auto thisSliceAxis = mapGlobalToSliceAxis(mode, mapSliceToGlobalAxis(s.first, iAAxisIndex::Z));
 				if (coord[thisSliceAxis] == s.second)
 				{
 					skip = true;
@@ -66,13 +65,13 @@ struct iASliceMergedValues
 			}
 			if (skip)
 			{
-				++skipped;
+				//++skipped;
 				continue;
 			}
 			auto data = i->GetScalarComponentAsDouble(x, y, z, 0);
 			values.push_back(data);
 		}
-		LOG(lvlDebug, QString("%1: skipped %2").arg(slicerModeString(mode)).arg(skipped));
+		//LOG(lvlDebug, QString("%1: skipped %2").arg(slicerModeString(mode)).arg(skipped));
 		slices.insert(std::make_pair(mode, sliceNr));
 	}
 };
