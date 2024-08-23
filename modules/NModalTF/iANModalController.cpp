@@ -566,9 +566,9 @@ namespace
 #ifdef NDEBUG
 		Q_UNUSED(xyz_orig);
 #endif
-		xyz_out[0] = mapSliceToGlobalAxis(mainSlicerIndex, 0);
-		xyz_out[1] = mapSliceToGlobalAxis(mainSlicerIndex, 1);
-		xyz_out[2] = mapSliceToGlobalAxis(mainSlicerIndex, 2);
+		xyz_out[0] = mapSliceToGlobalAxis(mainSlicerIndex, iAAxisIndex::X);
+		xyz_out[1] = mapSliceToGlobalAxis(mainSlicerIndex, iAAxisIndex::Y);
+		xyz_out[2] = mapSliceToGlobalAxis(mainSlicerIndex, iAAxisIndex::Z);
 
 		assert(xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][0]] == xyz_out[0]);
 		assert(xyz_orig[slicerCoordSwapIndices[mainSlicerIndex][1]] == xyz_out[1]);
