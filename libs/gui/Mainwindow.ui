@@ -74,7 +74,6 @@
     <addaction name="actionOpenInNewWindow"/>
     <addaction name="actionOpenDataSet"/>
     <addaction name="actionOpenRaw"/>
-    <addaction name="actionOpenWithDataTypeConversion"/>
     <addaction name="actionOpenTLGICTData"/>
     <addaction name="separator"/>
     <addaction name="actionSaveDataSet"/>
@@ -627,7 +626,7 @@
     <string>Save Camera Settings</string>
    </property>
    <property name="shortcutContext">
-    <enum>Qt::WindowShortcut</enum>
+    <enum>Qt::ShortcutContext::WindowShortcut</enum>
    </property>
   </action>
   <action name="actionLoadCameraSettings">
@@ -713,7 +712,7 @@
     <string>Ctrl+Alt+T</string>
    </property>
    <property name="shortcutContext">
-    <enum>Qt::ApplicationShortcut</enum>
+    <enum>Qt::ShortcutContext::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="actionFullScreenMode">
@@ -727,7 +726,7 @@
     <string>Ctrl+Alt+F</string>
    </property>
    <property name="shortcutContext">
-    <enum>Qt::ApplicationShortcut</enum>
+    <enum>Qt::ShortcutContext::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="actionShowMenu">
@@ -744,7 +743,7 @@
     <string>Ctrl+Alt+N</string>
    </property>
    <property name="shortcutContext">
-    <enum>Qt::ApplicationShortcut</enum>
+    <enum>Qt::ShortcutContext::ApplicationShortcut</enum>
    </property>
   </action>
   <action name="actionBuildInformation">

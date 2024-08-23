@@ -34,6 +34,22 @@
 // declared in iAVtkDraw.h
 vtkStandardNewMacro(iAvtkImageData);
 
+void iAvtkImageData::SetScalarRange(double min, double max)
+{
+	ScalarRangeComputeTime.Modified();
+	ScalarRange[0] = min;
+	ScalarRange[1] = max;
+}
+
+vtkSmartPointer<iAvtkImageData> allocateiAImage(int vtkType, int const dimensions[3], double const spacing[3], int numComponents)
+{
+	auto img = vtkSmartPointer<iAvtkImageData>::New();
+	img->SetDimensions(dimensions);
+	img->AllocateScalars(vtkType, numComponents);
+	img->SetSpacing(spacing);
+	return img;
+}
+
 
 vtkSmartPointer<vtkImageData> allocateImage(int vtkType, int const dimensions[3], double const spacing[3], int numComponents)
 {
@@ -348,16 +364,6 @@ QStringList const& iAByteOrder::stringList()
 {
 	static QStringList byteOrders = (QStringList() << BigEndianStr << LittleEndianStr);
 	return byteOrders;
-}
-
-QString iAByteOrder::mapVTKTypeToString(int byteOrder)
-{
-	return (byteOrder == VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN) ? LittleEndianStr : BigEndianStr;
-}
-
-int iAByteOrder::mapStringToVTKType(QString const& name)
-{
-	return (name == LittleEndianStr) ? VTK_FILE_BYTE_ORDER_LITTLE_ENDIAN : VTK_FILE_BYTE_ORDER_BIG_ENDIAN;
 }
 
 void setCamPosition(vtkCamera* cam, iACameraPosition pos)

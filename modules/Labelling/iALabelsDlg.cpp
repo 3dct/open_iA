@@ -120,10 +120,7 @@ int iALabelsDlg::addSlicer(iASlicer* slicer, QString name, int* extent, double* 
 		return -1;
 	}
 	int imageId = m_nextId++;
-	auto labelOverlayImg = vtkSmartPointer<iAvtkImageData>::New();
-	labelOverlayImg->SetExtent(extent);
-	labelOverlayImg->SetSpacing(spacing);
-	labelOverlayImg->AllocateScalars(VTK_INT, 1);
+	auto labelOverlayImg = allocateiAImage(VTK_INT, extent, spacing, 1);
 	clearImage<LabelPixelType>(labelOverlayImg, 0);
 
 	m_mapId2image.insert(imageId, std::make_shared<iAOverlayImage>(imageId, name, labelOverlayImg));

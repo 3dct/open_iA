@@ -36,7 +36,63 @@ struct iAConverter
 	}
 };
 
-//! Converts int to and from QString.
+//! Converts (signed) char to and from QString.
+template <>
+struct iAConverter<char>
+{
+	static char toT(QString str, bool* ok)
+	{
+		return static_cast<char>(str.toInt(ok));
+	}
+	static QString toString(char n)
+	{
+		return QString::number(n);
+	}
+};
+
+//! Converts unsigned char to and from QString.
+template <>
+struct iAConverter<unsigned char>
+{
+	static unsigned char toT(QString str, bool* ok)
+	{
+		return static_cast<unsigned char>(str.toInt(ok));
+	}
+	static QString toString(unsigned char n)
+	{
+		return QString::number(n);
+	}
+};
+
+//! Converts (signed) short to and from QString.
+template <>
+struct iAConverter<short>
+{
+	static short toT(QString str, bool* ok)
+	{
+		return str.toShort(ok);
+	}
+	static QString toString(short n)
+	{
+		return QString::number(n);
+	}
+};
+
+//! Converts unsigned short to and from QString.
+template <>
+struct iAConverter<unsigned short>
+{
+	static unsigned short toT(QString str, bool* ok)
+	{
+		return str.toUShort(ok);
+	}
+	static QString toString(unsigned short n)
+	{
+		return QString::number(n);
+	}
+};
+
+//! Converts (signed) int to and from QString.
 template <>
 struct iAConverter<int>
 {
@@ -50,15 +106,15 @@ struct iAConverter<int>
 	}
 };
 
-//! Converts unsigned short to and from QString.
+//! Converts unsigned int to and from QString.
 template <>
-struct iAConverter<unsigned short>
+struct iAConverter<unsigned int>
 {
-	static int toT(QString str, bool* ok)
+	static unsigned int toT(QString str, bool* ok)
 	{
-		return str.toUShort(ok);
+		return str.toUInt(ok);
 	}
-	static QString toString(unsigned short n)
+	static QString toString(unsigned int n)
 	{
 		return QString::number(n);
 	}

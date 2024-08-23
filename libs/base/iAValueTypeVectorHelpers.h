@@ -19,20 +19,23 @@ namespace
 }
 
 //! Set any indexed type from a iAValueType::Vector3 stored in a QVariant (as in the QVariantMap used throughout open_iA)
-//! TODO: check for number of values!
+// TODO: check for number of values!
 template <typename T, typename U>
-void setFromVectorVariant(U& dest, QVariant const& src)
+bool setFromVectorVariant(U& dest, QVariant const& src)
 {
 	auto values = src.toString().split(Separator);
+	bool result = true;
 	for (int i = 0; i < values.size(); ++i)
 	{
 		bool ok;
 		dest[i] = iAConverter<T>::toT(values[i], &ok);
 		if (!ok)
 		{
+			result = false;
 			LOG(lvlDebug, QString("setFromVectorVariant: Could not convert element %1 (%2); full variant: %3").arg(i).arg(values[i]).arg(src.toString()));
 		}
 	}
+	return result;
 }
 
 template <typename T>

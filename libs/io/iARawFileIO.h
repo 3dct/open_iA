@@ -25,3 +25,5 @@ public:
 	QString name() const override;
 	QStringList extensions() const override;
 };
+
+iAio_API itk::CommonEnums::IOByteOrder mapStringToITKByteOrder(QString const& byteOrder);

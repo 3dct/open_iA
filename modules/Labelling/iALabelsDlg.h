@@ -17,7 +17,6 @@
 class iAColorTheme;
 class iAImageCoordinate;
 class iASlicer;
-class iAvtkImageData;
 class iAMdiChild;
 
 class Ui_labels;

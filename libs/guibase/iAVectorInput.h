@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#include "iaguibase_export.h"
+
 #include "iAValueType.h"
 #include "iAValueTypeVectorHelpers.h"
 
@@ -15,7 +17,7 @@
 //! Input line for a 2- or 3 dimensional vector with either continuous (double) or discrete (integer) values.
 //! Currently only used in iAParameterDialog. If used somewhere else, extract method
 //! definitions to separate .cpp file to avoid according errors
-class iAVectorInput : public QWidget
+class iAguibase_API iAVectorInput : public QWidget
 {
 	Q_OBJECT
 public:

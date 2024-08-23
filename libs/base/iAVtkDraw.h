@@ -14,37 +14,17 @@ class iAbase_API iAvtkImageData : public vtkImageData
 public:
 	static iAvtkImageData *New();
 	vtkTypeMacro(iAvtkImageData, vtkImageData);
-	void SetScalarRange(int min, int max)
-	{
-		ScalarRangeComputeTime.Modified();
-		ScalarRange[0] = min;
-		ScalarRange[1] = max;
-	}
+	void SetScalarRange(double min, double max);
 };
+
+//! allocate an iAvtkImageData image
+iAbase_API vtkSmartPointer<iAvtkImageData> allocateiAImage(int vtkType, int const dimensions[3], double const spacing[3], int numComponents);
 
 //! Change a single pixel in the given image.
 //! Don't forget to call Modified() on the image, and if the scalar range
 //! changed, to update the scalar range (unfortunately that seems to require a
 //! "dirty hack" at the moment, see iAvtkImageData above).
-//! WARNING: Only use for INT type at the moment!
-template <typename T>
-void drawPixel(vtkImageData* img, int x, int y, int z, T c);
-
-//! Draw a line in the given image.
-//! See the notes for drawPixel regarding Modified().
-//! WARNING: Only use for INT type at the moment!
-template <typename T>
-void drawLine(vtkImageData* img, int x1, int y1, int x2, int y2, T c);
-
-//! Set all pixels in the given image to the given value
-//! See the notes for drawPixel regarding Modified().
-//! WARNING: Only use for INT type at the moment!
-template <typename T>
-void clearImage(vtkImageData* img, T c);
-
-
-
-
+//! WARNING: Only tested for INT type at the moment!
 template <typename T>
 void drawPixel(vtkImageData* img, int x, int y, int z, T c)
 {
@@ -52,6 +32,9 @@ void drawPixel(vtkImageData* img, int x, int y, int z, T c)
 	*pixel = c;
 }
 
+//! Draw a line in the given image.
+//! See the notes for drawPixel regarding Modified().
+//! WARNING: Only tested for INT type at the moment!
 // TODO: find better way to draw a line in a vtkImageData!!!!!
 // source: http://www.roguebasin.com/index.php?title=Bresenham%27s_Line_Algorithm
 template <typename T>
@@ -102,11 +85,14 @@ void drawLine(vtkImageData* img, int x1, int y1, int x2, int y2, T c)
 	}
 }
 
+//! Set all pixels in the given image to the given value
+//! See the notes for drawPixel regarding Modified().
+//! WARNING: Only tested for INT type at the moment!
 template <typename T>
 void clearImage(vtkImageData* img, T c)
 {
 	int const * dim = img->GetDimensions();
-	int * rawDataPtr = static_cast<T*>(img->GetScalarPointer());
+	T * rawDataPtr = static_cast<T*>(img->GetScalarPointer());
 	size_t fullSize = static_cast<size_t>(dim[0]) * dim[1] * dim[2];
 	std::fill(rawDataPtr, rawDataPtr + fullSize, c);
 	/*

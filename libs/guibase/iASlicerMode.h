@@ -53,4 +53,4 @@ iAguibase_API int mapSliceToGlobalAxis(int mode, int index);
 // ! - 0, 2, 1 for XZ
 // ! - 0, 1, 2 for XY
 // Currently not used...
-// iAguibase_API int mapGlobalToSliceAxis(int mode, int index);
+iAguibase_API int mapGlobalToSliceAxis(int mode, int index);

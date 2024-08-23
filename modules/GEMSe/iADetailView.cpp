@@ -638,10 +638,7 @@ void iADetailView::AddResultFilterPixel(double x, double y, double z)
 	}
 	if (!m_resultFilterImg)
 	{
-		m_resultFilterImg = vtkSmartPointer<iAvtkImageData>::New();
-		m_resultFilterImg->SetDimensions(m_dimensions);
-		m_resultFilterImg->AllocateScalars(VTK_INT, 1);
-		m_resultFilterImg->SetSpacing(m_spacing);
+		m_resultFilterImg = allocateiAImage(VTK_INT, m_dimensions, m_spacing, 1);
 		clearImage(m_resultFilterImg, 0);
 		m_resultFilterOverlayLUT = iALUT::BuildLabelColorTF(m_labelCount, m_colorTheme);
 		m_resultFilterOverlayOTF = iALUT::BuildLabelOpacityTF(m_labelCount);

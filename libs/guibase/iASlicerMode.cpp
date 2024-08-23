@@ -35,14 +35,12 @@ namespace
 		{ iAAxisIndex::Z, iAAxisIndex::Z, iAAxisIndex::Y },  // y
 		{ iAAxisIndex::X, iAAxisIndex::Y, iAAxisIndex::Z }   // z
 	};
-	/*
 	static const int GlobalToSliceAxisMapping[3][3] =
 	{   //            YZ              XZ              XY
 		{ iAAxisIndex::Z, iAAxisIndex::X, iAAxisIndex::X }, // x
 		{ iAAxisIndex::X, iAAxisIndex::Z, iAAxisIndex::Y }, // y
 		{ iAAxisIndex::Y, iAAxisIndex::Y, iAAxisIndex::Z }  // z
 	};
-	*/
 }
 
 int mapSliceToGlobalAxis(int mode, int index)
@@ -51,9 +49,8 @@ int mapSliceToGlobalAxis(int mode, int index)
 	assert(0 <= index && index < iAAxisIndex::AxisCount);
 	return SliceToGlobalAxisMapping[index][mode];
 }
-/*
+
 int mapGlobalToSliceAxis(int mode, int index)
 {
 	return GlobalToSliceAxisMapping[index][mode];
 }
-*/

@@ -145,10 +145,7 @@ void iAScatterPlotView::SetDatasets(std::shared_ptr<iAUncertaintyImages> imgs)
 	if (!m_selectionImg)
 	{
 		vtkImagePointer i = imgs->GetEntropy(m_xAxisChoice);
-		m_selectionImg = vtkSmartPointer<iAvtkImageData>::New();
-		m_selectionImg->SetDimensions(i->GetDimensions());
-		m_selectionImg->AllocateScalars(i->GetScalarType(), 1);
-		m_selectionImg->SetSpacing(i->GetSpacing());
+		m_selectionImg = allocateiAImage(i->GetScalarType(), i->GetDimensions(), i->GetSpacing(), 1);
 		m_voxelCount = static_cast<size_t>(i->GetDimensions()[0]) * i->GetDimensions()[1] * i->GetDimensions()[2];
 		int* imgbuf = static_cast<int*>(m_selectionImg->GetScalarPointer());
 		std::fill(imgbuf, imgbuf + m_voxelCount, 0);

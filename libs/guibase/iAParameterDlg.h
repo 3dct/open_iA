@@ -20,6 +20,7 @@ class iAMainWindow;
 class iAMdiChild;
 
 class QDialogButtonBox;
+class QGridLayout;
 class QString;
 class QWidget;
 
@@ -41,7 +42,9 @@ public:
 	void setSourceMdi(iAMdiChild* child, iAMainWindow* mainWnd);
 	QWidget* paramWidget(QString const & key);
 	void setOKEnabled(bool enabled);
-	void setValue(QString const & key, QVariant const & value);
+	void setValue(QString const& key, QVariant const& value);
+	QWidget* mainWidget();
+	QGridLayout* mainLayout();
 
 private slots:
 	void updatedROI(QVariant value);
@@ -49,7 +52,7 @@ private slots:
 	void selectFilter();
 
 private:
-	QWidget * m_container;
+	QWidget * m_container, * m_mainWidget;
 	int m_roi[6];
 	QVector<qsizetype> m_filterWithParameters;
 	iAMdiChild * m_sourceMdiChild;
@@ -58,6 +61,7 @@ private:
 	QVector<QWidget*> m_widgetList;
 	iAAttributes m_parameters;
 	QDialogButtonBox* m_buttonBox;
+	QGridLayout * m_mainLayout;
 
 	void updateROIPart(QString const& partName, QVariant value);
 };
