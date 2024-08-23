@@ -231,7 +231,6 @@ void readImageSlice(iAProgress& progress, std::shared_ptr<iARawFilePreviewSlicer
 	std::array<qint64, 3> curCoords;
 	curCoords.fill(0);
 	curCoords[sliceZAxis] = m->sliceNr;
-	int readCnt = 0;
 	while (readSuccess && curIdx < totalValues && !m->cancellationToken)
 	{
 		qint64 idx = curCoords[0] + curCoords[1] * m->params.size[0] + curCoords[2] * m->params.size[0] * m->params.size[1];  // instead of recomputation each time, instead compute stride between chunks?
@@ -263,7 +262,6 @@ void readImageSlice(iAProgress& progress, std::shared_ptr<iARawFilePreviewSlicer
 				curCoords[2] += 1;
 			}
 		}
-		readCnt++;
 		progress.emitProgress(100 * static_cast<double>(curIdx) / totalValues);
 	}
 	if (m->params.byteOrder == itk::CommonEnums::IOByteOrder::BigEndian)
