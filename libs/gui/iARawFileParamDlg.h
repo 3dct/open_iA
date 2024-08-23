@@ -6,10 +6,14 @@
 
 #include <iARawFileParameters.h>
 
+#include <vtkSmartPointer.h>
+
 class iAChartWithFunctionsWidget;
 class iAParameterDlg;
 class iARawFilePreviewSlicer;
 struct iASliceMergedValues;
+
+class vtkColorTransferFunction;
 
 class QLabel;
 
@@ -39,17 +43,18 @@ public:
 private:
 	qint64 m_fileSize;
 	QLabel * m_proposedSizeLabel = nullptr;
+	QWidget* m_previewContainer = nullptr;
+	iAChartWithFunctionsWidget* m_chart;
 	iAParameterDlg* m_inputDlg = nullptr;
 	bool m_accepted = false;
 	bool m_brightTheme;
 	bool m_previewShown = false;
 	int m_previewWidth = 0;
 	QString m_fileName;
-	QWidget* m_previewContainer = nullptr;
 	std::vector<std::shared_ptr<iARawFilePreviewSlicer>> m_slicer;
 	std::optional<iARawFileParameters> m_params;
 	std::unique_ptr<iASliceMergedValues> m_dataValues;
-	iAChartWithFunctionsWidget* m_chart;
+	vtkSmartPointer<vtkColorTransferFunction> m_tf;
 
 private slots:
 	//! update labels indicating whether current parameters fit the actual file size

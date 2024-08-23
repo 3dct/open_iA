@@ -8,6 +8,7 @@
 #include <QObject>
 
 class vtkImageData;
+class vtkScalarsToColors;
 
 template <typename LayoutType>
 LayoutType* createLayout()
@@ -32,7 +33,7 @@ private:
 	void setStatus(QString const& status);
 
 public:
-	iARawFilePreviewSlicer(iASlicerMode mode, QString const& fileName);
+	iARawFilePreviewSlicer(iASlicerMode mode, QString const& fileName, vtkScalarsToColors* tf);
 	~iARawFilePreviewSlicer();
 	QVBoxLayout* layout();
 	void loadImage(iARawFileParameters const& params);

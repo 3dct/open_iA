@@ -7,13 +7,11 @@
 #include <iAProgress.h>
 #include <iARunAsync.h>
 #include <iASlicerMode.h>
-#include <iATransferFunction.h>
 #include <iATypedCallHelper.h>
 #include <iAVtkDraw.h>    // for iAvtkImageData
 #include <iAToolsVTK.h>   // for FOR_VTKIMG_PIXELS
 
 #include <vtkActor.h>
-#include <vtkColorTransferFunction.h>
 #include <vtkImageActor.h>
 #include <vtkImageMapToColors.h>
 #include <vtkImageMapper3D.h>
@@ -73,6 +71,7 @@ struct iARawFilePreviewSlicerImpl
 	QCheckBox* label;
 	iARawFileParameters params;
 	vtkSmartPointer<vtkRenderer> imageRenderer;
+	vtkScalarsToColors* tf;
 	int sliceNr = SliceNrInit;
 	bool validParams = false;
 	bool enabled = false;
@@ -82,11 +81,12 @@ struct iARawFilePreviewSlicerImpl
 	QMetaObject::Connection showImgConn;
 };
 
-iARawFilePreviewSlicer::iARawFilePreviewSlicer(iASlicerMode mode, QString const& fileName) :
+iARawFilePreviewSlicer::iARawFilePreviewSlicer(iASlicerMode mode, QString const& fileName, vtkScalarsToColors* tf) :
 	m(std::make_shared<iARawFilePreviewSlicerImpl>())
 {
 	m->mode = mode;
 	m->fileName = fileName;
+	m->tf = tf;
 	m->label = new QCheckBox(QString("%1").arg(slicerModeString(mode)));
 	m->enabled = m->mode != iASlicerMode::YZ;
 	m->label->setChecked(m->enabled);
@@ -307,8 +307,7 @@ void iARawFilePreviewSlicer::showImage()
 	setStatus(StatusUpToDate);
 	auto color = vtkSmartPointer<vtkImageMapToColors>::New();
 	auto range = m->image->GetScalarRange();
-	auto table = defaultColorTF(range);
-	color->SetLookupTable(table);
+	color->SetLookupTable(m->tf);
 	color->SetInputData(m->image);
 	color->Update();
 	auto imageActor = vtkSmartPointer<vtkImageActor>::New();
