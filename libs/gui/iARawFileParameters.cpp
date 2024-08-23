@@ -54,11 +54,12 @@ std::optional<iARawFileParameters> iARawFileParameters::fromMap(QVariantMap cons
 	bool ok = setFromVectorVariant<int>(result.size, map[iARawFileIO::SizeStr]);
 	ok &= setFromVectorVariant<double>(result.spacing, map[iARawFileIO::SpacingStr]);
 	ok &= setFromVectorVariant<double>(result.origin, map[iARawFileIO::OriginStr]);
-	result.headerSize = map[iARawFileIO::HeadersizeStr].toUInt();
+	bool headerSizeOK;
+	result.headerSize = map[iARawFileIO::HeadersizeStr].toUInt(&headerSizeOK);
 	result.scalarType = mapReadableDataTypeToVTKType(map[iARawFileIO::DataTypeStr].toString());
 	ok &= result.scalarType != -1;
 	result.byteOrder = mapStringToITKByteOrder(map[iARawFileIO::ByteOrderStr].toString());
 	ok &= result.size[0] > 0 && result.size[1] > 0 && result.size[2] > 0;
-	ok &= result.headerSize >= 0 && result.voxelBytes() > 0;
+	ok &= headerSizeOK && result.voxelBytes() > 0;
 	return ok ? std::optional<iARawFileParameters>(result) : std::nullopt;
 }
