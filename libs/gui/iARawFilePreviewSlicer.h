@@ -24,7 +24,7 @@ class iARawFilePreviewSlicer: public QObject
 {
 	Q_OBJECT
 private:
-	std::unique_ptr<iARawFilePreviewSlicerImpl> m;
+	std::shared_ptr<iARawFilePreviewSlicerImpl> m;    // shared in order to keep it available in background worker if this class is deleted while worker is still running
 	void stopUpdate();
 	void showImage();
 	void setStatus(QString const& status);

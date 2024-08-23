@@ -78,11 +78,12 @@ struct iARawFilePreviewSlicerImpl
 	bool enabled = false;
 	QFutureWatcher<void>* fw = nullptr;
 	vtkSmartPointer<iAvtkImageData> image;
-	std::atomic_bool cancellation_token = ATOMIC_VAR_INIT(false);
+	std::atomic_bool cancellationToken = false;
+	QMetaObject::Connection showImgConn;
 };
 
 iARawFilePreviewSlicer::iARawFilePreviewSlicer(iASlicerMode mode, QString const& fileName) :
-	m(std::make_unique<iARawFilePreviewSlicerImpl>())
+	m(std::make_shared<iARawFilePreviewSlicerImpl>())
 {
 	m->mode = mode;
 	m->fileName = fileName;
@@ -143,7 +144,7 @@ iARawFilePreviewSlicer::iARawFilePreviewSlicer(iASlicerMode mode, QString const&
 
 iARawFilePreviewSlicer::~iARawFilePreviewSlicer()
 {
-	//stopUpdate();
+	stopUpdate();
 }
 
 void iARawFilePreviewSlicer::setOutOfDate()
@@ -190,15 +191,22 @@ void iARawFilePreviewSlicer::stopUpdate()
 	{
 		return;
 	}
-	QObject::disconnect(m->fw, &QFutureWatcher<void>::finished, this, &iARawFilePreviewSlicer::showImage);
-	m->cancellation_token = true;
-	m->fw->waitForFinished();
-	m->fw = nullptr;
+	bool disconnectAndWait = m->showImgConn;  // we want to evaluate operator bool on the connection, not copy it!
+	if (disconnectAndWait)
+	{
+		QObject::disconnect(m->showImgConn);
+	}
+	m->cancellationToken = true;
+	if (disconnectAndWait)
+	{
+		m->fw->waitForFinished();
+		m->fw = nullptr;
+	}
 }
 
 
 template <typename T>
-void readImageSlice(iAProgress& progress, iARawFilePreviewSlicerImpl* m)
+void readImageSlice(iAProgress& progress, std::shared_ptr<iARawFilePreviewSlicerImpl> m)
 {
 	QFile file(m->fileName);
 	if (!file.open(QIODevice::ReadOnly | QIODevice::Unbuffered))
@@ -223,7 +231,7 @@ void readImageSlice(iAProgress& progress, iARawFilePreviewSlicerImpl* m)
 	curCoords.fill(0);
 	curCoords[sliceZAxis] = m->sliceNr;
 	int readCnt = 0;
-	while (readSuccess && curIdx < totalValues && !m->cancellation_token)
+	while (readSuccess && curIdx < totalValues && !m->cancellationToken)
 	{
 		QThread::sleep(1);
 		qint64 idx = curCoords[0] + curCoords[1] * m->params.size[0] + curCoords[2] * m->params.size[0] * m->params.size[1];  // instead of recomputation each time, instead compute stride between chunks?
@@ -282,13 +290,13 @@ void iARawFilePreviewSlicer::updateImage()
 	QObject::connect(progress.get(), &iAProgress::progress, m->progressBar, &QProgressBar::setValue);
 	m->progressBar->setValue(0);
 	m->statusWidget->setCurrentIndex(1);
-	m->cancellation_token = false;
+	m->cancellationToken = false;
 	m->fw = new QFutureWatcher<void>(m->progressBar);
-	QObject::connect(m->fw, &QFutureWatcher<void>::finished, this, &iARawFilePreviewSlicer::showImage);
+	m->showImgConn = QObject::connect(m->fw, &QFutureWatcher<void>::finished, this, &iARawFilePreviewSlicer::showImage);
 	QObject::connect(m->fw, &QFutureWatcher<void>::finished, m->fw, &QFutureWatcher<void>::deleteLater);
 	auto future = QtConcurrent::run([this, progress]()
 	{
-		VTK_TYPED_CALL(readImageSlice, m->params.scalarType, *progress.get(), m.get());
+		VTK_TYPED_CALL(readImageSlice, m->params.scalarType, *progress.get(), m);
 	});
 	m->fw->setFuture(future);
 }
