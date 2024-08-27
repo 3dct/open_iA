@@ -70,7 +70,7 @@ private:
 	size_t m_inputImageCount;
 	QString m_lastParamsFileName, m_lastFilterName;
 	QVector<std::shared_ptr<iAParameterInputs> > m_paramInputs;
-	iAWidgetMap m_widgetMap;
+	iAQWidgetMap m_widgetMap;
 	iAQRadioButtonVector m_rgAlgorithmType;
 	std::shared_ptr<iAAttributes> m_paramSpecs;
 	std::shared_ptr<Ui_samplingSettings> m_ui;

@@ -414,7 +414,7 @@ typedef iAQTtoUIConnector<QWidget, Ui_SensitivitySettings> iASensitivitySettings
 
 class iASensitivitySettingsView: public iASensitivitySettingsUI
 {
-	iAWidgetMap m_settingsWidgetMap;
+	iAQWidgetMap m_settingsWidgetMap;
 	iAQRadioButtonVector m_rgChartType;
 
 	// only used once anyway - merge to where it is used?

@@ -1,6 +1,6 @@
 // Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "iAWidgetSettingsMapper.h"
+#include "iAQWidgetSettingsMapper.h"
 
 #include <iAFileChooserWidget.h>
 #include <iALog.h>
@@ -11,7 +11,7 @@
 #include <QSlider>
 #include <QSpinBox>
 
-void loadSettings(QVariantMap const& settings, iAWidgetMap const& settingsWidgetMap)
+void loadSettings(QVariantMap const& settings, iAQWidgetMap const& settingsWidgetMap)
 {
 	for (QString key : settingsWidgetMap.keys())
 	{
@@ -190,7 +190,7 @@ private:
 	QVariantMap& m_s;
 };
 
-void internalSaveSettings(iAInternalSettingsWrapper& settings, iAWidgetMap const& settingsWidgetMap)
+void internalSaveSettings(iAInternalSettingsWrapper& settings, iAQWidgetMap const& settingsWidgetMap)
 {
 	for (QString key : settingsWidgetMap.keys())
 	{
@@ -271,13 +271,13 @@ void internalSaveSettings(iAInternalSettingsWrapper& settings, iAWidgetMap const
 	}
 }
 
-void saveSettings(QSettings& settings, iAWidgetMap const& settingsWidgetMap)
+void saveSettings(QSettings& settings, iAQWidgetMap const& settingsWidgetMap)
 {
 	iAQSettingsWrapper settingsWrapper(settings);
 	internalSaveSettings(settingsWrapper, settingsWidgetMap);
 }
 
-void saveSettings(QVariantMap& settings, iAWidgetMap const& settingsWidgetMap)
+void saveSettings(QVariantMap& settings, iAQWidgetMap const& settingsWidgetMap)
 {
 	iASettingsWrapper settingsWrapper(settings);
 	internalSaveSettings(settingsWrapper, settingsWidgetMap);

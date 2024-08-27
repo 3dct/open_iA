@@ -239,7 +239,7 @@ private:
 
 	QTimer * m_playTimer;
 	iARefDistCompute* m_refDistCompute;
-	iAWidgetMap m_settingsWidgetMap;
+	iAQWidgetMap m_settingsWidgetMap;
 
 	// The different views and their elements:
 	std::vector<iADockWidgetWrapper*> m_views;
