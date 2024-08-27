@@ -9,9 +9,7 @@
 #include <iASlicerMode.h>
 #include <iATypedCallHelper.h>
 #include <iAVtkDraw.h>    // for iAvtkImageData
-#include <iAToolsVTK.h>   // for FOR_VTKIMG_PIXELS
 
-#include <vtkActor.h>
 #include <vtkImageActor.h>
 #include <vtkImageMapToColors.h>
 #include <vtkImageMapper3D.h>
@@ -133,6 +131,7 @@ iARawFilePreviewSlicer::iARawFilePreviewSlicer(iASlicerMode mode, QString const&
 	progressControls->layout()->addWidget(m->progressBar);
 	progressControls->layout()->addWidget(abortButton);
 
+	m->statusLabel->setAlignment(Qt::AlignHCenter);
 	m->statusWidget->addWidget(m->statusLabel);
 	m->statusWidget->addWidget(progressControls);
 	m->statusWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -325,26 +324,6 @@ void iARawFilePreviewSlicer::showImage()
 
 	window->AddRenderer(m->imageRenderer);
 	m->slicerWidget->updateAll();
-
-	/*
-	auto roiMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
-	roiMapper->SetInputConnection(roiSource->GetOutputPort());
-	auto roiActor = vtkSmartPointer<vtkActor>::New();
-	roiActor->SetVisibility(true);
-	roiActor->SetMapper(roiMapper);
-	roiActor->GetProperty()->SetColor(1, 0, 0);
-	roiActor->GetProperty()->SetOpacity(1);
-	roiActor->GetProperty()->SetRepresentation(VTK_WIREFRAME);
-	roiMapper->Update();
-
-	auto roiRenderer = vtkSmartPointer<vtkRenderer>::New();
-	roiRenderer->SetLayer(1);
-	roiRenderer->AddActor(roiActor);
-	roiRenderer->SetInteractive(false);
-	roiRenderer->SetActiveCamera(imageRenderer->GetActiveCamera());
-
-	window->AddRenderer(roiRenderer);
-	*/
 }
 
 vtkImageData * iARawFilePreviewSlicer::image() const
