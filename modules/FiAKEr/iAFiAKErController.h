@@ -13,8 +13,8 @@
 
 // guibase:
 #include <iAQVTKWidget.h>
-#include <qthelper/iAQTtoUIConnector.h>
-#include <qthelper/iAWidgetSettingsMapper.h>
+#include <iAQTtoUIConnector.h>
+#include <iAQWidgetSettingsMapper.h>
 
 #include <vtkSmartPointer.h>
 

@@ -10,7 +10,7 @@
 #include "ui_InSpectr.h"
 
 #include <iARendererViewSync.h>
-#include <qthelper/iAQTtoUIConnector.h>
+#include <iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 

@@ -4,7 +4,7 @@
 
 #include "ui_samplings.h"
 
-#include <qthelper/iAQTtoUIConnector.h>
+#include <iAQTtoUIConnector.h>
 
 class iASamplingResults;
 

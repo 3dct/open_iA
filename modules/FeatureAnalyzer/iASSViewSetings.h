@@ -4,7 +4,7 @@
 
 #include "ui_SSSettings.h"
 
-#include <qthelper/iAQTtoUIConnector.h>
+#include <iAQTtoUIConnector.h>
 
 typedef iAQTtoUIConnector<QDialog, Ui_SSSettings>  SSSettingsConnector;
 

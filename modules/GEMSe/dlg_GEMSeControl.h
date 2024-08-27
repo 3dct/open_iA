@@ -8,7 +8,7 @@
 
 #include <iAProgress.h>
 
-#include <qthelper/iAQTtoUIConnector.h>
+#include <iAQTtoUIConnector.h>
 
 #include <QMap>
 

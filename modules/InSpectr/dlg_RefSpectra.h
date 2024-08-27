@@ -4,7 +4,7 @@
 
 #include "ui_RefSpectra.h"
 
-#include <qthelper/iAQTtoUIConnector.h>
+#include <iAQTtoUIConnector.h>
 
 typedef iAQTtoUIConnector<QDockWidget, Ui_RefSpectra> dlg_RefSpectraContainer;
 

@@ -5,7 +5,7 @@
 #include "ui_GEMSeToolBar.h"
 
 #include <iAGUIModuleInterface.h>
-#include <qthelper/iAQTtoUIConnector.h>
+#include <iAQTtoUIConnector.h>
 
 #include <QToolBar>
 

@@ -287,7 +287,7 @@ namespace
 	}
 }
 
-#include "qthelper/iAQTtoUIConnector.h"
+#include "iAQTtoUIConnector.h"
 #include "ui_OpenHDF5.h"
 
 using OpenHDF5Dlg = iAQTtoUIConnector<QDialog, Ui_dlgOpenHDF5>;

@@ -4,7 +4,7 @@
 
 #include "ui_SSView.h"
 
-#include <qthelper/iAQTtoUIConnector.h>
+#include <iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 

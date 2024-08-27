@@ -6,7 +6,7 @@
 
 #include "iASimilarityMapWidget.h"
 
-#include <qthelper/iAQTtoUIConnector.h>
+#include <iAQTtoUIConnector.h>
 
 #include <QScopedPointer>
 

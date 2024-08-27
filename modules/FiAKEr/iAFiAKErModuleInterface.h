@@ -5,7 +5,7 @@
 #include "ui_FiAKErToolBar.h"
 
 #include "iAGUIModuleInterface.h"
-#include "qthelper/iAQTtoUIConnector.h"
+#include "iAQTtoUIConnector.h"
 
 class iAFiAKErTool;
 

@@ -5,7 +5,7 @@
 #include "metafilters_export.h"
 
 #include <iAAttributes.h>
-#include <qthelper/iAWidgetSettingsMapper.h>
+#include <iAQWidgetSettingsMapper.h>
 
 #include <QDialog>
 #include <QMap>

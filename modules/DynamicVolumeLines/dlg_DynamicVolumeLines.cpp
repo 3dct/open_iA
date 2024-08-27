@@ -14,13 +14,13 @@
 #include <iAJobListView.h>
 #include <iALUT.h>
 #include <iAMdiChild.h>
+#include <iAQTtoUIConnector.h>
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
 #include <iAThemeHelper.h>
 #include <iATransferFunction.h>
 #include <iAVolumeRenderer.h>
 #include <iAVolumeViewer.h>
-#include <qthelper/iAQTtoUIConnector.h>
 
 #include <iAChartWithFunctionsWidget.h>
 

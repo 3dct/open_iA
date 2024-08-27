@@ -4,8 +4,8 @@
 
 #include "ui_FeatureAnalyzer.h"
 
+#include <iAQTtoUIConnector.h>
 #include <iASavableProject.h>
-#include <qthelper/iAQTtoUIConnector.h>
 
 #include <QFileInfo>
 #include <QMap>

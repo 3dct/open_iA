@@ -7,7 +7,7 @@
 #include "FeatureAnalyzerHelpers.h"    // for PorosityFilterID
 #include "iAHMData.h"
 
-#include <qthelper/iAQTtoUIConnector.h>
+#include <iAQTtoUIConnector.h>
 
 #include <QWidget>
 #include <QTableWidget>

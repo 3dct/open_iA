@@ -4,7 +4,7 @@
 
 #include "ui_SPMView.h"
 
-#include <qthelper/iAQTtoUIConnector.h>
+#include <iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 #include <vtkVector.h>

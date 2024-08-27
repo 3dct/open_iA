@@ -11,7 +11,7 @@
 
 #include <iAAttributes.h>
 #include <iASlicerMode.h>
-#include <qthelper/iAQTtoUIConnector.h>
+#include <iAQTtoUIConnector.h>
 
 #include <vtkSmartPointer.h>
 
