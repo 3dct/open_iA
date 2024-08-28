@@ -1,0 +1,3 @@
+[submodule "modules/Metrics/qmeasure"]
+	path = modules/Metrics/qmeasure
+	url = https://github.com/3dct/qmeasure.git
