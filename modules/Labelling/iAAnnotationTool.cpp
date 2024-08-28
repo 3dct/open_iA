@@ -182,7 +182,7 @@ iAAnnotationTool::iAAnnotationTool(iAMainWindow* mainWnd, iAMdiChild* child):
 				double dist = std::abs(a.m_coord[s->mode()] - s->slicePosition());
 				auto sMinMax = s->sliceRange();
 				// annotation should either be visible 2 voxel layers, or for 5% of the dataset, whichever is larger:
-				auto sRange = std::max(s->sliceThickness()*2, (sMinMax.second - sMinMax.first) * LinearRampFraction);
+				auto sRange = std::max(s->sliceThickness()*MinVoxelVisible, (sMinMax.second - sMinMax.first) * LinearRampFraction);
 				double opacity = std::max(CaptionMinimumOpacity, // caption should have a minimum opacity
 					1 - dist / sRange);  // linearly decrease based on distance between current slice and annotation
 				auto & vtkData = m_ui->m_vtkAnnotateData.at(a.m_id);
