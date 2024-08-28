@@ -13,6 +13,7 @@ set(InSpectr_PRECOMPILE_INCLUDES
 <iAMathUtility.h>
 <iAMdiChild.h>
 <iAPeriodicTableWidget.h>
+<iAQTtoUIConnector.h>
 <iASpectrumFilter.h>
 <iAToolsVTK.h>
 <iATypedCallHelper.h>
@@ -23,7 +24,6 @@ set(InSpectr_PRECOMPILE_INCLUDES
 <QMap>
 <QMouseEvent>
 <QPainter>
-<qthelper/iAQTtoUIConnector.h>
 <QThread>
 <QVector>
 <QWidget>

@@ -32,7 +32,7 @@ IncludeCategories:
     Priority: 3
   - Regex:    '^<vtk'
     Priority: 4
-  - Regex:    '^<(dlg_|iA|io/|qthelper/|mainwindow|mdichild)'
+  - Regex:    '^<(dlg_|iA|mainwindow|mdichild)'
     Priority: 2
   - Regex:    '^<Q'
     Priority: 5

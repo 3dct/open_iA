@@ -31,6 +31,7 @@ set(GEMSe_PRECOMPILE_INCLUDES
 <iAPreviewWidgetPool.h>
 <iAProgress.h>
 <iAQtCaptionWidget.h>
+<iAQTtoUIConnector.h>
 <iARepresentative.h>
 <iASamplingResults.h>
 <iASEAFile.h>
@@ -52,7 +53,6 @@ set(GEMSe_PRECOMPILE_INCLUDES
 <QPainter>
 <QSplitter>
 <QTextStream>
-<qthelper/iAQTtoUIConnector.h>
 <QVBoxLayout>
 <QVector>
 <QWidget>

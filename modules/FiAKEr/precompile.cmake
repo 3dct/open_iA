@@ -15,6 +15,7 @@ set(FiAKEr_PRECOMPILE_INCLUDES
 <iAModuleDispatcher.h>
 <iAMultidimensionalScaling.h>
 <iAProgress.h>
+<iAQTtoUIConnector.h>
 <iAQVTKWidget.h>
 <iARefDistCompute.h>
 <iASensitivityData.h>
@@ -40,7 +41,6 @@ set(FiAKEr_PRECOMPILE_INCLUDES
 <QSettings>
 <QStandardItemModel>
 <QTextStream>
-<qthelper/iAQTtoUIConnector.h>
 <QWidget>
 <vector>
 <vtkPointData.h>

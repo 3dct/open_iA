@@ -7,6 +7,7 @@ set(FeatureAnalyzer_PRECOMPILE_INCLUDES
 <iALog.h>
 <iAMainWindow.h>
 <iAMathUtility.h>
+<iAQTtoUIConnector.h>
 <iASegm3DView.h>
 <iASelection.h>
 <memory>
@@ -22,7 +23,6 @@ set(FeatureAnalyzer_PRECOMPILE_INCLUDES
 <QSettings>
 <QStringList>
 <QTableWidget>
-<qthelper/iAQTtoUIConnector.h>
 <QTreeWidget>
 <QVBoxLayout>
 <vtkColorTransferFunction.h>

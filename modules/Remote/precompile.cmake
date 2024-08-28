@@ -3,6 +3,7 @@ set(Remote_PRECOMPILE_INCLUDES
 <iALog.h>
 <iAMdiChild.h>
 <iAPlaneSliceTool.h>
+<iARemotePortSettings.h>
 <iARenderer.h>
 <iAStringHelper.h>
 <iATool.h>
@@ -10,9 +11,8 @@ set(Remote_PRECOMPILE_INCLUDES
 <memory>
 <QElapsedTimer>
 <QHeaderView>
-<QMap>
 <QObject>
-<QString>
 <QTableWidget>
+<QWebSocketServer>
 <vtkRendererCollection.h>
 <vtkRenderWindow.h>)

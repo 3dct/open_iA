@@ -39,6 +39,7 @@ set(CompVis_PRECOMPILE_INCLUDES
 <QDockWidget>
 <QList>
 <QString>
+<QVBoxLayout>
 <vector>
 <vtkActor.h>
 <vtkAlgorithmOutput.h>
