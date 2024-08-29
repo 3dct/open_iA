@@ -14,3 +14,6 @@ set(DEPENDENCIES_LIBRARIES
 #	ITKStatistics           # for ImageToHistogramFilter
 #	ITKTransform            # for BSplineBaseTransform (dependency of ImageToImageMetric)
 #)
+set(DEPENDENCIES_INCLUDE_DIRS
+	${CMAKE_CURRENT_SOURCE_DIR}/Metrics/qmeasure/src
+)

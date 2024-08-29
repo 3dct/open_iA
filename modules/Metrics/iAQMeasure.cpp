@@ -22,7 +22,7 @@
 #include <iADockWidgetWrapper.h>
 #include <iAMdiChild.h>
 
-#include <iAQMeasureCalculation.h>
+#include <QMeasureCalculation.h>
 
 #include <itkImage.h>
 #ifdef __clang__
@@ -329,12 +329,6 @@ void computeQ(iAQMeasure* filter, vtkSmartPointer<vtkImageData> img, QVariantMap
 
 void computeOrigQ(iAFilter* filter, iAConnector & con, QVariantMap const & params)
 {
-	// some "magic numbers"
-	//unsigned int dgauss_size_BINscale = 24;
-	//unsigned int gauss_size_P2Pscale = 24;
-	//double threshold_x = -0.1;
-	//double threshold_y = 2;						// one single voxel is no valid class
-
 	iAConnector floatImage;
 	if (filter->inputScalarType() == iAITKIO::ScalarType::FLOAT)
 	{
@@ -344,7 +338,6 @@ void computeOrigQ(iAFilter* filter, iAConnector & con, QVariantMap const & param
 	{
 		floatImage.setImage(castImageTo<float>(con.itkImage()));
 	}
-
 	vtkSmartPointer<vtkImageData> img = floatImage.vtkImage();
 	int const * dim = img->GetDimensions();
 	double const * range = img->GetScalarRange();
@@ -355,47 +348,12 @@ void computeOrigQ(iAFilter* filter, iAConnector & con, QVariantMap const & param
 		return;
 	}
 	float* fImage = static_cast<float*>(img->GetScalarPointer());
-
-	iAQMeasureCalculation QMeasure;
-
-	auto result = QMeasure.computeOrigQ(fImage, dim, range, params["OrigQ Histogram bins"].toInt(),
+	auto result = QMeasureCalculation::computeOrigQ(fImage, dim, range, params["OrigQ Histogram bins"].toInt(),
 		params["Number of peaks"].toInt(), params["Analyze Peaks"].toBool());
-
-	//cImageHistogram curHist;
-	//curHist.CreateHist(fImage, dim[0], dim[1], dim[2],
-	//	params["OrigQ Histogram bins"].toInt(), range[0], range[1], false, 0, 0);
-	///*unsigned int Peaks_fnd = */ curHist.DetectPeaksValleys(params["Number of peaks"].toInt(),
-	//	dgauss_size_BINscale, gauss_size_P2Pscale, threshold_x, threshold_y, false);
-
-	//// Calculate histogram quality measures Q using the valley thresholds to separate classes
-	//std::vector<int> thresholds_IDX = curHist.GetValleyThreshold_IDX();
-	//std::vector<float> thresholds = curHist.GetValleyThreshold();
-	//std::vector<ClassMeasure> classMeasures;
-	//double Q0 = (thresholds_IDX.size() == 0) ? 0.0 : curHist.CalcQ(thresholds_IDX, classMeasures, 0);
-	//double Q1 = (thresholds_IDX.size() == 0) ? 0.0 : curHist.CalcQ(thresholds_IDX, classMeasures, 1);
-	//filter->addOutputValue("Q (orig, equ 0)", Q0);
-	//filter->addOutputValue("Q (orig, equ 1)", Q1);
-
-	//if (params["Analyze Peaks"].toBool())
-	//{
-	//	int classNr = 0;
-	//	for (auto c : classMeasures)
-	//	{
-	//		filter->addOutputValue(QString("Peak %1 Mean").arg(classNr), c.mean);
-	//		filter->addOutputValue(QString("Peak %1 Sigma").arg(classNr), c.sigma);
-	//		filter->addOutputValue(QString("Peak %1 Probability").arg(classNr), c.probability);
-	//		filter->addOutputValue(QString("Peak %1 Min").arg(classNr), c.LowerThreshold);
-	//		filter->addOutputValue(QString("Peak %1 Max").arg(classNr), c.UpperThreshold);
-	//		filter->addOutputValue(QString("Peak %1 Usage").arg(classNr), c.UsedForQ);
-	//		++classNr;
-	//	}
-	//}
-
 	for (auto c : result)
 	{
 		filter->addOutputValue(QString::fromStdString(c.first), c.second);
 	}
-
 }
 
 void iAQMeasure::performWork(QVariantMap const & parameters)
