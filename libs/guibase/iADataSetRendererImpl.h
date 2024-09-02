@@ -12,7 +12,7 @@ class iAGraphData;
 class iAPolyData;
 
 class vtkActor;
-class vtkClipPolyData;
+class iAvtkClipPolyData;
 class vtkGlyph3DMapper;
 class vtkPolyDataMapper;
 class vtkSphereSource;
@@ -86,7 +86,7 @@ public:
 	void removeCuttingPlane(vtkPlane* p) override;
 private:
 	iAPolyData const * m_data;
-	vtkSmartPointer<vtkClipPolyData> m_planeCutter;  //  vtkPlaneCutter generates just a single cut plane
+	vtkSmartPointer<iAvtkClipPolyData> m_planeCutter;  //  vtkPlaneCutter generates just a single cut plane
 	Q_DISABLE_COPY(iAPolyDataRenderer);
 };
 
