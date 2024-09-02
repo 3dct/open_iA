@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: BSD-3-Clause
 // adapted from VTK vtkClipPolyData and https://github.com/theArcticOcean/CLib/blob/master/VTKLearn/cutMeshBYMultiblePlanes
 // in order to be able to handle multiple implicit functions
+// the same should probably also be possible by using vtkImplicitBoolean
+// to combine the functions, but this isn't working for some reason.
 /**
  * @class   iAvtkClipPolyData
  * @brief   clip polygonal data with (multiple) user-specified implicit function or input scalar data
