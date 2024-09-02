@@ -289,6 +289,10 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 			dataSet->metaData(iADataSet::FileNameKey).toString() :
 			dataSet->name());
 	}
+	else if (dataSet->hasMetaData(iADataSet::FileNameKey))
+	{
+		m_mainWnd->addRecentFile(dataSet->metaData(iADataSet::FileNameKey).toString());
+	}
 	auto p = std::make_shared<iAProgress>();
 	auto viewer = createDataSetViewer(dataSet.get());
 	if (!viewer)
