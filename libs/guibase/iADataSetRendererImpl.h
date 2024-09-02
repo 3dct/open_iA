@@ -12,6 +12,7 @@ class iAGraphData;
 class iAPolyData;
 
 class vtkActor;
+class vtkClipPolyData;
 class vtkGlyph3DMapper;
 class vtkPolyDataMapper;
 class vtkSphereSource;
@@ -80,8 +81,12 @@ class iAguibase_API iAPolyDataRenderer : public iAPolyActorRenderer
 public:
 	iAPolyDataRenderer(vtkRenderer* renderer, iAPolyData const * data, QVariantMap const& overrideValues = QVariantMap());
 	iAAABB bounds() override;
+
+	void addCuttingPlane(vtkPlane* p) override;
+	void removeCuttingPlane(vtkPlane* p) override;
 private:
 	iAPolyData const * m_data;
+	vtkSmartPointer<vtkClipPolyData> m_planeCutter;  //  vtkPlaneCutter generates just a single cut plane
 	Q_DISABLE_COPY(iAPolyDataRenderer);
 };
 

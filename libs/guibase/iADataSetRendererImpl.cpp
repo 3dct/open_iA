@@ -19,7 +19,9 @@
 #include <vtkCallbackCommand.h>
 #include <vtkGlyph3DMapper.h>
 #include <vtkPolyDataMapper.h>
+#include <vtkClipPolyData.h>
 #include <vtkPointData.h>
+#include <vtkPlane.h>
 #include <vtkProperty.h>
 #include <vtkRenderer.h>
 #include <vtkSphereSource.h>
@@ -454,7 +456,8 @@ vtkActor* iAPolyActorRenderer::actor()
 
 iAPolyDataRenderer::iAPolyDataRenderer(vtkRenderer* renderer, iAPolyData const * data, QVariantMap const& overrideValues) :
 	iAPolyActorRenderer(renderer, overrideValues),
-	m_data(data)
+	m_data(data),
+	m_planeCutter(vtkSmartPointer<vtkClipPolyData>::New())
 {
 	mapper()->SetInputData(data->poly());
 	//m_polyMapper->SelectColorArray("Colors");
@@ -465,6 +468,18 @@ iAAABB iAPolyDataRenderer::bounds()
 	return iAAABB(m_data->poly()->GetBounds());
 }
 
+void iAPolyDataRenderer::addCuttingPlane(vtkPlane* p)
+{
+	m_planeCutter->SetClipFunction(p);
+	m_planeCutter->SetInputData(m_data->poly());
+	mapper()->SetInputConnection(m_planeCutter->GetOutputPort());
+}
+
+void iAPolyDataRenderer::removeCuttingPlane(vtkPlane* p)
+{
+	Q_UNUSED(p);
+	mapper()->SetInputData(m_data->poly());
+}
 
 #include "iAGeometricObject.h"
 
