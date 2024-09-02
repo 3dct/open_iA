@@ -84,8 +84,11 @@ public:
 
 	void addCuttingPlane(vtkPlane* p) override;
 	void removeCuttingPlane(vtkPlane* p) override;
+	void setCuttingPlanes(std::array<vtkPlane*, 3> p) override;
+	void removeCuttingPlanes() override;
 private:
 	iAPolyData const * m_data;
+	std::array<vtkPlane*, 3> m_axisPlanes;
 	vtkSmartPointer<iAvtkClipPolyData> m_planeCutter;  //  vtkPlaneCutter generates just a single cut plane
 	Q_DISABLE_COPY(iAPolyDataRenderer);
 };

@@ -470,9 +470,13 @@ iAAABB iAPolyDataRenderer::bounds()
 
 void iAPolyDataRenderer::addCuttingPlane(vtkPlane* p)
 {
+	bool switchMapperSource = m_planeCutter->HasClipFunctions();
 	m_planeCutter->AddClipFunction(p);
-	m_planeCutter->SetInputData(m_data->poly());
-	mapper()->SetInputConnection(m_planeCutter->GetOutputPort());
+	if (switchMapperSource)
+	{
+		m_planeCutter->SetInputData(m_data->poly());
+		mapper()->SetInputConnection(m_planeCutter->GetOutputPort());
+	}
 }
 
 void iAPolyDataRenderer::removeCuttingPlane(vtkPlane* p)
@@ -481,6 +485,23 @@ void iAPolyDataRenderer::removeCuttingPlane(vtkPlane* p)
 	if (!m_planeCutter->HasClipFunctions())
 	{
 		mapper()->SetInputData(m_data->poly());
+	}
+}
+
+void iAPolyDataRenderer::setCuttingPlanes(std::array<vtkPlane*, 3> planes)
+{
+	m_axisPlanes = planes;
+	for (auto p : planes)
+	{
+		addCuttingPlane(p);
+	}
+}
+
+void iAPolyDataRenderer::removeCuttingPlanes()
+{
+	for (auto p : m_axisPlanes)
+	{
+		removeCuttingPlane(p);
 	}
 }
 
