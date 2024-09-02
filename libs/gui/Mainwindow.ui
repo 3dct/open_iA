@@ -200,6 +200,11 @@
     <property name="toolTipsVisible">
      <bool>true</bool>
     </property>
+    <widget class="QMenu" name="menuOpenWindows">
+     <property name="title">
+      <string>Open Windows</string>
+     </property>
+    </widget>
     <addaction name="actionTabbed"/>
     <addaction name="actionSubWindows"/>
     <addaction name="separator"/>
@@ -208,6 +213,8 @@
     <addaction name="separator"/>
     <addaction name="actionNextWindow"/>
     <addaction name="actionPrevWindow"/>
+    <addaction name="separator"/>
+    <addaction name="menuOpenWindows"/>
     <addaction name="separator"/>
     <addaction name="actionFullScreenMode"/>
     <addaction name="actionShowMenu"/>

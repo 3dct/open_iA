@@ -1049,7 +1049,7 @@ void MainWindow::updateMenus()  // (and toolbars)
 	m_ui->actionPrevWindow->setEnabled(hasMdiChild);
 
 	updateRecentFileActions();
-
+	updateWindowMenu();
 	setModuleActionsEnabled(hasMdiChild);
 }
 
@@ -1062,15 +1062,23 @@ void MainWindow::updateMagicLens2DCheckState(bool enabled)
 void MainWindow::updateWindowMenu()
 {
 	auto windows = mdiChildList();
+	static QActionGroup* group = nullptr;
+	delete group;
+	group = new QActionGroup(this);
+	m_ui->menuOpenWindows->clear();
 	for (int i = 0; i < windows.size(); ++i)
 	{
 		iAMdiChild *child = windows.at(i);
 		QString text = QString("%1%2 %3").arg(i < 9 ? "&" : "").arg(i + 1)
 				.arg(child->fileInfo().fileName());
-		QAction* action = m_ui->menuWindow->addAction(text);
+		QAction* action = m_ui->menuOpenWindows->addAction(text);
 		action->setCheckable(true);
 		action->setChecked(child == activeMdiChild());
-		connect(action, &QAction::triggered, [&] { setActiveSubWindow(windows.at(i)); });
+		group->addAction(action);
+		connect(action, &QAction::triggered, [this, child]
+		{
+			setActiveSubWindow(qobject_cast<QWidget*>(child->parent()) );
+		});
 	}
 }
 
@@ -1382,8 +1390,8 @@ void MainWindow::addRecentFile(const QString &fileName)
 		files.removeLast();
 	}
 	settings.setValue("recentFileList", files);
-
 	updateRecentFileActions();
+	updateWindowMenu();
 }
 
 void MainWindow::setPath(QString const & p)
