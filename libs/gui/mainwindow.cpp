@@ -488,7 +488,6 @@ void MainWindow::loadFile(QString const& fileName, std::shared_ptr<iAChildSource
 				return;
 			}
 			iAMdiChild* targetChild = childSrc->child(this);
-			addRecentFile(fileName);
 			targetChild->addDataSet(dataSet);
 		});
 	QObject::connect(futureWatcher, &FutureWatcherType::finished, futureWatcher, &FutureWatcherType::deleteLater);
