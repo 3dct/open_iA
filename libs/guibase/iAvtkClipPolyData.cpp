@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: BSD-3-Clause
 #include "iAvtkClipPolyData.h"
 
-#include "iAMathUtility.h"    // for removeFromVector
-
 #include "vtkCellArray.h"
 #include "vtkCellData.h"
 #include "vtkExecutive.h"
@@ -27,21 +25,26 @@ vtkStandardNewMacro(iAvtkClipPolyData);
 
 void iAvtkClipPolyData::AddClipFunction(vtkImplicitFunction *func)
 {
-    ClipFunctions.push_back( func );
+  ClipFunctions.push_back( func );
 }
 
 void iAvtkClipPolyData::RemoveClipFunction(vtkImplicitFunction* func)
 {
-	auto it = std::find(ClipFunctions.begin(), ClipFunctions.end(), func);
-	if (it != ClipFunctions.end())
-	{
-		ClipFunctions.erase(it);
-	}
+  auto it = std::find(ClipFunctions.begin(), ClipFunctions.end(), func);
+  if (it != ClipFunctions.end())
+  {
+    ClipFunctions.erase(it);
+  }
 }
 
 bool iAvtkClipPolyData::HasClipFunctions() const
 {
-	return ClipFunctions.empty();
+  return ClipFunctions.empty();
+}
+
+void iAvtkClipPolyData::ClearClipFunctions()
+{
+  ClipFunctions.clear();
 }
 
 //------------------------------------------------------------------------------
@@ -67,7 +70,7 @@ iAvtkClipPolyData::iAvtkClipPolyData(vtkImplicitFunction *cf)
   output2->Delete();
 }
 
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 iAvtkClipPolyData::~iAvtkClipPolyData()
 {
   if ( this->Locator )
@@ -78,13 +81,19 @@ iAvtkClipPolyData::~iAvtkClipPolyData()
   ClipFunctions.clear();
 }
 
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Overload standard modified time function. If Clip functions is modified,
 // then this object is modified as well.
 vtkMTimeType iAvtkClipPolyData::GetMTime()
 {
   vtkMTimeType mTime=this->Superclass::GetMTime();
   vtkMTimeType time;
+
+  for (auto f: this->ClipFunctions)
+  {
+    time = f->GetMTime();
+    mTime = (time > mTime ? time : mTime);
+  }
 
   if ( this->Locator != nullptr )
   {
@@ -100,8 +109,7 @@ vtkPolyData *iAvtkClipPolyData::GetClippedOutput()
   return vtkPolyData::SafeDownCast(this->GetExecutive()->GetOutputData(1));
 }
 
-
-//----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 //
 // Clip through data generating surface.
 //
@@ -211,11 +219,11 @@ int iAvtkClipPolyData::RequestData(vtkInformation *vtkNotUsed(request),
 
   newPoints->Allocate(numPts,numPts/2);
   newVerts = vtkCellArray::New();
-  newVerts->Allocate(estimatedSize, estimatedSize/2);
+  newVerts->AllocateEstimate(estimatedSize, 1);
   newLines = vtkCellArray::New();
-  newLines->Allocate(estimatedSize, estimatedSize/2);
+  newLines->AllocateEstimate(estimatedSize, 2);
   newPolys = vtkCellArray::New();
-  newPolys->Allocate(estimatedSize, estimatedSize/2);
+  newPolys->AllocateEstimate(estimatedSize, 4);
 
   // locator used to merge potentially duplicate points
   if ( this->Locator == nullptr )
@@ -242,18 +250,18 @@ int iAvtkClipPolyData::RequestData(vtkInformation *vtkNotUsed(request),
     outClippedCD = this->GetClippedOutput()->GetCellData();
     outClippedCD->CopyAllocate(inCD,estimatedSize,estimatedSize/2);
     clippedVerts = vtkCellArray::New();
-    clippedVerts->Allocate(estimatedSize, estimatedSize/2);
+    clippedVerts->AllocateEstimate(estimatedSize, 1);
     clippedLines = vtkCellArray::New();
-    clippedLines->Allocate(estimatedSize, estimatedSize/2);
+    clippedLines->AllocateEstimate(estimatedSize, 2);
     clippedPolys = vtkCellArray::New();
-    clippedPolys->Allocate(estimatedSize, estimatedSize/2);
+    clippedPolys->AllocateEstimate(estimatedSize, 4);
   }
 
   cellScalars = vtkFloatArray::New();
   cellScalars->Allocate(VTK_CELL_SIZE);
 
   // perform clipping on cells
-  int abort=0;
+  bool abort = false;
   updateTime = numCells/20 + 1;  // update roughly every 5%
   cell = vtkGenericCell::New();
   for (cellId=0; cellId < numCells && !abort; cellId++)
@@ -419,6 +427,17 @@ void iAvtkClipPolyData::PrintSelf(ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
+  if (!this->ClipFunctions.empty())
+  {
+    for (size_t i = 0; i < this->ClipFunctions.size(); ++i)
+    {
+      os << indent << "Clip Function (" << i << "): " << this->ClipFunctions[i] << "\n";
+    }
+  }
+  else
+  {
+    os << indent << "Clip Function: (none)\n";
+  }
   os << indent << "InsideOut: " << (this->InsideOut ? "On\n" : "Off\n");
   os << indent << "Value: " << this->Value << "\n";
   if ( this->Locator )

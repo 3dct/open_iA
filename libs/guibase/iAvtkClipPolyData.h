@@ -110,6 +110,11 @@ public:
    */
   bool HasClipFunctions() const;
 
+  /**
+   * Clear all clipping functions
+   */
+  void ClearClipFunctions();
+
   ///@{
   /**
    * If this flag is enabled, then the output scalar values will be
