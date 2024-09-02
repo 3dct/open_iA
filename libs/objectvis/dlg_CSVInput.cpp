@@ -379,7 +379,7 @@ QString dlg_CSVInput::askForFormatName(bool forLocalSave)
 	dlg.layout()->addWidget(line);
 	dlg.layout()->addWidget(buttonBox);
 	connect(okBtn, &QAbstractButton::clicked, this,
-		[&] {
+		[forLocalSave, edit, this, &dlg] {
 			if (forLocalSave)
 			{
 				auto formatName = edit->text();
