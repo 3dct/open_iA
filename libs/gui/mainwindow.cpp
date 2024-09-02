@@ -1879,15 +1879,13 @@ void MainWindow::loadTLGICTData(QString const & baseDirectory)
 	// tlgictLoader will delete itself when finished!
 }
 
-#include "iASCIFIOCheck.h"
-
 #include <QPainter>
 #include <QProxyStyle>
 
 //! An application style used to override certain aspects of the user interface.
 //! Specifically, to disable the tooltip delay in iAChartWidget and descendants,
 //! and for drawing nice-looking MDI child control buttons in the menu bar on maximized child windows
-class iAProxyStyle : public QProxyStyle
+class iAQProxyStyle : public QProxyStyle
 {
 public:
 	using QProxyStyle::QProxyStyle;
@@ -1951,6 +1949,8 @@ public:
 	//! @}
 };
 
+#include "iASCIFIOCheck.h"
+
 int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString const & version,
 	QString const& buildInformation, QString const & splashPath, QString const & iconPath)
 {
@@ -2008,7 +2008,7 @@ int MainWindow::runGUI(int argc, char * argv[], QString const & appName, QString
 	iASettingsManager::init();
 	CheckSCIFIO(QCoreApplication::applicationDirPath());
 	app.setWindowIcon(QIcon(QPixmap(iconPath)));
-	QApplication::setStyle(new iAProxyStyle(QApplication::style()));
+	QApplication::setStyle(new iAQProxyStyle(QApplication::style()));
 	mainWin.setWindowIcon(QIcon(QPixmap(iconPath)));
 	if (QDate::currentDate().dayOfYear() >= 350)
 	{
