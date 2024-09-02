@@ -1122,16 +1122,16 @@ void MainWindow::connectSignalsToSlots()
 		}
 	};
 	// "File" menu entries:
-	auto getOpenFileNames = [this]() -> QStringList {
-		return QFileDialog::getOpenFileNames(this, tr("Open Files (new)"), m_path, iAFileTypeRegistry::registeredFileTypes(iAFileIO::Load));
+	auto getOpenFileNames = [this](QString const & title) -> QStringList {
+		return QFileDialog::getOpenFileNames(this, title, m_path, iAFileTypeRegistry::registeredFileTypes(iAFileIO::Load));
 	};
 	connect(m_ui->actionOpenDataSet, &QAction::triggered, this, [this, getOpenFileNames]
 	{
-		loadFiles(getOpenFileNames(), iAChildSource::make(false, activeMdiChild()));
+		loadFiles(getOpenFileNames(tr("Open dataset")), iAChildSource::make(false, activeMdiChild()));
 	});
 	connect(m_ui->actionOpenInNewWindow, &QAction::triggered, this, [this, getOpenFileNames]
 	{
-		loadFiles(getOpenFileNames(), iAChildSource::make(true));
+		loadFiles(getOpenFileNames(tr("Open in new window")), iAChildSource::make(true));
 	});
 	connect(m_ui->actionOpenRaw, &QAction::triggered, this, &MainWindow::openRaw);
 	connect(m_ui->actionOpenTLGICTData, &QAction::triggered, this, &MainWindow::openTLGICTData);
