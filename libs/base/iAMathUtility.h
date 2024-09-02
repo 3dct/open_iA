@@ -302,3 +302,18 @@ OutContainerT createHistogram(const InContainerT& inData, typename OutContainerT
 	}
 	return result;
 }
+
+//! Find first item with given value in vector vec; if there exists such a value, remove it and call onRemoval
+//! @param vec the vector to be searched and modified
+//! @param value the value in the vector to be removed
+//! @param onRemoval called if an item of the given value was found and removed from the vector
+template <typename VecType, typename Callable>
+void removeFromVector(std::vector<VecType>& vec, VecType const& value, Callable onRemoval = []{})
+{
+	auto it = std::find(vec.begin(), vec.end(), value);
+	if (it != vec.end())
+	{
+		vec.erase(it);
+		onRemoval();
+	}
+}

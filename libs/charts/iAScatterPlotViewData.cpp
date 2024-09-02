@@ -123,12 +123,7 @@ void iAScatterPlotViewData::addHighlightedPoint(size_t idx)
 
 void iAScatterPlotViewData::removeHighlightedPoint(size_t idx)
 {
-	auto it = std::find(m_highlight.begin(), m_highlight.end(), idx);
-	if (it != m_highlight.end())
-	{
-		m_highlight.erase(it);
-		emit updateRequired();
-	}
+	removeFromVector(m_highlight, idx, [this] {	emit updateRequired(); });
 }
 
 void iAScatterPlotViewData::clearHighlightedPoints()
@@ -240,12 +235,7 @@ void iAScatterPlotViewData::addFilter(size_t paramIndex, double value)
 void iAScatterPlotViewData::removeFilter(size_t paramIndex, double value)
 {
 	auto searchedPair = std::make_pair(paramIndex, value);
-	auto it = std::find(m_filters.begin(), m_filters.end(), searchedPair);
-	if (it != m_filters.end())
-	{
-		m_filters.erase(it);
-	}
-	emit filterChanged();
+	removeFromVector(m_filters, searchedPair, [this] { emit filterChanged(); });
 }
 
 void iAScatterPlotViewData::clearFilters()

@@ -787,12 +787,7 @@ void iAChartWidget::removePlot(std::shared_ptr<iAPlot> plot)
 	{
 		return;
 	}
-	auto it = std::find(m_plots.begin(), m_plots.end(), plot);
-	if (it != m_plots.end())
-	{
-		m_plots.erase(it);
-		updateBounds();
-	}
+	removeFromVector(m_plots, plot, [this] {updateBounds(); });
 }
 
 void iAChartWidget::clearPlots()
