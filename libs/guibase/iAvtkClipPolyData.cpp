@@ -173,12 +173,12 @@ int iAvtkClipPolyData::RequestData(vtkInformation *vtkNotUsed(request),
     }
     for ( i=0; i < numPts; i++ )
     {
-      double maxValue = VTK_DOUBLE_MIN;
+      double minValue = VTK_DOUBLE_MAX;
       for( int j = 0; j < ClipFunctions.size(); ++j )
       {
-        maxValue = std::max( ClipFunctions[j]->FunctionValue(inPts->GetPoint(i)), maxValue );
+        minValue = std::min( ClipFunctions[j]->FunctionValue(inPts->GetPoint(i)), minValue );
       }
-      tmpScalars->SetComponent(i,0,maxValue);
+      tmpScalars->SetComponent(i,0, minValue);
     }
     clipScalars = tmpScalars;
   }
