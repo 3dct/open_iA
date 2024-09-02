@@ -60,11 +60,6 @@ public:
 	//! Provides access to the currently active mdi child, if such is available.
 	//! @return pointer to the currently active mdi child, or nullptr if no child is currently open
 	iAMdiChild * activeMdiChild() override;
-	//! Provides access to a second loaded mdi child, if such is available.
-	//! Will throw an error if none is available or more than two are loaded.
-	//! @deprecated instead of this method, in filters, use the facilities
-	//!     provided in iAFilter (via the requiredInputs parameter to the constructor) to specify multiple inputs
-	iAMdiChild * secondNonActiveChild() override;
 	//! Get list of the titles of currently open MdiChild windows.
 	QList<QString> mdiWindowTitles();
 	//! Get the list of current MdiChild windows.

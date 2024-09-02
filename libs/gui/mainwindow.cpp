@@ -1447,26 +1447,6 @@ MdiChild* MainWindow::activeMDI()
 	return activeChild<MdiChild>();
 }
 
-iAMdiChild * MainWindow::secondNonActiveChild()
-{
-	QList<iAMdiChild *> mdiwindows = mdiChildList();
-	if (mdiwindows.size() > 2)
-	{
-		QMessageBox::warning(this, tr("Warning"),
-			tr("Only two datasets can be processed at a time! Please close %1 datasets")
-			.arg(mdiwindows.size() - 2));
-		return nullptr;
-	}
-	else if (mdiwindows.size() < 2)
-	{
-		QMessageBox::warning(this, tr("Warning"),
-			tr("Not enough datasets available! Please open exactly two datasets"));
-		return nullptr;
-	}
-	return activeMdiChild() == mdiwindows.at(0) ?
-		mdiwindows.at(1) : mdiwindows.at(0);
-}
-
 void MainWindow::setActiveSubWindow(QWidget *window)
 {
 	if (!window)

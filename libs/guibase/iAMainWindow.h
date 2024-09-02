@@ -56,12 +56,6 @@ public:
 	//! add a new widget as sub window in the mdi area, and return the respective mdi subwindow.
 	virtual QMdiSubWindow* addSubWindow(QWidget* child) = 0;
 
-	//! Provides access to a second loaded mdi child, if such is available.
-	//! Will throw an error if none is available or more than two are loaded.
-	//! @deprecated instead of this method, in filters, use the facilities
-	//!     provided in iAFilter (via the requiredInputs parameter to the constructor) to specify multiple inputs
-	virtual iAMdiChild* secondNonActiveChild() = 0;
-
 	//! Load a file, either into an existing child window or creating a new one
 	//! @param fileName the name of the file (project or dataset) to load
 	//! @param childSrc source for the child to put the file into; see iAChildSource
