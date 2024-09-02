@@ -253,6 +253,16 @@ void iADataSetRenderer::setCuttingPlanes(std::array<vtkPlane*, 3> p)
 void iADataSetRenderer::removeCuttingPlanes()
 {}
 
+void iADataSetRenderer::addCuttingPlane(vtkPlane* p)
+{
+	Q_UNUSED(p);
+}
+
+void iADataSetRenderer::removeCuttingPlane(vtkPlane* p)
+{
+	Q_UNUSED(p);
+}
+
 //QWidget* iADataSetRenderer::controlWidget()
 //{
 //	return nullptr;

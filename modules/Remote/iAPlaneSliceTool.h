@@ -16,6 +16,7 @@
 class iAvtkPlaneWidget;
 class vtkImageResliceMapper;
 class vtkImageSlice;
+class vtkPlane;
 
 class iADockWidgetWrapper;
 class iAMainWindow;
@@ -78,6 +79,7 @@ private:
 	vtkSmartPointer<iAvtkPlaneWidget> m_planeWidget;
 	vtkSmartPointer<vtkImageResliceMapper> m_reslicer;
 	vtkSmartPointer<vtkImageSlice> m_imageSlice;
+	vtkSmartPointer<vtkPlane> m_cutPlane;
 	std::map<quint64, iASnapshotInfo> m_snapshots;
 	quint64 m_nextSnapshotID;
 	size_t m_dataSetIdx;

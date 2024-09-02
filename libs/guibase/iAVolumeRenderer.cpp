@@ -251,6 +251,16 @@ void iAVolumeRenderer::setCuttingPlanes(std::array<vtkPlane*, 3> p)
 	m_volMapper->AddClippingPlane(p[2]);
 }
 
+void iAVolumeRenderer::addCuttingPlane(vtkPlane* p)
+{
+	m_volMapper->AddClippingPlane(p);
+}
+
+void iAVolumeRenderer::removeCuttingPlane(vtkPlane* p)
+{
+	m_volMapper->RemoveClippingPlane(p);
+}
+
 void iAVolumeRenderer::removeCuttingPlanes()
 {
 	m_volMapper->RemoveAllClippingPlanes();

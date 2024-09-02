@@ -178,6 +178,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_planeWidget(vtkSmartPointer<iAvtkPlaneWidget>::New()),
 	m_reslicer(vtkSmartPointer<vtkImageResliceMapper>::New()),
 	m_imageSlice(vtkSmartPointer<vtkImageSlice>::New()),
+	m_cutPlane(vtkSmartPointer<vtkPlane>::New()),
 	m_nextSnapshotID(1)
 {
 	m_dataSetIdx = child->firstImageDataSetIdx();  // we check if it's set in create method!
@@ -246,6 +247,30 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	auto addButton = new QToolButton(buttonContainer);
 	addButton->setDefaultAction(addAction);
 
+	auto cutAction = new QAction("Cut");
+	cutAction->setToolTip("Cut the dataset in the 3D renderer at the position of the slicing plane");
+	cutAction->setCheckable(true);
+	QObject::connect(cutAction, &QAction::triggered, m_snapshotTable, [this, cutAction]()
+		{
+			m_planeWidget->GetPlane(m_cutPlane.Get());
+			for (auto ds : m_child->dataSetMap())
+			{
+				auto viewer = m_child->dataSetViewer(ds.first);
+				if (cutAction->isChecked())
+				{
+					viewer->renderer()->addCuttingPlane(m_cutPlane);
+				}
+				else
+				{
+					viewer->renderer()->removeCuttingPlane(m_cutPlane);
+				}
+				m_child->updateRenderer();
+			}
+		});
+	iAMainWindow::get()->addActionIcon(cutAction, "cut_plane");
+	auto cutButton = new QToolButton(buttonContainer);
+	cutButton->setDefaultAction(cutAction);
+
 	auto clearAction = new QAction("Clear");
 	clearAction->setToolTip("Clear (=remove all) snapshots.");
 	QObject::connect(clearAction, &QAction::triggered, m_snapshotTable, [this]()
@@ -313,6 +338,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	buttonContainer->layout()->addWidget(clearButton);
 	buttonContainer->layout()->addWidget(resetButton);
 	buttonContainer->layout()->addWidget(syncButton);
+	buttonContainer->layout()->addWidget(cutButton);
 	buttonContainer->setMinimumWidth(20);
 
 	listWidget->layout()->addWidget(buttonContainer);
@@ -500,6 +526,7 @@ void iAPlaneSliceTool::updateSlice()
 {
 	auto cam = m_sliceWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
 	std::array<double, 3> pos, normal;
+	m_planeWidget->GetPlane(m_cutPlane.Get());
 	m_planeWidget->GetCenter(pos.data());
 	m_planeWidget->GetNormal(normal.data());
 	m_curPosLabel->setText(QString("Plane position=(%1), normal=(%2)").arg(arrayToString(pos)).arg(arrayToString(normal)));

@@ -90,6 +90,8 @@ public:
 
 	virtual void setCuttingPlanes(std::array<vtkPlane*, 3> p);
 	virtual void removeCuttingPlanes();
+	virtual void addCuttingPlane(vtkPlane* p);
+	virtual void removeCuttingPlane(vtkPlane* p);
 
 	//! default attributes of the dataset renderer
 	static iAAttributes& defaultAttributes();

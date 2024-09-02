@@ -43,9 +43,12 @@ public:
 	void setPosition(double pos[3]) override;
 	void setOrientation(double ori[3]) override;
 	vtkProp3D* vtkProp() override;
+	QVariantMap attributeValues() const override;
+
 	void setCuttingPlanes(std::array<vtkPlane*, 3> p) override;
 	void removeCuttingPlanes() override;
-	QVariantMap attributeValues() const override;
+	void addCuttingPlane(vtkPlane* p) override;
+	void removeCuttingPlane(vtkPlane* p) override;
 
 	static iAAttributes& defaultAttributes();
 	static int string2VtkVolInterpolationType(QString const& interpType);
