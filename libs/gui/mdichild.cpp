@@ -311,10 +311,10 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 		[this, viewer, dataSetIdx, p]()
 		{
 			viewer->prepare(p.get());
-			emit dataSetPrepared(dataSetIdx);
 		},
 		[this, viewer, dataSetIdx]
 		{
+			emit dataSetPrepared(dataSetIdx);
 			viewer->createGUI(this, dataSetIdx);
 			updateDataSetInfo();
 			updatePositionMarkerSize();

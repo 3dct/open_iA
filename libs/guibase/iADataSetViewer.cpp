@@ -33,7 +33,8 @@ const QChar iADataSetViewer::RenderCutPlane('C');
 
 iADataSetViewer::iADataSetViewer(iADataSet * dataSet):
 	m_dataSet(dataSet),
-	m_pickAction(nullptr)
+	m_pickAction(nullptr),
+	m_child(nullptr)
 {
 }
 

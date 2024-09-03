@@ -101,6 +101,7 @@ iAVolumeViewer::iAVolumeViewer(iADataSet * dataSet) :
 	m_profileChart(nullptr),
 	m_imgStatistics("Computing...")
 {
+	m_slicer.fill(nullptr);
 	for (auto& a : iAVolumeViewerSettings::defaultAttributes())
 	{
 		addAttribute(a->name(), a->valueType(), a->defaultValue(), a->min(), a->max());
@@ -109,9 +110,12 @@ iAVolumeViewer::iAVolumeViewer(iADataSet * dataSet) :
 
 iAVolumeViewer::~iAVolumeViewer()
 {
-	for (int s = 0; s < 3; ++s)
+	for (auto s: m_slicer)
 	{
-		m_slicer[s]->removeChannel(m_slicerChannelID);
+		if (s)
+		{
+			s->removeChannel(m_slicerChannelID);
+		}
 	}
 }
 
@@ -122,9 +126,9 @@ iAImageData const* iAVolumeViewer::volume() const
 
 void iAVolumeViewer::showInSlicers(bool show)
 {
-	for (int s = 0; s < 3; ++s)
+	for (auto s: m_slicer)
 	{
-		m_slicer[s]->enableChannel(m_slicerChannelID, show);
+		s->enableChannel(m_slicerChannelID, show);
 	}
 }
 
@@ -143,9 +147,9 @@ void setPickable(bool pickable) override
 	{
 		return;
 	}
-	for (int s = 0; s < 3; ++s)
+	for (auto s: m_slicer)
 	{
-		m_slicer[s]->channel(m_channelID)->setMovable(pickable);
+		s->channel(m_channelID)->setMovable(pickable);
 	}
 }
 unsigned int channelID() const override
@@ -324,9 +328,9 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	});
 	connect(m_histogram, &iAChartWithFunctionsWidget::transferFunctionChanged, child, [child, this]
 	{
-		for (int s = 0; s < 3; ++s)
+		for (auto s: m_slicer)
 		{
-			m_slicer[s]->updateMagicLensColors();
+			s->updateMagicLensColors();
 		}
 		child->updateViews();
 	});
@@ -502,9 +506,9 @@ void iAVolumeViewer::setPickable(bool pickable)
 	{
 		return;
 	}
-	for (int s = 0; s < 3; ++s)
+	for (auto s: m_slicer)
 	{
-		m_slicer[s]->channel(m_slicerChannelID)->setMovable(pickable);
+		s->channel(m_slicerChannelID)->setMovable(pickable);
 	}
 }
 
