@@ -8,6 +8,8 @@
 #include "iAMdiChild.h"
 #include "iAQMenuHelper.h"
 
+#include <QMessageBox>
+
 //! helper function to add a tool to the current mdi child (if it exists)
 template <typename T>
 T* addToolToActiveMdiChild(QString const & name, iAMainWindow* mainWnd, bool unique = true)
@@ -31,6 +33,7 @@ T* addToolToActiveMdiChild(QString const & name, iAMainWindow* mainWnd, bool uni
 	}
 	catch (std::exception const& e)
 	{
+		QMessageBox::warning(mainWnd, name, e.what());
 		LOG(lvlError, QString("While starting tool %1, an error occurred: %2").arg(name).arg(e.what()));
 	}
 	return nullptr;

@@ -1284,20 +1284,14 @@ private slots:
 
 const QString iAUnityWebsocketServerTool::Name("Unity Volume Interaction Server");
 
-std::shared_ptr<iATool> iAUnityWebsocketServerTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
-{
-	if (child->firstImageDataSetIdx() == iAMdiChild::NoDataSet || !child->dataSetViewer(child->firstImageDataSetIdx()))
-	{
-		QMessageBox::warning(mainWnd, iAUnityWebsocketServerTool::Name, "No image dataset loaded, or not fully initialized. Please try again later!");
-		return nullptr;
-	}
-	return std::make_shared<iAUnityWebsocketServerTool>(mainWnd, child);
-}
-
 iAUnityWebsocketServerTool::iAUnityWebsocketServerTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iATool(mainWnd, child),
 	m_impl(std::make_unique<iAUnityWebsocketServerToolImpl>(mainWnd, child))
 {
+	if (child->firstImageDataSetIdx() == iAMdiChild::NoDataSet || !child->dataSetViewer(child->firstImageDataSetIdx()))
+	{
+		throw std::runtime_error("Unity volume interaction server: No image dataset loaded, or not fully initialized. Please try again later!");
+	}
 }
 
 iAUnityWebsocketServerTool::~iAUnityWebsocketServerTool()

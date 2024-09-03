@@ -48,7 +48,6 @@ class iAPlaneSliceTool : public QObject, public iATool
 	Q_OBJECT
 public:
 	static const QString Name;
-	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child);
 	iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child);
 	~iAPlaneSliceTool();
 	void loadState(QSettings& projectFile, QString const& fileName) override;

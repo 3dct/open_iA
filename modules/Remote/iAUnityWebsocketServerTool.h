@@ -15,7 +15,6 @@ class iAUnityWebsocketServerTool : public QObject, public iATool
 {
 public:
 	static const QString Name;
-	static std::shared_ptr<iATool> create(iAMainWindow* mainWnd, iAMdiChild* child);
 	iAUnityWebsocketServerTool(iAMainWindow* mainWnd, iAMdiChild* child);
 	~iAUnityWebsocketServerTool();
 

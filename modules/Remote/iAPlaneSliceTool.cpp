@@ -146,18 +146,6 @@ namespace
 	};
 }
 
-// TODO: unify with addToolToActiveMdiChild somehow
-//    - either addToolToActiveMdiChild should call create to create an object
-std::shared_ptr<iATool> iAPlaneSliceTool::create(iAMainWindow* mainWnd, iAMdiChild* child)
-{
-	if (child->firstImageDataSetIdx() == iAMdiChild::NoDataSet || !child->dataSetViewer(child->firstImageDataSetIdx()))
-	{
-		QMessageBox::warning(mainWnd, "Arbitrary slicing tool", "No image dataset loaded, or not fully initialized. Please try again later!");
-		return nullptr;
-	}
-	return std::make_shared<iAPlaneSliceTool>(mainWnd, child);
-}
-
 template<typename Layout>
 QWidget* createContainerWidget(int spacing)
 {
@@ -181,7 +169,11 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_cutPlane(vtkSmartPointer<vtkPlane>::New()),
 	m_nextSnapshotID(1)
 {
-	m_dataSetIdx = child->firstImageDataSetIdx();  // we check if it's set in create method!
+	m_dataSetIdx = child->firstImageDataSetIdx();
+	if (m_dataSetIdx == iAMdiChild::NoDataSet || !child->dataSetViewer(m_dataSetIdx))
+	{
+		throw std::runtime_error("Arbitrary slicing tool: No image dataset loaded, or not fully initialized. Please try again later!");
+	}
 
 	auto dwWidget = createContainerWidget<QVBoxLayout>(1);
 	m_listDW = new iADockWidgetWrapper(dwWidget, "Snapshot List", "SnapshotList", "https://github.com/3dct/open_iA/wiki/Remote");
