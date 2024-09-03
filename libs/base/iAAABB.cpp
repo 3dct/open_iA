@@ -58,6 +58,11 @@ iAVec3d const& iAAABB::maxCorner() const
 	return box[1];
 }
 
+bool operator!=(iAAABB const& a, iAAABB const& b)
+{
+	return a.minCorner() != b.minCorner() || a.maxCorner() != b.maxCorner();
+}
+
 QString toStr(iAAABB const& box)
 {
 	return QString("%1, %2; %3, %4").arg(box.minCorner().x()).arg(box.minCorner().y()).arg(box.maxCorner().x()).arg(box.maxCorner().y());

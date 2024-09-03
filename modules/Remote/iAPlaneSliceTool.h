@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#include <iAAABB.h>
 #include <iASlicerMode.h>    // for iAAxisIndex
 #include <iATool.h>
 
@@ -82,6 +83,7 @@ private:
 	std::map<quint64, iASnapshotInfo> m_snapshots;
 	quint64 m_nextSnapshotID;
 	size_t m_dataSetIdx;
+	iAAABB m_lastSceneBounds;
 };
 
 // TODO: better generalization / move to some common qt table widget helper file:

@@ -43,5 +43,8 @@ private:
 	std::array<iAVec3d, 2> box;
 };
 
+//! inequality operator for axis-aligned bounding box (TODO: rule of 5...?)
+iAbase_API bool operator!=(iAAABB const& a, iAAABB const& b);
+
 //! Get a human-readable string representation of an iAAABB (axis-aligned bounding box)
 iAbase_API QString toStr(iAAABB const& box);

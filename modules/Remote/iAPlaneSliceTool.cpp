@@ -17,7 +17,6 @@
 #include <iATransferFunction.h>
 
 // base
-#include <iAAABB.h>
 #include <iAImageData.h>
 #include <iALog.h>
 #include <iAStringHelper.h>
@@ -379,7 +378,22 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	modifiedCallback->SetClientData(this);
 	m_planeWidget->AddObserver(vtkCommand::InteractionEvent, modifiedCallback);
 
-	QObject::connect(child->renderer(), &iARenderer::ctrlShiftMouseWheel, this, &iAPlaneSliceTool::moveAlongCurrentDir);
+	connect(child->renderer(), &iARenderer::ctrlShiftMouseWheel, this, &iAPlaneSliceTool::moveAlongCurrentDir);
+	auto updateBounds = [this](int /*dsIdx*/)
+	{
+		if (m_child->renderer()->sceneBounds() != m_lastSceneBounds) // only update if scene bounds have actually changed
+		{
+			// NOTE: We could also try to keep the same position within the dataset;
+			// but a dataset could be added, or just spacing changed for current dataset,
+			// so it would be quite complex to cover all corner cases correctly; just reset for now,
+			// to make sure the plane is visible across the current scene bounds:
+			resetPlaneParameters(iAAxisIndex::Z, true);
+		}
+	};
+	// adapt slice plane after new dataset added (and first rendering has happened -> scene bounds available in renderer!):
+	connect(child, &iAMdiChild::dataSetRendered, this, updateBounds);
+	// adapt slice plane when spacing has changed:
+	connect(child, &iAMdiChild::dataSetChanged, this, updateBounds);
 
 	// set to middle of object in z direction (i.e. xy slice default position)
 	resetPlaneParameters(iAAxisIndex::Z, true);
@@ -537,7 +551,7 @@ void iAPlaneSliceTool::updateSliceFromUser()
 
 void iAPlaneSliceTool::resetPlaneParameters(iAAxisIndex axis, bool posSign)
 {
-	auto bounds = m_child->dataSetViewer(m_dataSetIdx)->renderer()->bounds();
+	auto bounds = m_child->renderer()->sceneBounds();
 	auto lengths = bounds.maxCorner() - bounds.minCorner();
 
 	setAxisAligned(axis, posSign, lengths[axis] / 2);
@@ -548,15 +562,15 @@ void iAPlaneSliceTool::resetPlaneParameters(iAAxisIndex axis, bool posSign)
 
 void iAPlaneSliceTool::setAxisAligned(iAAxisIndex axis, bool posSign, double slicePos)
 {
-	auto bounds = m_child->dataSetViewer(m_dataSetIdx)->renderer()->bounds();
+	m_lastSceneBounds = m_child->renderer()->sceneBounds();
 	// slicePos is local to volume dataset (without origin), but slicer expects it to be global coords -> add origin:
-	slicePos += bounds.minCorner()[axis];
+	slicePos += m_lastSceneBounds.minCorner()[axis];
 
 	auto p2i = mapSliceToGlobalAxis(static_cast<iASlicerMode>(axis), iAAxisIndex::X);
 	auto p1i = mapSliceToGlobalAxis(static_cast<iASlicerMode>(axis), iAAxisIndex::Y);
 
-	auto corner1 = bounds.minCorner();
-	auto corner2 = bounds.maxCorner();
+	auto corner1 = m_lastSceneBounds.minCorner();
+	auto corner2 = m_lastSceneBounds.maxCorner();
 
 	iAVec3d origin;
 	origin[p1i] = posSign ? corner1[p1i] : corner2[p1i];
