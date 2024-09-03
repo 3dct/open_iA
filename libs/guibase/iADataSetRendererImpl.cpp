@@ -461,6 +461,7 @@ iAPolyDataRenderer::iAPolyDataRenderer(vtkRenderer* renderer, iAPolyData const *
 {
 	mapper()->SetInputData(data->poly());
 	//m_polyMapper->SelectColorArray("Colors");
+	m_planeCutter->SetInputData(m_data->poly());
 }
 
 iAAABB iAPolyDataRenderer::bounds()
@@ -474,7 +475,6 @@ void iAPolyDataRenderer::addCuttingPlane(vtkPlane* p)
 	m_planeCutter->AddClipFunction(p);
 	if (switchMapperSource)
 	{
-		m_planeCutter->SetInputData(m_data->poly());
 		mapper()->SetInputConnection(m_planeCutter->GetOutputPort());
 	}
 }
