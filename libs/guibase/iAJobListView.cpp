@@ -229,7 +229,7 @@ void iAJobListView::newJobSlot()
 	}
 	auto jobWidget = addJobWidget(j);
 	LOG(lvlDebug, QString("Job started: %1.").arg(j->name));
-	connect(j->object, &QObject::destroyed, [this, jobWidget, j]()
+	connect(j->object, &QObject::destroyed, jobWidget, [this, jobWidget, j]()
 	{
 		LOG(lvlDebug, QString("Job done: %1.").arg(j->name));
 		qsizetype remainingJobs = 0;
