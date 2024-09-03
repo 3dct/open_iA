@@ -158,11 +158,6 @@ QWidget* createContainerWidget(int spacing)
 
 iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	iATool(mainWnd, child),
-	m_sliceWidget(new iAQVTKWidget(child)),
-	m_snapshotTable(new QTableWidget),
-	m_curPosLabel(new iAQCropLabel),
-	m_sliceDW(new iADockWidgetWrapper(m_sliceWidget, "Arbitrary Slice", "ArbitrarySliceViewer", "https://github.com/3dct/open_iA/wiki/Arbitrary-Slice-Plane")),
-	
 	m_planeWidget(vtkSmartPointer<iAvtkPlaneWidget>::New()),
 	m_reslicer(vtkSmartPointer<vtkImageResliceMapper>::New()),
 	m_imageSlice(vtkSmartPointer<vtkImageSlice>::New()),
@@ -172,8 +167,13 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_dataSetIdx = child->firstImageDataSetIdx();
 	if (m_dataSetIdx == iAMdiChild::NoDataSet || !child->dataSetViewer(m_dataSetIdx))
 	{
-		throw std::runtime_error("Arbitrary slicing tool: No image dataset loaded, or not fully initialized. Please try again later!");
+		throw std::runtime_error("Arbitrary slicing tool: Volume/Image dataset required but none available; either no such dataset is loaded, or it is not fully initialized yet!");
 	}
+	// only create widget stuff after throwing exceptions (otherwise - memory leak!)
+	m_sliceWidget = new iAQVTKWidget(child);
+	m_snapshotTable = new QTableWidget;
+	m_curPosLabel = new iAQCropLabel;
+	m_sliceDW = new iADockWidgetWrapper(m_sliceWidget, "Arbitrary Slice", "ArbitrarySliceViewer", "https://github.com/3dct/open_iA/wiki/Arbitrary-Slice-Plane");
 
 	auto dwWidget = createContainerWidget<QVBoxLayout>(1);
 	m_listDW = new iADockWidgetWrapper(dwWidget, "Snapshot List", "SnapshotList", "https://github.com/3dct/open_iA/wiki/Remote");

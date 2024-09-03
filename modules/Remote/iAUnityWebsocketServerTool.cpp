@@ -1290,7 +1290,7 @@ iAUnityWebsocketServerTool::iAUnityWebsocketServerTool(iAMainWindow* mainWnd, iA
 {
 	if (child->firstImageDataSetIdx() == iAMdiChild::NoDataSet || !child->dataSetViewer(child->firstImageDataSetIdx()))
 	{
-		throw std::runtime_error("Unity volume interaction server: No image dataset loaded, or not fully initialized. Please try again later!");
+		throw std::runtime_error("Unity volume interaction server: Volume/Image dataset required but none available; either no such dataset is loaded, or it is not fully initialized yet!");
 	}
 }
 
