@@ -1,7 +1,8 @@
+// Copyright (c) open_iA contributors
+// SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVglProjectFile.h"
 
 #include <iALog.h>
-#include <iASettings.h>
 #include <iAValueTypeVectorHelpers.h>
 #include <iARawFileIO.h>
 #include <iAToolsVTK.h>
@@ -9,17 +10,13 @@
 #include <zlib.h>
 #include <map>
 
-#include <qdom.h>
-#include <qxmlstream.h>
+#include <QDomDocument>
+#include <QDir>
+#include <QFileInfo>
 #include <QSettings>
-#include <qfileinfo.h>
-#include <qdir.h>
 
-
-
-
-
-class parameterVGL
+//! parameters for a raw file found within the .vgl file
+class iAVglParameter
 {
 	public:
 	QString Filename;
@@ -27,7 +24,6 @@ class parameterVGL
 	float sampleDistance[3];
 	float Origin[3];
 	QString Datatype;
-
 };
 
 
@@ -63,7 +59,7 @@ std::shared_ptr<iADataSet> iAVglProjectFile::loadData(
 
 	auto divNodeList = doc.elementsByTagName("object");
 
-	std::map<QString, parameterVGL> datasetMap; 
+	std::map<QString, iAVglParameter> datasetMap;
 
 	for (int i = 0; i < divNodeList.size(); ++i)
 	{
@@ -72,7 +68,7 @@ std::shared_ptr<iADataSet> iAVglProjectFile::loadData(
 		if (attribute.value() == "VGLSampleGridImportRaw")
 		{
 
-			parameterVGL param;
+			iAVglParameter param;
 
 			auto VGLSampleGridImportRaw = domElement.elementsByTagName("property");
 			for (int j = 0; j < VGLSampleGridImportRaw.size(); ++j)
