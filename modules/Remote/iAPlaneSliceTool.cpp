@@ -207,6 +207,11 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 		}
 		m_planeWidget->SetCenter(pos.data());
 		m_planeWidget->SetNormal(norm.data());
+
+		// set up vector; no direct way to do this!
+		//  CORRECT WAY: store origin, pt1, pt2 for plane?
+		//  NOT working way: compute them relative from current origin - but origin might need to change as well
+
 		child->updateRenderer();
 		updateSlice();
 	});
