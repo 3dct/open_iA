@@ -88,7 +88,7 @@ bool iAFileParamDlg::getParameters(QWidget* parent, iAFileIO const* io, iAFileIO
 }
 
 //! Dialog for retrieving parameters for the raw file I/O.
-class iANewRawFileLoadParamDlg : public iAFileParamDlg
+class iARawFileLoadParamDlg : public iAFileParamDlg
 {
 public:
 	bool askForParameters(QWidget* parent, iAAttributes const& parameters, QString const& ioName, QVariantMap& values, QString const& fileName, iADataSet const * dataSet) const override
@@ -423,7 +423,7 @@ class iAHDF5FileLoadParamDlg: public iAFileParamDlg
 
 void iAFileParamDlg::setupDefaultFileParamDlgs()
 {
-	add(settingName(iAFileIO::Load, iARawFileIO::Name), std::make_shared<iANewRawFileLoadParamDlg>());
+	add(settingName(iAFileIO::Load, iARawFileIO::Name), std::make_shared<iARawFileLoadParamDlg>());
 	add(settingName(iAFileIO::Load, iAImageStackFileIO::Name), std::make_shared<iAImageStackLoadParamDlg>());
 	add(settingName(iAFileIO::Save, iAImageStackFileIO::Name), std::make_shared<iAImageStackSaveParamDlg>());
 #ifdef USE_HDF5
