@@ -128,7 +128,6 @@ namespace
 		iAVec3d origin(planeWidget->GetOrigin());
 		iAVec3d normal(planeWidget->GetNormal());
 		iAVec3d p1(planeWidget->GetPoint1());
-		iAVec3d p2(planeWidget->GetPoint2());
 		auto distance = cam->GetDistance();
 		auto position = center + distance * normal;
 		auto viewUp = p1 - origin;
@@ -279,7 +278,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	{
 		iAAttributes params;
 		addAttr(params, "Axis", iAValueType::Categorical, QStringList() << "+X" << "-X" << "+Y" << "-Y" << "+Z" << "-Z");
-		iAParameterDlg dlg(m_sliceWidget, "Set file parameters", params);
+		iAParameterDlg dlg(m_sliceWidget, "Reset slice position", params);
 		if (dlg.exec() != QDialog::Accepted)
 		{
 			return;
