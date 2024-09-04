@@ -445,15 +445,15 @@ void iAPlaneSliceTool::loadState(QSettings& projectFile, QString const& fileName
 			.arg(planeParamStr).arg(ExpectedPlaneParamParts).arg(planeParams.size()) );
 		return;
 	}
-	std::array<double, 3> orig, normal;
-	if (!stringToArray(planeParams[0], orig) ||
+	std::array<double, 3> center, normal;
+	if (!stringToArray(planeParams[0], center) ||
 		!stringToArray(planeParams[1], normal))
 	{
 		LOG(lvlError, QString("Invalid plane parameter spec: %1: Could not parse an array!")
 			.arg(planeParamStr).arg(ExpectedPlaneParamParts).arg(planeParams.size()));
 		return;
 	}
-	m_planeWidget->SetOrigin(orig.data());
+	m_planeWidget->SetCenter(center.data());
 	m_planeWidget->SetNormal(normal.data());
 	updateSliceFromUser();
 }
@@ -471,10 +471,10 @@ void iAPlaneSliceTool::saveState(QSettings& projectFile, QString const& fileName
 		projectFile.setValue(ProjectSnapshotBase.arg(storeID), snapshotStr);
 		++storeID;
 	}
-	std::array<double, 3> orig, normal;
-	m_planeWidget->GetOrigin(orig.data());
+	std::array<double, 3> center, normal;
+	m_planeWidget->GetCenter(center.data());
 	m_planeWidget->GetNormal(normal.data());
-	auto planeParamStr = arrayToString(orig) + ProjectValuesSeparator + arrayToString(normal);
+	auto planeParamStr = arrayToString(center) + ProjectValuesSeparator + arrayToString(normal);
 	projectFile.setValue(ProjectPlaneParameters, planeParamStr);
 }
 
