@@ -45,6 +45,56 @@
 		</screenshot>
 	</screenshots>
 	<releases>
+		<release version="2024.9" date="2024-09-06">
+			<description>
+			Many major and minor improvements, mostly for existing functionality:
+				- General:
+					- Info buttons for each view, leading to the documentation for this view
+					- Raw file preview
+						- asynchronous slice loading when parameters match the file size
+						- including histogram, adjustable transfer function and slice number selection
+					- Cut/Clip polygon mesh datasets by slicing planes
+					- List of open windows
+					- Volume renderer: add blend mode setting
+					- Adjust transfer function ranges to data range if necessary
+					- histograms: add upper bound for number of bins from number of voxels
+					- Clear stale data from project file on saving
+					- Improved integration testing - added various test projects for specific tools
+					- Several minor and major fixes and improved error checking, e.g.:
+						- Avoid crash on closing data window/application when dataset is still loading
+				- Arbitrary slice plane:
+					- optional synchronization to axis-aligned slicers
+					- resetting plane (+ doing that when dataset bounds change)
+					- optionally cut/clip 3D renderings of any loaded dataset by plane
+					- fix current slice plane position storage in project file
+				- Command line runner:
+					- Change to command word syntax instead of shorthands
+					- Options for providing parameters to input/output fileformat
+				- FeatureScout:
+					- MObjects:
+						- Fix 3D rendering
+						- Fix transfer function display/editing
+						- Fix .stl export
+						- Computation now in background, allow aborting computation
+						- store MObject state
+					- changeable parallel coordinate plot default settings
+					- option to storing only object IDs when exporting classes
+					- less storage in project (due to only object IDs being stored for classes)
+					- Fix csv file loading with AutoID enabled
+					- Fix potential crashes
+					- Fix multiclass rendering modifying current class
+				- Labelling:
+					- Store to and load from project
+					- Several fixes
+				- Double/Triple Histogram TF:
+					- Fix crash on start
+				- Remote connections:
+					- Show listening port in respective client lists
+					- Unity connection: Correct VR camera visualization
+					- Configurable ports; automatic choice of next port if default port not available
+			</description>
+			<url>https://github.com/3dct/open_iA/releases/tag/2024.9</url>
+		</release>
 		<release version="2024.7" date="2024-07-10">
 			<description>
 				- Arbitrary slice plane tool
