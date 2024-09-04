@@ -16,12 +16,12 @@ class QSettings;
 
 //! Loads custom csv file with data preview
 //! Settings can be adapted and saved under a specified format name
-class iAobjectvis_API dlg_CSVInput : public QDialog
+class iAobjectvis_API iACsvInputDlg : public QDialog
 {
 Q_OBJECT
 public:
 	//! Create a new dialog, all parameters are optional
-	dlg_CSVInput(bool volumeDataAvailable, QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
+	iACsvInputDlg(bool volumeDataAvailable, QWidget* parent = nullptr, Qt::WindowFlags f = Qt::WindowFlags());
 	//! Set the internal path (used when choosing a csv file) to the one given as parameter
 	void setPath(QString const & path);
 	//! Set the file name input to the one given as parameter

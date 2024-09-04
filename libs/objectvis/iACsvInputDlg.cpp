@@ -1,6 +1,6 @@
 // Copyright (c) open_iA contributors
 // SPDX-License-Identifier: GPL-3.0-or-later
-#include "dlg_CSVInput.h"
+#include "iACsvInputDlg.h"
 
 #include "iACsvIO.h"
 #include "iACsvConfig.h"
@@ -56,7 +56,7 @@ namespace
 	}
 }
 
-dlg_CSVInput::dlg_CSVInput(bool volumeDataAvailable, QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/)
+iACsvInputDlg::iACsvInputDlg(bool volumeDataAvailable, QWidget * parent/* = 0,*/, Qt::WindowFlags f/* f = 0*/)
 	: QDialog(parent, f),
 	m_columnMappingChoiceSet(false),
 	m_volumeDataAvailable(volumeDataAvailable),
@@ -107,22 +107,22 @@ dlg_CSVInput::dlg_CSVInput(bool volumeDataAvailable, QWidget * parent/* = 0,*/, 
 	}
 }
 
-void dlg_CSVInput::setPath(QString const & path)
+void iACsvInputDlg::setPath(QString const & path)
 {
 	m_path = path;
 }
 
-void dlg_CSVInput::setFileName(QString const& fileName)
+void iACsvInputDlg::setFileName(QString const& fileName)
 {
 	m_ui->cmbbox_FileName->setCurrentText(fileName);
 }
 
-void dlg_CSVInput::fileNameChanged()
+void iACsvInputDlg::fileNameChanged()
 {
 	updatePreview();
 }
 
-void dlg_CSVInput::setFormat(QString const & formatName)
+void iACsvInputDlg::setFormat(QString const & formatName)
 {
 	if (m_ui->cmbbox_Format->findText(formatName))
 	{
@@ -130,12 +130,12 @@ void dlg_CSVInput::setFormat(QString const & formatName)
 	}
 }
 
-iACsvConfig const & dlg_CSVInput::getConfig() const
+iACsvConfig const & iACsvInputDlg::getConfig() const
 {
 	return m_confParams;
 }
 
-void dlg_CSVInput::initParameters()
+void iACsvInputDlg::initParameters()
 {
 	QStringList formatEntries = iACsvConfig::getListFromRegistry();
 	if (!formatEntries.contains(iACsvConfig::FCPFiberFormat))
@@ -155,55 +155,55 @@ void dlg_CSVInput::initParameters()
 	showConfigParams();
 }
 
-void dlg_CSVInput::connectSignals()
+void iACsvInputDlg::connectSignals()
 {
-	connect(m_ui->btn_SelectFile, &QPushButton::clicked, this, &dlg_CSVInput::selectFileBtnClicked);
-	connect(m_ui->cmbbox_FileName, &QComboBox::currentTextChanged, this, &dlg_CSVInput::fileNameChanged);
-	connect(m_ui->btn_SelectCurvedFile, &QPushButton::clicked, this, &dlg_CSVInput::selectCurvedFileBtnClicked);
-	connect(m_ui->btn_SaveFormat, &QPushButton::clicked, this, &dlg_CSVInput::saveFormatBtnClicked);
-	connect(m_ui->btn_DeleteFormat, &QPushButton::clicked, this, &dlg_CSVInput::deleteFormatBtnClicked);
-	connect(m_ui->btn_UpdatePreview, &QPushButton::clicked, this, &dlg_CSVInput::updatePreview);
-	connect(m_ui->btn_ExportTable, &QPushButton::clicked, this, &dlg_CSVInput::exportTable);
-	connect(m_ui->btn_ApplyFormatColumnSelection, &QPushButton::clicked, this, &dlg_CSVInput::applyFormatColumnSelection);
-	connect(m_ui->btn_ExportFormat, &QPushButton::clicked, this, &dlg_CSVInput::exportButtonClicked);
-	connect(m_ui->btn_ImportFormat, &QPushButton::clicked, this, &dlg_CSVInput::importButtonClicked);
-	connect(m_ui->cmbbox_Format, &QComboBox::currentTextChanged, this, &dlg_CSVInput::loadSelectedFormatSettings);
-	connect(m_ui->cmbbox_ColSeparator, &QComboBox::currentTextChanged, this, &dlg_CSVInput::updatePreview);
-	connect(m_ui->cmbbox_ObjectType, &QComboBox::currentTextChanged, this, &dlg_CSVInput::switchObjectType);
-	connect(m_ui->cmbbox_Encoding, &QComboBox::currentTextChanged, this, &dlg_CSVInput::updatePreview);
-	connect(m_ui->cmbbox_VisualizeAs, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_CSVInput::visualizationTypeChanged);
-	connect(m_ui->btn_OK, &QPushButton::clicked, this, &dlg_CSVInput::okBtnClicked);
-	connect(m_ui->ed_SkipLinesStart, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_CSVInput::updatePreview);
-	connect(m_ui->ed_SkipLinesEnd,   QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_CSVInput::updatePreview);
-	connect(m_ui->sb_PreviewLines,   QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_CSVInput::updatePreview);
+	connect(m_ui->btn_SelectFile, &QPushButton::clicked, this, &iACsvInputDlg::selectFileBtnClicked);
+	connect(m_ui->cmbbox_FileName, &QComboBox::currentTextChanged, this, &iACsvInputDlg::fileNameChanged);
+	connect(m_ui->btn_SelectCurvedFile, &QPushButton::clicked, this, &iACsvInputDlg::selectCurvedFileBtnClicked);
+	connect(m_ui->btn_SaveFormat, &QPushButton::clicked, this, &iACsvInputDlg::saveFormatBtnClicked);
+	connect(m_ui->btn_DeleteFormat, &QPushButton::clicked, this, &iACsvInputDlg::deleteFormatBtnClicked);
+	connect(m_ui->btn_UpdatePreview, &QPushButton::clicked, this, &iACsvInputDlg::updatePreview);
+	connect(m_ui->btn_ExportTable, &QPushButton::clicked, this, &iACsvInputDlg::exportTable);
+	connect(m_ui->btn_ApplyFormatColumnSelection, &QPushButton::clicked, this, &iACsvInputDlg::applyFormatColumnSelection);
+	connect(m_ui->btn_ExportFormat, &QPushButton::clicked, this, &iACsvInputDlg::exportButtonClicked);
+	connect(m_ui->btn_ImportFormat, &QPushButton::clicked, this, &iACsvInputDlg::importButtonClicked);
+	connect(m_ui->cmbbox_Format, &QComboBox::currentTextChanged, this, &iACsvInputDlg::loadSelectedFormatSettings);
+	connect(m_ui->cmbbox_ColSeparator, &QComboBox::currentTextChanged, this, &iACsvInputDlg::updatePreview);
+	connect(m_ui->cmbbox_ObjectType, &QComboBox::currentTextChanged, this, &iACsvInputDlg::switchObjectType);
+	connect(m_ui->cmbbox_Encoding, &QComboBox::currentTextChanged, this, &iACsvInputDlg::updatePreview);
+	connect(m_ui->cmbbox_VisualizeAs, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iACsvInputDlg::visualizationTypeChanged);
+	connect(m_ui->btn_OK, &QPushButton::clicked, this, &iACsvInputDlg::okBtnClicked);
+	connect(m_ui->ed_SkipLinesStart, QOverload<int>::of(&QSpinBox::valueChanged), this, &iACsvInputDlg::updatePreview);
+	connect(m_ui->ed_SkipLinesEnd,   QOverload<int>::of(&QSpinBox::valueChanged), this, &iACsvInputDlg::updatePreview);
+	connect(m_ui->sb_PreviewLines,   QOverload<int>::of(&QSpinBox::valueChanged), this, &iACsvInputDlg::updatePreview);
 #if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
-	connect(m_ui->cb_CurvedFiberInfo, &QCheckBox::stateChanged, this, &dlg_CSVInput::curvedFiberDataChanged);
-	connect(m_ui->cb_ComputeStartEnd, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeStartEndChanged);
-	connect(m_ui->cb_ComputeLength, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeLengthChanged);
-	connect(m_ui->cb_ComputeAngles, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeAngleChanged);
-	connect(m_ui->cb_ComputeTensors, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
-	connect(m_ui->cb_ComputeCenter, &QCheckBox::stateChanged, this, &dlg_CSVInput::computeCenterChanged);
-	connect(m_ui->cb_AddAutoID, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
-	connect(m_ui->cb_ContainsHeader, &QCheckBox::stateChanged, this, &dlg_CSVInput::updatePreview);
-	connect(m_ui->cb_AdvancedMode, &QCheckBox::stateChanged, this, &dlg_CSVInput::advancedModeToggled);
-	connect(m_ui->cb_FixedDiameter, &QCheckBox::stateChanged, this, &dlg_CSVInput::fixedDiameterChanged);
+	connect(m_ui->cb_CurvedFiberInfo, &QCheckBox::stateChanged, this, &iACsvInputDlg::curvedFiberDataChanged);
+	connect(m_ui->cb_ComputeStartEnd, &QCheckBox::stateChanged, this, &iACsvInputDlg::computeStartEndChanged);
+	connect(m_ui->cb_ComputeLength, &QCheckBox::stateChanged, this, &iACsvInputDlg::computeLengthChanged);
+	connect(m_ui->cb_ComputeAngles, &QCheckBox::stateChanged, this, &iACsvInputDlg::computeAngleChanged);
+	connect(m_ui->cb_ComputeTensors, &QCheckBox::stateChanged, this, &iACsvInputDlg::updatePreview);
+	connect(m_ui->cb_ComputeCenter, &QCheckBox::stateChanged, this, &iACsvInputDlg::computeCenterChanged);
+	connect(m_ui->cb_AddAutoID, &QCheckBox::stateChanged, this, &iACsvInputDlg::updatePreview);
+	connect(m_ui->cb_ContainsHeader, &QCheckBox::stateChanged, this, &iACsvInputDlg::updatePreview);
+	connect(m_ui->cb_AdvancedMode, &QCheckBox::stateChanged, this, &iACsvInputDlg::advancedModeToggled);
+	connect(m_ui->cb_FixedDiameter, &QCheckBox::stateChanged, this, &iACsvInputDlg::fixedDiameterChanged);
 #else
-	connect(m_ui->cb_CurvedFiberInfo, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::curvedFiberDataChanged);
-	connect(m_ui->cb_ComputeStartEnd, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::computeStartEndChanged);
-	connect(m_ui->cb_ComputeLength, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::computeLengthChanged);
-	connect(m_ui->cb_ComputeAngles, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::computeAngleChanged);
-	connect(m_ui->cb_ComputeTensors, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::updatePreview);
-	connect(m_ui->cb_ComputeCenter, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::computeCenterChanged);
-	connect(m_ui->cb_AddAutoID, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::updatePreview);
-	connect(m_ui->cb_ContainsHeader, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::updatePreview);
-	connect(m_ui->cb_AdvancedMode, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::advancedModeToggled);
-	connect(m_ui->cb_FixedDiameter, &QCheckBox::checkStateChanged, this, &dlg_CSVInput::fixedDiameterChanged);
+	connect(m_ui->cb_CurvedFiberInfo, &QCheckBox::checkStateChanged, this, &iACsvInputDlg::curvedFiberDataChanged);
+	connect(m_ui->cb_ComputeStartEnd, &QCheckBox::checkStateChanged, this, &iACsvInputDlg::computeStartEndChanged);
+	connect(m_ui->cb_ComputeLength, &QCheckBox::checkStateChanged, this, &iACsvInputDlg::computeLengthChanged);
+	connect(m_ui->cb_ComputeAngles, &QCheckBox::checkStateChanged, this, &iACsvInputDlg::computeAngleChanged);
+	connect(m_ui->cb_ComputeTensors, &QCheckBox::checkStateChanged, this, &iACsvInputDlg::updatePreview);
+	connect(m_ui->cb_ComputeCenter, &QCheckBox::checkStateChanged, this, &iACsvInputDlg::computeCenterChanged);
+	connect(m_ui->cb_AddAutoID, &QCheckBox::checkStateChanged, this, &iACsvInputDlg::updatePreview);
+	connect(m_ui->cb_ContainsHeader, &QCheckBox::checkStateChanged, this, &iACsvInputDlg::updatePreview);
+	connect(m_ui->cb_AdvancedMode, &QCheckBox::checkStateChanged, this, &iACsvInputDlg::advancedModeToggled);
+	connect(m_ui->cb_FixedDiameter, &QCheckBox::checkStateChanged, this, &iACsvInputDlg::fixedDiameterChanged);
 #endif
-	connect(m_ui->list_ColumnSelection, &QListWidget::itemSelectionChanged, this, &dlg_CSVInput::selectedColsChanged);
-	connect(m_ui->sb_FixedDiameter, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &dlg_CSVInput::updatePreview);
+	connect(m_ui->list_ColumnSelection, &QListWidget::itemSelectionChanged, this, &iACsvInputDlg::selectedColsChanged);
+	connect(m_ui->sb_FixedDiameter, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &iACsvInputDlg::updatePreview);
 }
 
-void dlg_CSVInput::okBtnClicked()
+void iACsvInputDlg::okBtnClicked()
 {
 	assignFormatSettings();
 	assignSelectedCols();
@@ -242,7 +242,7 @@ void dlg_CSVInput::okBtnClicked()
 	accept();
 }
 
-void dlg_CSVInput::loadSelectedFormatSettings(const QString &formatName)
+void iACsvInputDlg::loadSelectedFormatSettings(const QString &formatName)
 {
 	if (!loadFormatFromRegistry(formatName))
 	{
@@ -257,7 +257,7 @@ void dlg_CSVInput::loadSelectedFormatSettings(const QString &formatName)
 	showSelectedCols();
 }
 
-void dlg_CSVInput::updatePreview()
+void iACsvInputDlg::updatePreview()
 {
 	assignFormatSettings();
 	if (!loadFilePreview())
@@ -267,7 +267,7 @@ void dlg_CSVInput::updatePreview()
 	showSelectedCols();
 }
 
-void dlg_CSVInput::visualizationTypeChanged(int newTypeInt)
+void iACsvInputDlg::visualizationTypeChanged(int newTypeInt)
 {
 	auto newType = static_cast<iAObjectVisType>(newTypeInt);
 	if (newType != iAObjectVisType::Cylinder && newType != iAObjectVisType::Line)
@@ -277,7 +277,7 @@ void dlg_CSVInput::visualizationTypeChanged(int newTypeInt)
 	m_ui->cb_CurvedFiberInfo->setEnabled(newType == iAObjectVisType::Cylinder || newType == iAObjectVisType::Line);
 }
 
-void dlg_CSVInput::exportTable()
+void iACsvInputDlg::exportTable()
 {
 	iACsvIO io;
 	iACsvVectorTableCreator creator;
@@ -345,13 +345,13 @@ void dlg_CSVInput::exportTable()
 	return;
 }
 
-void dlg_CSVInput::switchObjectType(const QString & /*ObjectInputType*/)
+void iACsvInputDlg::switchObjectType(const QString & /*ObjectInputType*/)
 {
 	assignObjectTypes();
 	updateColumnMappingInputs();
 }
 
-QString dlg_CSVInput::askForFormatName(bool forLocalSave)
+QString iACsvInputDlg::askForFormatName(bool forLocalSave)
 {
 	auto line = new QWidget;
 	auto label = new QLabel("Format name:");
@@ -413,7 +413,7 @@ QString dlg_CSVInput::askForFormatName(bool forLocalSave)
 	return (dlg.exec() == QDialog::Accepted) ? edit->text() : "";
 }
 
-void dlg_CSVInput::saveFormatBtnClicked()
+void iACsvInputDlg::saveFormatBtnClicked()
 {
 	QString formatName = askForFormatName(true);
 	if (formatName.trimmed().isEmpty())
@@ -425,7 +425,7 @@ void dlg_CSVInput::saveFormatBtnClicked()
 	saveFormatToRegistry(formatName);
 }
 
-void dlg_CSVInput::deleteFormatBtnClicked()
+void iACsvInputDlg::deleteFormatBtnClicked()
 {
 	QString formatName = m_ui->cmbbox_Format->currentText();
 	auto reply = QMessageBox::warning(this, tr("CSV Input"),
@@ -438,14 +438,14 @@ void dlg_CSVInput::deleteFormatBtnClicked()
 	deleteFormatFromReg(formatName);
 }
 
-void dlg_CSVInput::deleteFormatFromReg(QString const & formatName)
+void iACsvInputDlg::deleteFormatFromReg(QString const & formatName)
 {
 	QSettings settings;
 	settings.remove(iACsvConfig::getFormatKey(formatName));
 	m_ui->cmbbox_Format->removeItem(m_ui->cmbbox_Format->findText(formatName, Qt::MatchFixedString));
 }
 
-void dlg_CSVInput::applyFormatColumnSelection()
+void iACsvInputDlg::applyFormatColumnSelection()
 {
 	QString formatName = m_ui->cmbbox_Format->currentText();
 	iACsvConfig tmp;
@@ -454,26 +454,26 @@ void dlg_CSVInput::applyFormatColumnSelection()
 	showSelectedCols();
 }
 
-void dlg_CSVInput::computeStartEndChanged()
+void iACsvInputDlg::computeStartEndChanged()
 {
 	updateColumnMappingInputs();
 	updatePreview();
 }
 
-void dlg_CSVInput::updateDiameterInputEnabled()
+void iACsvInputDlg::updateDiameterInputEnabled()
 {
 	m_ui->sb_FixedDiameter->setEnabled(m_ui->cb_FixedDiameter->isChecked());
 	m_ui->lbl_col_diameter->setEnabled(!m_ui->cb_FixedDiameter->isChecked());
 	m_ui->cmbbox_col_Diameter->setEnabled(!m_ui->cb_FixedDiameter->isChecked());
 }
 
-void dlg_CSVInput::fixedDiameterChanged()
+void iACsvInputDlg::fixedDiameterChanged()
 {
 	updateDiameterInputEnabled();
 	updatePreview();
 }
 
-void dlg_CSVInput::updateColumnMappingInputs()
+void iACsvInputDlg::updateColumnMappingInputs()
 {
 	m_ui->lbl_col_dimensionX->setEnabled(m_confParams.objectType == iAObjectType::Voids);
 	m_ui->lbl_col_dimensionY->setEnabled(m_confParams.objectType == iAObjectType::Voids);
@@ -511,19 +511,19 @@ void dlg_CSVInput::updateColumnMappingInputs()
 	updateDiameterInputEnabled();
 }
 
-void dlg_CSVInput::updateLengthEditEnabled()
+void iACsvInputDlg::updateLengthEditEnabled()
 {
 	m_ui->cmbbox_col_Length->setEnabled(!m_ui->cb_ComputeLength->isChecked());
 	m_ui->lbl_col_length   ->setEnabled(!m_ui->cb_ComputeLength->isChecked());
 }
 
-void dlg_CSVInput::computeLengthChanged()
+void iACsvInputDlg::computeLengthChanged()
 {
 	updateLengthEditEnabled();
 	updatePreview();
 }
 
-void dlg_CSVInput::updateAngleEditEnabled()
+void iACsvInputDlg::updateAngleEditEnabled()
 {
 	m_ui->cmbbox_col_Phi  ->setEnabled(!m_ui->cb_ComputeAngles->isChecked());
 	m_ui->cmbbox_col_Theta->setEnabled(!m_ui->cb_ComputeAngles->isChecked());
@@ -531,13 +531,13 @@ void dlg_CSVInput::updateAngleEditEnabled()
 	m_ui->lbl_col_theta   ->setEnabled(!m_ui->cb_ComputeAngles->isChecked());
 }
 
-void dlg_CSVInput::computeAngleChanged()
+void iACsvInputDlg::computeAngleChanged()
 {
 	updateAngleEditEnabled();
 	updatePreview();
 }
 
-void dlg_CSVInput::updateCenterEditEnabled()
+void iACsvInputDlg::updateCenterEditEnabled()
 {
 	bool centerEditEnabled = !m_ui->cb_ComputeCenter->isChecked();
 	m_ui->cmbbox_col_PosCenterX->setEnabled(centerEditEnabled);
@@ -548,24 +548,24 @@ void dlg_CSVInput::updateCenterEditEnabled()
 	m_ui->lbl_col_posCenterZ->setEnabled(centerEditEnabled);
 }
 
-void dlg_CSVInput::computeCenterChanged()
+void iACsvInputDlg::computeCenterChanged()
 {
 	updateCenterEditEnabled();
 	updatePreview();
 }
 
-void dlg_CSVInput::selectedColsChanged()
+void iACsvInputDlg::selectedColsChanged()
 {
 	assignSelectedCols();
 	updatePreview();
 }
 
-void dlg_CSVInput::advancedModeToggled()
+void iACsvInputDlg::advancedModeToggled()
 {
 	m_ui->wd_Advanced->setVisible(m_ui->cb_AdvancedMode->isChecked());
 }
 
-void dlg_CSVInput::selectFileBtnClicked()
+void iACsvInputDlg::selectFileBtnClicked()
 {
 	QString fileName =
 		QFileDialog::getOpenFileName(this, tr("Open Files"), m_path, tr("Comma-separated values (*.csv);;All files (*)"));
@@ -576,7 +576,7 @@ void dlg_CSVInput::selectFileBtnClicked()
 	m_ui->cmbbox_FileName->setCurrentText(fileName);
 }
 
-void dlg_CSVInput::selectCurvedFileBtnClicked()
+void iACsvInputDlg::selectCurvedFileBtnClicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(
 		this, tr("Open Files"), m_path, tr("Curved Fiber Information (*.csv);;All files (*)")
@@ -588,13 +588,13 @@ void dlg_CSVInput::selectCurvedFileBtnClicked()
 	m_ui->ed_CurvedFileName->setText(fileName);
 }
 
-void dlg_CSVInput::curvedFiberDataChanged()
+void iACsvInputDlg::curvedFiberDataChanged()
 {
 	m_ui->ed_CurvedFileName->setEnabled(m_ui->cb_CurvedFiberInfo->isChecked());
 	m_ui->btn_SelectCurvedFile->setEnabled(m_ui->cb_CurvedFiberInfo->isChecked());
 }
 
-void dlg_CSVInput::showConfigParams()
+void iACsvInputDlg::showConfigParams()
 {
 	// prevent signals to update config and preview:
 	QSignalBlocker slsblock(m_ui->ed_SkipLinesStart), sleblock(m_ui->ed_SkipLinesEnd),
@@ -633,7 +633,7 @@ void dlg_CSVInput::showConfigParams()
 	updateColumnMappingInputs();
 }
 
-void dlg_CSVInput::assignFormatSettings()
+void iACsvInputDlg::assignFormatSettings()
 {
 	m_confParams.fileName = m_ui->cmbbox_FileName->currentText();
 	m_confParams.curvedFiberFileName = m_ui->cb_CurvedFiberInfo->isChecked() ? m_ui->ed_CurvedFileName->text() : "";
@@ -681,12 +681,12 @@ void dlg_CSVInput::assignFormatSettings()
 	}
 }
 
-void dlg_CSVInput::assignObjectTypes()
+void iACsvInputDlg::assignObjectTypes()
 {
 	m_confParams.objectType = MapStringToObjectType(m_ui->cmbbox_ObjectType->currentText());
 }
 
-void dlg_CSVInput::showColumnHeaders()
+void iACsvInputDlg::showColumnHeaders()
 {
 	QSignalBlocker listSignalBlock(m_ui->list_ColumnSelection);
 	m_ui->list_ColumnSelection->clear();
@@ -722,7 +722,7 @@ void dlg_CSVInput::showColumnHeaders()
 	m_columnMappingChoiceSet = true;
 }
 
-bool dlg_CSVInput::loadFilePreview()
+bool iACsvInputDlg::loadFilePreview()
 {
 	if (m_confParams.fileName.isEmpty())
 	{
@@ -741,13 +741,13 @@ bool dlg_CSVInput::loadFilePreview()
 	return true;
 }
 
-void dlg_CSVInput::clearPreviewTable()
+void iACsvInputDlg::clearPreviewTable()
 {
 	m_ui->tbl_preview->clear();
 	m_ui->tbl_preview->setRowCount(0);
 }
 
-void dlg_CSVInput::assignSelectedCols()
+void iACsvInputDlg::assignSelectedCols()
 {
 	auto selectedColModelIndices = m_ui->list_ColumnSelection->selectionModel()->selectedIndexes();
 	QVector<int> selectedColIDx;
@@ -771,7 +771,7 @@ void dlg_CSVInput::assignSelectedCols()
 	}
 }
 
-void dlg_CSVInput::showSelectedCols()
+void iACsvInputDlg::showSelectedCols()
 {
 	QSignalBlocker listSignalBlock(m_ui->list_ColumnSelection);
 	m_ui->list_ColumnSelection->clearSelection();
@@ -805,21 +805,21 @@ void dlg_CSVInput::showSelectedCols()
 	}
 }
 
-void dlg_CSVInput::saveGeneralSetting(QString const & settingName, QVariant value)
+void iACsvInputDlg::saveGeneralSetting(QString const & settingName, QVariant value)
 {
 	QSettings settings;
 	settings.beginGroup(iACsvConfig::getFormatKey(""));
 	settings.setValue(settingName, value);
 }
 
-QVariant dlg_CSVInput::loadGeneralSetting(QString const & settingName) const
+QVariant iACsvInputDlg::loadGeneralSetting(QString const & settingName) const
 {
 	QSettings settings;
 	settings.beginGroup(iACsvConfig::getFormatKey(""));
 	return settings.value(settingName, "");
 }
 
-void dlg_CSVInput::exportButtonClicked()
+void iACsvInputDlg::exportButtonClicked()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save Settings"),
 		m_path, "Settings file (*.ini);;All files (*)");
@@ -839,7 +839,7 @@ void dlg_CSVInput::exportButtonClicked()
 	m_confParams.save(settings, formatName);
 }
 
-void dlg_CSVInput::importButtonClicked()
+void iACsvInputDlg::importButtonClicked()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, tr("Load Settings"),
 		m_path, "Settings file (*.ini);;All files (*)");
@@ -859,7 +859,7 @@ void dlg_CSVInput::importButtonClicked()
 	saveFormatToRegistry(formatName);
 }
 
-bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
+bool iACsvInputDlg::loadFormatFromRegistry(const QString & formatName)
 {
 	bool result = loadFormatFromRegistry(formatName, m_confParams);
 	if (result)
@@ -869,7 +869,7 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName)
 	return result;
 }
 
-bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName, iACsvConfig & dest)
+bool iACsvInputDlg::loadFormatFromRegistry(const QString & formatName, iACsvConfig & dest)
 {
 	if (formatName.isEmpty())
 	{
@@ -893,7 +893,7 @@ bool dlg_CSVInput::loadFormatFromRegistry(const QString & formatName, iACsvConfi
 	return true;
 }
 
-void dlg_CSVInput::saveFormatToRegistry(const QString &formatName)
+void iACsvInputDlg::saveFormatToRegistry(const QString &formatName)
 {
 	QStringList formatEntries = iACsvConfig::getListFromRegistry();
 	QSignalBlocker fmtBlocker(m_ui->cmbbox_Format);
@@ -918,7 +918,7 @@ void dlg_CSVInput::saveFormatToRegistry(const QString &formatName)
 	m_ui->cmbbox_Format->setCurrentText(formatName);
 }
 
-bool dlg_CSVInput::eventFilter(QObject *obj, QEvent *event)
+bool iACsvInputDlg::eventFilter(QObject *obj, QEvent *event)
 {
 	if (event->type() == QEvent::KeyPress)
 	{

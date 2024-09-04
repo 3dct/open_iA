@@ -6,7 +6,7 @@
 #include "iACompVisOptions.h"
 
 //iAobjectvis
-#include <dlg_CSVInput.h>
+#include <iACsvInputDlg.h>
 #include <iACsvConfig.h>
 #include <iAObjectsData.h>
 
@@ -64,7 +64,7 @@ iACsvDataStorage::iACsvDataStorage(QStringList* csvFiles, int headerLineNumber) 
 
 void iACsvDataStorage::initializeObjectTableFor3DRendering()
 {
-	dlg_CSVInput dlg(false);
+	iACsvInputDlg dlg(false);
 	dlg.setFileName(m_filenames->at(m_objectData.size()));
 	if (dlg.exec() != QDialog::Accepted)
 	{

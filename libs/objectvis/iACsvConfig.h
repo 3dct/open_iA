@@ -27,7 +27,7 @@ struct iAobjectvis_API iACsvConfig
 		DimensionX, DimensionY, DimensionZ,
 		CurvedLength,
 		MappedCount
-	}; //!< must be the same order as dlg_CSVInput::m_mappingBoxes!
+	}; //!< must be the same order as iACsvInputDlg::m_mappingBoxes!
 	static const int FCPFormatStartSkipLines = 5;
 	iACsvConfig();
 	bool isValid(QString & errorMsg) const;

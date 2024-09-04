@@ -4,7 +4,7 @@
 
 #include "iAFeatureScoutTool.h"
 
-#include <dlg_CSVInput.h>
+#include <iACsvInputDlg.h>
 
 #include <iAFileUtils.h>
 #include <iAMainWindow.h>
@@ -38,7 +38,7 @@ void iAFeatureScoutModuleInterface::featureScout()
 {
 	bool volumeDataAvailable = m_mainWnd->activeMdiChild() &&
 		m_mainWnd->activeMdiChild()->firstImageData() != nullptr;
-	dlg_CSVInput dlg(volumeDataAvailable);
+	iACsvInputDlg dlg(volumeDataAvailable);
 	if (m_mainWnd->activeMdiChild())
 	{
 		auto mdi = m_mainWnd->activeMdiChild();

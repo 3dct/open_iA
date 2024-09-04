@@ -4,13 +4,13 @@
 
 #include "ui_CSVReader.h"
 #include "iACsvDataStorage.h"
-#include "dlg_CSVInput.h"
+#include "iACsvInputDlg.h"
 
 //TODO
 	//all datasets must have the same header/ the same characteristics
 	//all values in all datasets have to be positive --> [0, Infinity[ !!
 
-class dlg_CSVReader : public QDialog, public Ui_CSVReader  //public dlg_CSVInput
+class dlg_CSVReader : public QDialog, public Ui_CSVReader  //public iACsvInputDlg
 {
 	Q_OBJECT
    public:

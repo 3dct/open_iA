@@ -14,7 +14,7 @@
 #include <iARenderer.h>
 
 // objectvis
-#include <dlg_CSVInput.h>
+#include <iACsvInputDlg.h>
 #include <iACsvConfig.h>
 #include <iACsvVtkTableCreator.h>
 #include <iAObjectsData.h>
@@ -116,7 +116,7 @@ void iAXVRAModuleInterface::startXVRA()
 	}
 
 	// Start csv dialog (-> PolyObject)
-	dlg_CSVInput dlg(false);
+	iACsvInputDlg dlg(false);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;

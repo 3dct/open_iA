@@ -6,7 +6,7 @@
 #include "iAVREnvironment.h"
 
 // 3D object visualization
-#include <dlg_CSVInput.h>
+#include <iACsvInputDlg.h>
 #include <iAColoredPolyObjectVis.h>
 #include <iACsvConfig.h>
 #include <iACsvVtkTableCreator.h>
@@ -394,7 +394,7 @@ void iAImNDTModuleInterface::startAnalysis()
 		stopImNDT();
 		return;
 	}
-	dlg_CSVInput dlg(false);
+	iACsvInputDlg dlg(false);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
