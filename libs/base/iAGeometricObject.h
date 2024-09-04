@@ -7,6 +7,8 @@
 
 class vtkPolyDataAlgorithm;
 
+//! Base class for different geometric objects
+//! see deriving classes in Surfaces module
 class iAbase_API iAGeometricObjectSource
 {
 public:
@@ -16,7 +18,7 @@ public:
 	virtual iAAttributes objectProperties() = 0;
 };
 
-//! A geometric object produced by some VTK algorithm such as the various sources.
+//! A dataset containing a geometric object produced by some VTK algorithm such as the various sources.
 class iAbase_API iAGeometricObject : public iADataSet
 {
 public:

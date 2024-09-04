@@ -56,6 +56,7 @@ namespace
 	const int SliceNrInit = -1;
 }
 
+//! Internal data storage for the iARawFilePreviewSlicer class (pimpl-Idiom)
 struct iARawFilePreviewSlicerImpl
 {
 	iASlicerMode mode;

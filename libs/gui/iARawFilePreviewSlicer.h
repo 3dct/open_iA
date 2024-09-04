@@ -23,6 +23,7 @@ struct iARawFilePreviewSlicerImpl;
 
 class QVBoxLayout;
 
+//! Loads preview slices of a raw image from disk
 class iARawFilePreviewSlicer: public QObject
 {
 	Q_OBJECT

@@ -29,6 +29,8 @@
 #include <QRegularExpression>
 #include <QSpinBox>
 
+//! Keeps track of which slices of an image have been loaded, to avoid reusing data values,
+//! used currently in histogram creation.
 struct iASliceMergedValues
 {
 	std::vector<double> values;
