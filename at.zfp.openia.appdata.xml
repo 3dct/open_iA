@@ -47,7 +47,7 @@
 	<releases>
 		<release version="2024.9" date="2024-09-06">
 			<description>
-			Many major and minor improvements, mostly for existing functionality:
+			Many major and minor improvements:
 				- General:
 					- Info buttons for each view, leading to the documentation for this view
 					- Raw file preview
