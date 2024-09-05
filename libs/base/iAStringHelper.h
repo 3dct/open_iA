@@ -31,7 +31,7 @@ struct iAConverter
 	}
 	static QString toString(T /*number*/)
 	{
-		static_assert(false && "Unspecialized Converter::toString called! This should not happen!");
+		assert(false && "Unspecialized Converter::toString called! This should not happen!");
 		return "";
 	}
 };
