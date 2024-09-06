@@ -11,14 +11,10 @@
 #include "vtkIncrementalPointLocator.h"
 #include "vtkInformation.h"
 #include "vtkInformationVector.h"
-#include "vtkLine.h"
 #include "vtkMergePoints.h"
 #include "vtkObjectFactory.h"
 #include "vtkPointData.h"
 #include "vtkPolyData.h"
-#include "vtkTriangle.h"
-
-#include <cmath>
 
 //VTK_ABI_NAMESPACE_BEGIN
 vtkStandardNewMacro(iAvtkClipPolyData);
@@ -124,7 +120,7 @@ int iAvtkClipPolyData::RequestData(vtkInformation *vtkNotUsed(request),
   vtkPolyData *input = vtkPolyData::SafeDownCast(inInfo->Get(vtkDataObject::DATA_OBJECT()));
   vtkPolyData *output = vtkPolyData::SafeDownCast(outInfo->Get(vtkDataObject::DATA_OBJECT()));
 
-  vtkIdType cellId, i, updateTime;
+  vtkIdType cellId, updateTime;
   vtkPoints *cellPts;
   vtkDataArray *clipScalars;
   vtkFloatArray *cellScalars;
@@ -138,7 +134,6 @@ int iAvtkClipPolyData::RequestData(vtkInformation *vtkNotUsed(request),
   vtkIdType estimatedSize, numCells=input->GetNumberOfCells();
   vtkIdType numPts=input->GetNumberOfPoints();
   vtkPoints *inPts=input->GetPoints();
-  int numberOfPoints;
   vtkPointData *inPD=input->GetPointData(), *outPD = output->GetPointData();
   vtkCellData *inCD=input->GetCellData(), *outCD = output->GetCellData();
   vtkCellData *outClippedCD = nullptr;
@@ -171,12 +166,12 @@ int iAvtkClipPolyData::RequestData(vtkInformation *vtkNotUsed(request),
     {
       inPD->SetScalars(tmpScalars);
     }
-    for ( i=0; i < numPts; i++ )
+    for (vtkIdType i=0; i < numPts; i++ )
     {
       double minValue = VTK_DOUBLE_MAX;
-      for( int j = 0; j < ClipFunctions.size(); ++j )
+      for (auto func: ClipFunctions)
       {
-        minValue = std::min( ClipFunctions[j]->FunctionValue(inPts->GetPoint(i)), minValue );
+        minValue = std::min(func->FunctionValue(inPts->GetPoint(i)), minValue );
       }
       tmpScalars->SetComponent(i,0, minValue);
     }
@@ -269,10 +264,10 @@ int iAvtkClipPolyData::RequestData(vtkInformation *vtkNotUsed(request),
     input->GetCell(cellId,cell);
     cellPts = cell->GetPoints();
     cellIds = cell->GetPointIds();
-    numberOfPoints = cellPts->GetNumberOfPoints();
+    vtkIdType numberOfPoints = cellPts->GetNumberOfPoints();
 
     // evaluate implicit cutting function
-    for ( i=0; i < numberOfPoints; i++ )
+    for (vtkIdType i=0; i < numberOfPoints; ++i)
     {
       s = clipScalars->GetComponent(cellIds->GetId(i),0);
       cellScalars->InsertTuple(i, &s);

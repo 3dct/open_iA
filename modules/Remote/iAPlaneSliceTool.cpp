@@ -238,7 +238,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 		m_snapshotTable->selectRow(idRow.second);
 		emit snapshotAdded(idRow.first, info);
 	});
-	iAMainWindow::get()->addActionIcon(addAction, "plus");
+	mainWnd->addActionIcon(addAction, "plus");
 	auto addButton = new QToolButton(buttonContainer);
 	addButton->setDefaultAction(addAction);
 
@@ -262,7 +262,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 				m_child->updateRenderer();
 			}
 		});
-	iAMainWindow::get()->addActionIcon(cutAction, "cut_plane");
+	mainWnd->addActionIcon(cutAction, "cut_plane");
 	auto cutButton = new QToolButton(buttonContainer);
 	cutButton->setDefaultAction(cutAction);
 
@@ -273,13 +273,13 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 		clearSnapshots();
 		emit snapshotsCleared();
 	});
-	iAMainWindow::get()->addActionIcon(clearAction, "close");
+	mainWnd->addActionIcon(clearAction, "close");
 	auto clearButton = new QToolButton(buttonContainer);
 	clearButton->setDefaultAction(clearAction);
 
 	auto resetAction = new QAction("Reset");
 	resetAction->setToolTip("Reset slicing position to middle of first image dataset, aligned along a selected coordinate axis.");
-	QObject::connect(resetAction, &QAction::triggered, child, [this, child]()
+	QObject::connect(resetAction, &QAction::triggered, child, [this]()
 	{
 		iAAttributes params;
 		addAttr(params, "Axis", iAValueType::Categorical, QStringList() << "+X" << "-X" << "+Y" << "-Y" << "+Z" << "-Z");
@@ -292,7 +292,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 		resetPlaneParameters(nameToAxis(axisStr.right(1)), axisStr[0] == '+');
 		updateSliceFromUser();
 	});
-	iAMainWindow::get()->addActionIcon(resetAction, "slice-planes-gray");
+	mainWnd->addActionIcon(resetAction, "slice-planes-gray");
 	auto resetButton = new QToolButton(buttonContainer);
 	resetButton->setDefaultAction(resetAction);
 
@@ -324,7 +324,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 			}
 		}
 	});
-	iAMainWindow::get()->addActionIcon(syncAction, "slicer-sync");
+	mainWnd->addActionIcon(syncAction, "slicer-sync");
 	auto syncButton = new QToolButton(buttonContainer);
 	syncButton->setDefaultAction(syncAction);
 
@@ -504,7 +504,7 @@ std::pair<quint64, int> iAPlaneSliceTool::addSnapshot(iASnapshotInfo info)
 		removeSnapshot(id);
 		emit snapshotRemoved(id);
 	});
-	iAMainWindow::get()->addActionIcon(removeAction, "delete");
+	m_mainWindow->addActionIcon(removeAction, "delete");
 	auto removeButton = new QToolButton(actionContainer);
 	removeButton->setDefaultAction(removeAction);
 	actionContainer->layout()->addWidget(removeButton);
