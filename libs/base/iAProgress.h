@@ -24,7 +24,7 @@ public:
 	void Execute(itk::Object* caller, const itk::EventObject& event) override;
 	void Execute(const itk::Object* caller, const itk::EventObject& event) override;
 private:
-	iAProgress const* m_progress;
+	iAProgress const* m_progress = nullptr;
 };
 
 class iAvtkCommand;

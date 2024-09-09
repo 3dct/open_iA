@@ -18,11 +18,11 @@
 //! parameters for a raw file found within the .vgl file
 class iAVglParameter
 {
-	public:
+public:
 	QString Filename;
 	int Gridsize[3];
 	float sampleDistance[3];
-	float Origin[3];
+	float Origin[3] = {0., 0., 0.};
 	QString Datatype;
 };
 

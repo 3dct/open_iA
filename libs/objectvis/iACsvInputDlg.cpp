@@ -751,7 +751,7 @@ void iACsvInputDlg::assignSelectedCols()
 {
 	auto selectedColModelIndices = m_ui->list_ColumnSelection->selectionModel()->selectedIndexes();
 	QVector<int> selectedColIDx;
-	for (auto selColModelIdx : selectedColModelIndices)
+	for (auto const & selColModelIdx : selectedColModelIndices)
 	{
 		selectedColIDx.push_back(selColModelIdx.row());
 	}
