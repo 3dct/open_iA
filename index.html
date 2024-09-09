@@ -15,66 +15,87 @@
     </section>
 
     <section class="main-content">
-      <h3>Latest Stable Release: 2024.7</h3>
+      <h3>Latest Stable Release: 2024.9</h3>
       <div>
         <div class="highlights"><strong>Highlights:</strong>
           <ul>
-            <li>Arbitrary slice plane tool</li>
-            <li>Remote:</li>
+            <li>General:</li>
               <ul>
-                <li>Connections to a Unity Client for volume interaction with VR and tablet</li>
-                <li>Remote rendering:</li>
-                <ul>
-                  <li>Client List</li>
-                  <li>Various performance improvements</li>
-                  <li>Serve fonts locally instead of via CDN</li>
-                </ul>
+                <li>Info buttons for each view, leading to the documentation for this view</li>
+                <li>Raw file preview</li>
+                  <ul>
+                    <li>asynchronous slice loading when parameters match the file size</li>
+                    <li>including histogram, adjustable transfer function and slice number selection</li>
+                  </ul>
+                <li>Cut/Clip polygon mesh datasets by slicing planes</li>
+                <li>List of open windows</li>
+                <li>Volume renderer: add blend mode setting</li>
+                <li>Adjust transfer function ranges to data range if necessary</li>
+                <li>histograms: add upper bound for number of bins from number of voxels</li>
+                <li>Clear stale data from project file on saving</li>
+                <li>Improved integration testing - added various test projects for specific tools</li>
+                <li>Several minor and major fixes and improved error checking, e.g. avoid crash on closing data window/application when dataset is still loading</li>
               </ul>
-            <li>IO:</li>
+            <li>Arbitrary slice plane:</li>
               <ul>
-                <li>Improved support for special characters in filenames under Windows (full UTF-8 support)</li>
-                <li>Support for loading .vgl files</li>
-                <li>Support for loading/writing .obj files</li>
-                <li>Project files:</li>
-                <ul>
-                  <li>Store/Load annotations</li>
-                  <li>Store/Load dataset range/histogram</li>
-                </ul>
-                <li>Move saving image stack from slicer to save dataset</li>
+                <li>optional synchronization to axis-aligned slicers</li>
+                <li>resetting plane (+ doing that when dataset bounds change)</li>
+                <li>optionally cut/clip 3D renderings of any loaded dataset by plane</li>
+                <li>fix current slice plane position storage in project file</li>
               </ul>
-            <li>VR:</li>
+            <li>Command line runner:</li>
               <ul>
-                <li>Environment sharing improvements, stop when VR is terminated</li>
-                <li>More stable synchronization between VR and FeatureScout</li>
-                <li>User-choosable backend (OpenVR/OpenXR)</li>
+                <li>Change to command word syntax instead of shorthand</li>
+                <li>Options for providing parameters to input/output fileformat</li>
               </ul>
-            <li>Surfaces:</li>
+            <li>FeatureScout:</li>
               <ul>
-                <li>Directly possible to display surfaces output from filters (previously they were just written to disk)</li>
-                <li>Separate surface extraction and simplification</li>
-                <li>Added mesh transformation filter</li>
+                <li>MObjects:</li>
+                  <ul>
+                    <li>Fix 3D rendering</li>
+                    <li>Fix transfer function display/editing</li>
+                    <li>Fix .stl export</li>
+                    <li>Computation now in background, allow aborting computation</li>
+                    <li>store MObject state</li>
+                  </ul>
+                <li>changeable parallel coordinate plot default settings</li>
+                <li>option to storing only object IDs when exporting classes</li>
+                <li>less storage in project (due to only object IDs being stored for classes)</li>
+                <li>Fix csv file loading with AutoID enabled</li>
+                <li>Fix potential crashes</li>
+                <li>Fix multiclass rendering modifying current class</li>
               </ul>
-            <li>Transfer function copy/paste</li>
-            <li>Many other smaller improvements and fixes</li>
+            <li>Labelling:</li>
+              <ul>
+                <li>Store to and load from project</li>
+                <li>Several fixes</li>
+              </ul>
+            <li>Double/Triple Histogram TF: Fix crash on start</li>
+            <li>Remote connections:</li>
+              <ul>
+                <li>Show listening port in respective client lists</li>
+                <li>Unity connection: Correct VR camera visualization</li>
+                <li>Configurable ports; automatic choice of next port if default port not available</li>
+              </ul>
           </ul>
         </div>
         <div>The Windows binary release below excludes ASTRA reconstruction built on top of CUDA; if you need to use this module, you can still use <a href="https://github.com/3dct/open_iA/releases/download/2023.04/open_iA-2023.04-with-ASTRA.zip">the pre-built version 2023.04</a>.
         <div>
           <div class="line-heading">Windows</div>
-          <a href="https://github.com/3dct/open_iA/releases/download/2024.7/open_iA-2024.7.zip" class="btn">open_iA-2024.7.zip (67.4MB)</a>
+          <a href="https://github.com/3dct/open_iA/releases/download/2024.9/open_iA-2024.9.zip" class="btn">open_iA-2024.9.zip (65.7MB)</a>
         </div><details class="checkSumLine">
           <summary>Checksum (SHA512)</summary>
           <ul id="checkSumContainer">
-              <li>open_iA-2024.7.zip:
-<pre>4F2BAC6A38443EA4F67E60C1A6168B813A3D8FE99D14EC0A08F9057E1FE9AD6ABBC408A2E85538658D4295F3D34D2951853C4BC9D5F1F0DAC132BC66D7162FEE</pre></li>
+              <li>open_iA-2024.9.zip:
+<pre>6df48ee0e8d545e24b44cda5eaec19e117dd107280aed2fb876e70d0183bf21fdce0d30a5c4071dc69ae2c6626fa74a9cb5ec2d50f2ba5f9e736ead0aaf52005</pre></li>
           </ul>
         </details><div>
           <div class="line-heading">Linux</div>
           <a href="https://github.com/3dct/open_iA/wiki/Flatpak" class="btn">Flatpak</a>
         </div><div>
           <div class="line-heading">Source Code</div>
-          <a href="https://github.com/3dct/open_iA/archive/refs/tags/2024.7.zip" class="btn">Source (.zip)</a>
-          <a href="https://github.com/3dct/open_iA/archive/refs/tags/2024.7.tar.gz" class="btn">Source (.tar.gz)</a>
+          <a href="https://github.com/3dct/open_iA/archive/refs/tags/2024.9.zip" class="btn">Source (.zip)</a>
+          <a href="https://github.com/3dct/open_iA/archive/refs/tags/2024.9.tar.gz" class="btn">Source (.tar.gz)</a>
           <a href="https://api.3dct.at/latest/index.html" class="btn">API documentation</a>
         </div>
       </div>
