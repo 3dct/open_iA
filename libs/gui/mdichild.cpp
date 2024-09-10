@@ -308,7 +308,7 @@ size_t MdiChild::addDataSet(std::shared_ptr<iADataSet> dataSet)
 	connect(viewer.get(), &iADataSetViewer::removeDataSet, this, &iAMdiChild::removeDataSet);
 	m_dataSetViewers[dataSetIdx] = viewer;
 	auto fw = runAsync(
-		[viewer, dataSetIdx, p]()
+		[viewer, p]()
 		{
 			viewer->prepare(p.get());
 		},
