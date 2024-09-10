@@ -297,7 +297,9 @@ void iARemoteTool::init()
 
 iARemoteTool::~iARemoteTool()
 {
-	removeClosedPort(m_httpServer->serverPorts()[0]);  // m_httpServer is closed automatically in destructor
+#ifdef QT_HTTPSERVER
+	removeClosedPort(m_httpServer->serverPorts()[0]);  // m_httpServer is closed automatically through its destructor called later by unique ptr
+#endif
 }
 
 const QString iARemoteTool::Name("Remote Render Server");
