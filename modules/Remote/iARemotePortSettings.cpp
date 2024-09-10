@@ -7,7 +7,9 @@
 #include <set>
 
 #include <QWebSocketServer>
+#ifdef QT_HTTPSERVER
 #include <QHttpServer>
+#endif
 
 namespace
 {
@@ -52,10 +54,12 @@ quint16 connectWebSocket(QWebSocketServer* server, quint16 port, int const maxTr
 	return connectPortInternal(server, port, maxTries);
 }
 
+#ifdef QT_HTTPSERVER
 quint16 connectHttp(QHttpServer* server, quint16 port, int const maxTries)
 {
 	return connectPortInternal(server, port, maxTries);
 }
+#endif
 
 void removeClosedPort(quint16 port)
 {
