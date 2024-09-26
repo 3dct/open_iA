@@ -113,7 +113,7 @@ namespace
 		}
 		else
 		{
-			vtkSmartPointer<vtkFlyingEdges3D> flyingEdges;
+			vtkNew<vtkFlyingEdges3D> flyingEdges;
 			flyingEdges->SetComputeNormals(parameters["Compute Normals"].toBool());
 			flyingEdges->SetComputeGradients(parameters["Compute Gradients"].toBool());
 			flyingEdges->SetComputeScalars(parameters["Compute Scalars"].toBool());
