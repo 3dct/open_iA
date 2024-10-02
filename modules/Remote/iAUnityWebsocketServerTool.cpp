@@ -751,6 +751,15 @@ private:
 		sendMessage(clientID, b);
 	}
 
+	void sendSnapshots(quint64 clientID)
+	{
+		auto cs = m_clientSocket[clientID];
+		for (auto s : m_planeSliceTool->snapshots())
+		{
+			cs->sendBinaryMessage(msgSnapshotAdd(s.first, s.second));
+		}
+	}
+
 	void broadcastMsg(QByteArray const& b, quint64 exceptClientID = std::numeric_limits<quint64>::max())
 	{
 		for (auto c : m_clientSocket)
@@ -884,10 +893,7 @@ private:
 
 		// clear and resend all snapshots:
 		cs->sendBinaryMessage(msgSnapshotsClear());
-		for (auto s : m_planeSliceTool->snapshots())
-		{
-			cs->sendBinaryMessage(msgSnapshotAdd(s.first, s.second));
-		}
+		sendSnapshots(clientID);
 	}
 
 	void handleClientDataResponse(quint64 clientID, MessageType type, iAMdiChild* child)
@@ -1211,6 +1217,7 @@ private:
 				.arg(clientProtocolVersion));
 			sendMessage(clientID, MessageType::ACK);
 			sendClientID(clientID);
+			sendSnapshots(clientID);
 			if (m_dataState == DataState::NoDataset)
 			{
 				m_clientState[clientID] = ClientState::Idle;
