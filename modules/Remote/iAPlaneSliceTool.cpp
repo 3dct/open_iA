@@ -333,6 +333,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	buttonContainer->layout()->addWidget(resetButton);
 	buttonContainer->layout()->addWidget(syncButton);
 	buttonContainer->layout()->addWidget(cutButton);
+	buttonContainer->layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
 	buttonContainer->setMinimumWidth(20);
 
 	listWidget->layout()->addWidget(buttonContainer);
