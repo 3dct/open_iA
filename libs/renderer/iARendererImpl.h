@@ -66,6 +66,7 @@ public:
 	static constexpr const char SSAOKernelSize[] = "Screen Space Ambient Occlusion Kernel Size";
 	static constexpr const char SSAOBlur[] = "Screen Space Ambient Occlusion Blur";
 	static constexpr const char StereoRenderMode[] = "Stereo Render Mode";
+	static constexpr const char InteractionStyle[] = "Interaction Style";
 	static constexpr const char UseDepthPeeling[] = "Use Depth Peeling";
 	static constexpr const char DepthPeelOcclusionRatio[] = "Depth Peels Occlusion Ratio";
 	static constexpr const char DepthPeelsMax[] = "Depth Peels Maximum Number";

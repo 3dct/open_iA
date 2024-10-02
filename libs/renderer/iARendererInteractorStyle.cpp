@@ -5,7 +5,7 @@
 #include <vtkObjectFactory.h>    // for vtkStandardNewMacro
 #include <vtkRenderWindowInteractor.h>
 
-void iARendererInteractorStyle::OnMouseWheelForward()
+void iAvtkInteractorStyleTrackballCamera::OnMouseWheelForward()
 {
 	if (GetInteractor()->GetControlKey() && GetInteractor()->GetShiftKey())
 	{
@@ -17,7 +17,7 @@ void iARendererInteractorStyle::OnMouseWheelForward()
 	}
 }
 
-void iARendererInteractorStyle::OnMouseWheelBackward()
+void iAvtkInteractorStyleTrackballCamera::OnMouseWheelBackward()
 {
 	if (GetInteractor()->GetControlKey() && GetInteractor()->GetShiftKey())
 	{
@@ -29,6 +29,71 @@ void iARendererInteractorStyle::OnMouseWheelBackward()
 	}
 }
 
-vtkStandardNewMacro(iARendererInteractorStyle);
+vtkStandardNewMacro(iAvtkInteractorStyleTrackballCamera);
 
-iARendererInteractorStyle::iARendererInteractorStyle() = default;
+iAvtkInteractorStyleTrackballCamera::iAvtkInteractorStyleTrackballCamera() = default;
+
+
+
+
+
+
+void iAvtkInteractorStyleJoystickCamera::OnMouseWheelForward()
+{
+	if (GetInteractor()->GetControlKey() && GetInteractor()->GetShiftKey())
+	{
+		emit ctrlShiftMouseWheel(+1);
+	}
+	else if (!GetInteractor()->GetControlKey() && !GetInteractor()->GetAltKey()) // see iAFast3DMagicLensWidget
+	{
+		vtkInteractorStyleJoystickCamera::OnMouseWheelForward();
+	}
+}
+
+void iAvtkInteractorStyleJoystickCamera::OnMouseWheelBackward()
+{
+	if (GetInteractor()->GetControlKey() && GetInteractor()->GetShiftKey())
+	{
+		emit ctrlShiftMouseWheel(-1);
+	}
+	else if (!GetInteractor()->GetControlKey() && !GetInteractor()->GetAltKey()) // see iAFast3DMagicLensWidget
+	{
+		vtkInteractorStyleJoystickCamera::OnMouseWheelBackward();
+	}
+}
+
+vtkStandardNewMacro(iAvtkInteractorStyleJoystickCamera);
+
+iAvtkInteractorStyleJoystickCamera::iAvtkInteractorStyleJoystickCamera() = default;
+
+
+
+
+
+void iAvtkInteractorStyleFlight::OnMouseWheelForward()
+{
+	if (GetInteractor()->GetControlKey() && GetInteractor()->GetShiftKey())
+	{
+		emit ctrlShiftMouseWheel(+1);
+	}
+	else if (!GetInteractor()->GetControlKey() && !GetInteractor()->GetAltKey()) // see iAFast3DMagicLensWidget
+	{
+		vtkInteractorStyleFlight::OnMouseWheelForward();
+	}
+}
+
+void iAvtkInteractorStyleFlight::OnMouseWheelBackward()
+{
+	if (GetInteractor()->GetControlKey() && GetInteractor()->GetShiftKey())
+	{
+		emit ctrlShiftMouseWheel(-1);
+	}
+	else if (!GetInteractor()->GetControlKey() && !GetInteractor()->GetAltKey()) // see iAFast3DMagicLensWidget
+	{
+		vtkInteractorStyleFlight::OnMouseWheelBackward();
+	}
+}
+
+vtkStandardNewMacro(iAvtkInteractorStyleFlight);
+
+iAvtkInteractorStyleFlight::iAvtkInteractorStyleFlight() = default;

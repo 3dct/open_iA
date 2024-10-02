@@ -2,17 +2,23 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#include <vtkInteractorStyleFlight.h>
+#include <vtkInteractorStyleJoystickCamera.h>
 #include <vtkInteractorStyleTrackballCamera.h>
 
 #include <QObject>
 
-//! default interactor style for renderer
-class iARendererInteractorStyle : public QObject, public vtkInteractorStyleTrackballCamera
+// TODO: Remove duplication (what to do with Name?)
+
+//! default interactor style for renderer, based on vtkInteractorStyleTrackballCamera, providing signals on mouse wheel
+class iAvtkInteractorStyleTrackballCamera : public QObject, public vtkInteractorStyleTrackballCamera
 {
 	Q_OBJECT
 public:
-	static iARendererInteractorStyle* New();
-	vtkTypeMacro(iARendererInteractorStyle, vtkInteractorStyleTrackballCamera);
+	static constexpr const char Name[] = "Trackball";
+
+	static iAvtkInteractorStyleTrackballCamera* New();
+	vtkTypeMacro(iAvtkInteractorStyleTrackballCamera, vtkInteractorStyleTrackballCamera);
 
 	void OnMouseWheelForward() override;
 	void OnMouseWheelBackward() override;
@@ -20,6 +26,46 @@ signals:
 	void ctrlShiftMouseWheel(int);
 private:
 	//! disable default constructor.
-	iARendererInteractorStyle();
-	Q_DISABLE_COPY_MOVE(iARendererInteractorStyle);
+	iAvtkInteractorStyleTrackballCamera();
+	Q_DISABLE_COPY_MOVE(iAvtkInteractorStyleTrackballCamera);
+};
+
+//! interactor style for renderer, based on vtkInteractorStyleJoystickCamera, providing signals on mouse wheel
+class iAvtkInteractorStyleJoystickCamera : public QObject, public vtkInteractorStyleJoystickCamera
+{
+	Q_OBJECT
+public:
+	static constexpr const char Name[] = "Joystick";
+
+	static iAvtkInteractorStyleJoystickCamera* New();
+	vtkTypeMacro(iAvtkInteractorStyleJoystickCamera, vtkInteractorStyleJoystickCamera);
+
+	void OnMouseWheelForward() override;
+	void OnMouseWheelBackward() override;
+signals:
+	void ctrlShiftMouseWheel(int);
+private:
+	//! disable default constructor.
+	iAvtkInteractorStyleJoystickCamera();
+	Q_DISABLE_COPY_MOVE(iAvtkInteractorStyleJoystickCamera);
+};
+
+//! interactor style for renderer, based on vtkInteractorStyleFlight, providing signals on mouse wheel
+class iAvtkInteractorStyleFlight : public QObject, public vtkInteractorStyleFlight
+{
+	Q_OBJECT
+public:
+	static constexpr const char Name[] = "Flight";
+
+	static iAvtkInteractorStyleFlight* New();
+	vtkTypeMacro(iAvtkInteractorStyleFlight, vtkInteractorStyleFlight);
+
+	void OnMouseWheelForward() override;
+	void OnMouseWheelBackward() override;
+signals:
+	void ctrlShiftMouseWheel(int);
+private:
+	//! disable default constructor.
+	iAvtkInteractorStyleFlight();
+	Q_DISABLE_COPY_MOVE(iAvtkInteractorStyleFlight);
 };

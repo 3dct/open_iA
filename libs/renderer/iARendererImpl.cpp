@@ -29,7 +29,6 @@
 #include <vtkDataSetMapper.h>
 #include <vtkGenericMovieWriter.h>
 #include <vtkGenericOpenGLRenderWindow.h>
-#include <vtkInteractorStyleTrackballCamera.h>
 #include <vtkOpenGLRenderer.h>
 #include <vtkOrientationMarkerWidget.h>
 #include <vtkPlane.h>
@@ -100,6 +99,10 @@ public:
 		{
 			QStringList stereoModes = StereoModeMap().keys();
 			selectOption(stereoModes, "None");
+			QStringList interactionStyles = QStringList() << iAvtkInteractorStyleTrackballCamera::Name
+				<< iAvtkInteractorStyleJoystickCamera::Name
+				<< iAvtkInteractorStyleFlight::Name;
+			selectOption(interactionStyles, iAvtkInteractorStyleTrackballCamera::Name);
 			addAttr(attr, iARendererImpl::ShowSlicePlanes, iAValueType::Boolean, false);            // whether a colored plane is shown for each currently visible slicer)
 			addAttr(attr, iARendererImpl::SlicePlaneOpacity, iAValueType::Continuous, 1.0, 0, 1);   // opacity of the slice planes enabled via ShowSlicePlanes
 			addAttr(attr, iARendererImpl::ShowAxesCube, iAValueType::Boolean, true);                // whether axes cube is shown
@@ -112,6 +115,7 @@ public:
 			addAttr(attr, iARendererImpl::UseFXAA, iAValueType::Boolean, true);                     // whether to use FXAA anti-aliasing, if supported
 			addAttr(attr, iARendererImpl::MultiSamples, iAValueType::Discrete, 0);                  // number of multi-samples; needs to be 0 for depth peeling to work!
 			addAttr(attr, iARendererImpl::StereoRenderMode, iAValueType::Categorical, stereoModes); // whether to use a stereo rendering mode and if so, which one, for the render window
+			addAttr(attr, iARendererImpl::InteractionStyle, iAValueType::Categorical, interactionStyles); // the interaction style to be used
 			addAttr(attr, iARendererImpl::UseDepthPeeling, iAValueType::Boolean, true);             // whether to use depth peeling (improves depth ordering in rendering of multiple objects), if false, alpha blending is used
 			addAttr(attr, iARendererImpl::DepthPeelOcclusionRatio, iAValueType::Continuous, 0.0);   // In case of use of depth peeling technique for rendering translucent material, define the threshold under which the algorithm stops to iterate over peel layers (see <a href="https://vtk.org/doc/nightly/html/classvtkRenderer.html">vtkRenderer documentation</a>
 			addAttr(attr, iARendererImpl::DepthPeelsMax, iAValueType::Discrete, 4, 0);              // maximum number of depth peels to use (if enabled via UseDepthPeeling). The more the higher quality, but also slower rendering
@@ -272,8 +276,6 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_interactor->AddObserver(vtkCommand::RightButtonPressEvent, m_renderObserver);
 	m_interactor->AddObserver(vtkCommand::RightButtonReleaseEvent, m_renderObserver);
 
-	setDefaultInteractor();
-
 	for (int i = 0; i < NumOfProfileLines; ++i)
 	{
 		m_profileLines[i].source->SetResolution(1);
@@ -298,6 +300,7 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_initialized = true;
 	m_slicePlaneVisible.fill(false);
 	applySettings(extractValues(iARendererSettings::defaultAttributes()));
+	setDefaultInteractor(); // needs to happen after applySettings for default style to be set
 	connect(iAMainWindow::get(), &iAMainWindow::styleChanged, this, [this]
 	{
 		if (m_settings[UseStyleBGColor].toBool())
@@ -361,11 +364,38 @@ void iARendererImpl::setCuttingActive(bool enabled)
 	m_cuttingActive = enabled;
 }
 
+namespace
+{
+	template <typename T>
+	vtkSmartPointer<T> getInteractorStyle(iARenderer* ren)
+	{
+		vtkSmartPointer<T> result = vtkSmartPointer<T>::New();
+		QObject::connect(result.Get(), &T::ctrlShiftMouseWheel, ren, &iARenderer::ctrlShiftMouseWheel);
+		return result;
+	}
+
+	vtkSmartPointer<vtkInteractorStyle> getInteractorStyle(QString const& name, iARenderer* ren)
+	{
+		if (name == iAvtkInteractorStyleTrackballCamera::Name)
+		{
+			return getInteractorStyle<iAvtkInteractorStyleTrackballCamera>(ren);
+		}
+		else if (name == iAvtkInteractorStyleJoystickCamera::Name)
+		{
+			return getInteractorStyle<iAvtkInteractorStyleJoystickCamera>(ren);
+		}
+		else /* if (name == iAvtkInteractorStyleFlight::Name) */
+		{
+			auto t = getInteractorStyle<iAvtkInteractorStyleFlight>(ren);
+			t->SetDisableMotion(false);
+			return t;
+		}
+	}
+}
+
 void iARendererImpl::setDefaultInteractor()
 {
-	vtkNew<iARendererInteractorStyle> interactorStyle;
-	connect(interactorStyle, &iARendererInteractorStyle::ctrlShiftMouseWheel, this, &iARenderer::ctrlShiftMouseWheel);
-	m_interactor->SetInteractorStyle(interactorStyle);
+	m_interactor->SetInteractorStyle(getInteractorStyle(m_settings[InteractionStyle].toString(), this));
 }
 
 void iARendererImpl::update()
@@ -710,6 +740,11 @@ void iARendererImpl::setSlicePlanePos(int planeID, double originX, double origin
 void iARendererImpl::applySettings(QVariantMap const& paramValues)
 {
 	auto slicePlaneVisibilityChanged = paramValues[ShowSlicePlanes].toBool() != isShowSlicePlanes();
+	auto interactionStyle = paramValues[InteractionStyle].toString();
+	if (!interactionStyle.isEmpty() && interactionStyle != m_settings[InteractionStyle])
+	{
+		m_interactor->SetInteractorStyle(getInteractorStyle(interactionStyle, this));
+	}
 	m_settings.insert(paramValues);    // set all applying values from paramValues, but keep old values not set in paramValues
 	m_ren->SetUseDepthPeeling(paramValues[UseDepthPeeling].toBool());
 	m_ren->SetUseDepthPeelingForVolumes(m_settings[UseDepthPeeling].toBool());
