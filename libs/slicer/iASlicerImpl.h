@@ -62,6 +62,7 @@ public:
 	static constexpr const char LinearInterpolation[] = "Linear Interpolation";
 	static constexpr const char AdjustWindowLevelEnabled[] = "Adjust Window+Level via Mouse Click+Drag";
 	static constexpr const char ShowPosition[] = "Show Position";
+	static constexpr const char ShowOtherSlicePlanes[] = "Show other slice planes";
 	static constexpr const char ShowAxesCaption[] = "Show Axes Caption";
 	static constexpr const char ShowTooltip[] = "Show Tooltip";
 	static constexpr const char ToolTipFontSize[] = "Tooltip Font Size (pt)";

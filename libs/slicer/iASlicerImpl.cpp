@@ -123,6 +123,7 @@ public:
 			addAttr(attr, iASlicerImpl::LinearInterpolation, iAValueType::Boolean, true);
 			addAttr(attr, iASlicerImpl::AdjustWindowLevelEnabled, iAValueType::Boolean, false);
 			addAttr(attr, iASlicerImpl::ShowPosition, iAValueType::Boolean, false);
+			addAttr(attr, iASlicerImpl::ShowOtherSlicePlanes, iAValueType::Boolean, false);
 			addAttr(attr, iASlicerImpl::ShowAxesCaption, iAValueType::Boolean, false);
 			addAttr(attr, iASlicerImpl::ToolTipFontSize, iAValueType::Discrete, 12);
 			addAttr(attr, iASlicerImpl::ShowTooltip, iAValueType::Boolean, true);
@@ -606,7 +607,7 @@ void iASlicerImpl::setSlicePosition(double slicePos)
 
 void iASlicerImpl::setOtherSlicePlanePos(int sliceAxis, double slicePos)
 {
-	mapGlobalToSliceAxis(m_mode, sliceAxis);
+	sliceAxis = mapGlobalToSliceAxis(m_mode, sliceAxis);
 	if (sliceAxis == 2)
 	{
 		LOG(lvlDebug, QString("No need to call setOtherSlicePlanePos with slice axis itself (mode: %1; sliceAxis: %2, slicePos: %3!")
@@ -617,7 +618,11 @@ void iASlicerImpl::setOtherSlicePlanePos(int sliceAxis, double slicePos)
 	double pt[3];
 	src->GetPoint1(pt); pt[sliceAxis] = slicePos; src->SetPoint1(pt);
 	src->GetPoint2(pt); pt[sliceAxis] = slicePos; src->SetPoint2(pt);
-	m_otherSliceAxes[sliceAxis].mapper->Update();
+	if (!m_settings[ShowOtherSlicePlanes].toBool())
+	{
+		return;
+	}
+	update();
 }
 
 void iASlicerImpl::setLinearInterpolation(bool enabled)
@@ -650,6 +655,8 @@ void iASlicerImpl::applySettings( QVariantMap const & settings )
 	{
 		m_axisTextActor[0]->SetVisibility(settings[iASlicerImpl::ShowAxesCaption].toBool());
 		m_axisTextActor[1]->SetVisibility(settings[iASlicerImpl::ShowAxesCaption].toBool());
+		m_otherSliceAxes[0].actor->SetVisibility(m_settings[ShowOtherSlicePlanes].toBool());
+		m_otherSliceAxes[1].actor->SetVisibility(m_settings[ShowOtherSlicePlanes].toBool());
 	}
 	// compromise between keeping old behavior (tooltips disabled if m_decorations == false),
 	// but still making it possible to enable tooltips via context menu: only enable tooltips
@@ -825,12 +832,13 @@ void iASlicerImpl::setSlicerRange(uint channelID)
 	int minIdx = ext[sliceAxis * 2];
 	int maxIdx = ext[sliceAxis * 2 + 1];
 	setSliceNumber((maxIdx - minIdx) / 2 + minIdx);
+	// Initialize line indicators for other slice planes:
 	for (int axis = 0; axis < 2; ++axis)
 	{
 		double pt[3] = {};
-		int axis1 = mapSliceToGlobalAxis(m_mode, axis);
-		int axis2 = mapSliceToGlobalAxis(m_mode, 1-axis);
-		pt[axis] = (ext[axis1 * 2] + (ext[axis1 * 2 + 1] - ext[axis1 * 2])) * spc[axis1];
+		int axis1 = mapSliceToGlobalAxis(m_mode, axis);   //< global index of "current" axis in slicer; should be set to middle slice
+		int axis2 = mapSliceToGlobalAxis(m_mode, 1-axis); //< global index of "other" axis in slicer; varies from min to max
+		pt[axis] = (ext[axis1 * 2] + (ext[axis1 * 2 + 1] - ext[axis1 * 2]) / 2.0) * spc[axis1];
 		pt[1 - axis] = ext[axis2 * 2] * spc[axis2];
 		m_otherSliceAxes[axis].source->SetPoint1(pt);
 		pt[1 - axis] = ext[axis2 * 2 + 1] * spc[axis2];
