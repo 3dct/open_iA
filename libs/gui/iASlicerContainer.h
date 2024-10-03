@@ -27,6 +27,5 @@ private slots:
 	void updateSliceControls(int minIdx, int maxIdx, int val);
 private:
 	static const int BorderWidth;
-	static QColor slicerColor(iASlicerMode mode);
 	iASlicerImpl* m_slicer;
 };

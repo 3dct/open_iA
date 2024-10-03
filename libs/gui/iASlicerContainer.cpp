@@ -6,18 +6,6 @@
 
 const int iASlicerContainer::BorderWidth = 3;
 
-// TODO: reuse in iARendererImpl and iASLicerImpl for slice plane / slice line display!
-QColor iASlicerContainer::slicerColor(iASlicerMode mode)
-{
-	switch (mode)
-	{
-		case iASlicerMode::YZ: return QColor(255,   0,   0);
-		case iASlicerMode::XZ: return QColor(  0, 255,   0);
-		case iASlicerMode::XY: return QColor(  0,   0, 255);
-		default              : return QColor(  0,   0,   0);
-	}
-}
-
 iASlicerContainer::iASlicerContainer(iASlicerImpl* slicer):
 	m_slicer(slicer)
 {

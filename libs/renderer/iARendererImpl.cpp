@@ -187,7 +187,8 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 		m_slicePlaneViews[s].actor->GetProperty()->LightingOff();
 		m_slicePlaneViews[s].actor->SetPickable(false);
 		m_slicePlaneViews[s].actor->SetDragable(false);
-		m_slicePlaneViews[s].actor->GetProperty()->SetColor((s == 0) ? 1 : 0, (s == 1) ? 1 : 0, (s == 2) ? 1 : 0); //TODO: Extract to slicerColor(mode)
+		auto c = slicerColor(static_cast<iASlicerMode>(s));
+		m_slicePlaneViews[s].actor->GetProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
 		m_slicePlaneViews[s].actor->GetProperty()->SetOpacity(1.0);
 	}
 

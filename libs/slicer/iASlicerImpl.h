@@ -377,3 +377,5 @@ private:
 	//! enable or disable the linear interpolation
 	void setLinearInterpolation(bool enabled);
 };
+
+iAslicer_API QColor slicerColor(iASlicerMode mode);

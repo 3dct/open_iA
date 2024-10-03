@@ -843,7 +843,8 @@ void iASlicerImpl::setSlicerRange(uint channelID)
 		m_otherSliceAxes[axis].source->SetPoint1(pt);
 		pt[1 - axis] = ext[axis2 * 2 + 1] * spc[axis2];
 		m_otherSliceAxes[axis].source->SetPoint2(pt);
-		m_otherSliceAxes[axis].actor->GetProperty()->SetColor((axis1 == 0) ? 1 : 0, (axis1 == 1) ? 1 : 0, (axis1 == 2) ? 1 : 0); //TODO: Extract to slicerColor(mode)
+		auto c = slicerColor(static_cast<iASlicerMode>(axis));
+		m_otherSliceAxes[axis].actor->GetProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
 		m_otherSliceAxes[axis].mapper->Update();
 	}
 	emit sliceRangeChanged(minIdx, maxIdx, m_sliceNumber);
@@ -2681,3 +2682,10 @@ void iASlicerImpl::updateMagicLens()
 	m_renWin->GetInteractor()->Render();
 }
 
+QColor slicerColor(iASlicerMode mode)
+{
+	return QColor(
+		(mode == iASlicerMode::YZ) ? 255 : 0,
+		(mode == iASlicerMode::XZ) ? 255 : 0,
+		(mode == iASlicerMode::XY) ? 255 : 0);
+}
