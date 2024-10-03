@@ -1351,6 +1351,11 @@ void iASlicerImpl::updatePosition()
 
 void iASlicerImpl::screenPixelPosToImgPos(int const pos[2], double * slicerPos, double* globalPos)
 {
+	if (pos[0] < 0 || pos[1] < 0)
+	{
+		LOG(lvlDebug, QString("Invalid pos (%1, %2): both values must not be < 0!").arg(pos[0]).arg(pos[1]));
+		return;
+	}
 	m_pointPicker->Pick(pos[0], pos[1], 0, m_ren); // z is always zero
 	m_pointPicker->GetPickPosition(slicerPos);     // get position in local slicer scene/world coordinates
 	slicerPos[2] = 0;                              // for some reason, sometimes slicerPos[2] is not zero here (but it should be); so make sure it stays 0
