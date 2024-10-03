@@ -409,6 +409,8 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 		m_ren->AddActor(m_measureLine.actor);
 		m_ren->AddActor(m_measureDisk.actor);
 		m_ren->AddActor(m_roi.actor);
+		m_ren->AddActor(m_otherSliceAxes[0].actor);
+		m_ren->AddActor(m_otherSliceAxes[1].actor);
 	}
 	m_renWin->SetNumberOfLayers(4);
 	m_camera->SetParallelProjection(true);
@@ -600,6 +602,22 @@ void iASlicerImpl::setSlicePosition(double slicePos)
 	//    move implementation from there to here, should simplify stuff a little bit
 	//    (e.g., no more spacing computations required)
 	setSliceNumber(slicePos / spacing[sliceAxis]);
+}
+
+void iASlicerImpl::setOtherSlicePlanePos(int sliceAxis, double slicePos)
+{
+	mapGlobalToSliceAxis(m_mode, sliceAxis);
+	if (sliceAxis == 2)
+	{
+		LOG(lvlDebug, QString("No need to call setOtherSlicePlanePos with slice axis itself (mode: %1; sliceAxis: %2, slicePos: %3!")
+			.arg(m_mode).arg(sliceAxis).arg(slicePos));
+		return;
+	}
+	auto src = m_otherSliceAxes[sliceAxis].source;
+	double pt[3];
+	src->GetPoint1(pt); pt[sliceAxis] = slicePos; src->SetPoint1(pt);
+	src->GetPoint2(pt); pt[sliceAxis] = slicePos; src->SetPoint2(pt);
+	m_otherSliceAxes[sliceAxis].mapper->Update();
 }
 
 void iASlicerImpl::setLinearInterpolation(bool enabled)
@@ -800,11 +818,26 @@ void iASlicerImpl::addChannel(uint id, iAChannelData const & chData, bool enable
 void iASlicerImpl::setSlicerRange(uint channelID)
 {
 	m_sliceNumberChannel = channelID;
-	int axis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
-	auto ext = channel(m_sliceNumberChannel)->input()->GetExtent();
-	int minIdx = ext[axis * 2];
-	int maxIdx = ext[axis * 2 + 1];
+	int sliceAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
+	auto img = channel(m_sliceNumberChannel)->input();
+	auto ext = img->GetExtent();
+	auto spc = img->GetSpacing();
+	int minIdx = ext[sliceAxis * 2];
+	int maxIdx = ext[sliceAxis * 2 + 1];
 	setSliceNumber((maxIdx - minIdx) / 2 + minIdx);
+	for (int axis = 0; axis < 2; ++axis)
+	{
+		double pt[3] = {};
+		int axis1 = mapSliceToGlobalAxis(m_mode, axis);
+		int axis2 = mapSliceToGlobalAxis(m_mode, 1-axis);
+		pt[axis] = (ext[axis1 * 2] + (ext[axis1 * 2 + 1] - ext[axis1 * 2])) * spc[axis1];
+		pt[1 - axis] = ext[axis2 * 2] * spc[axis2];
+		m_otherSliceAxes[axis].source->SetPoint1(pt);
+		pt[1 - axis] = ext[axis2 * 2 + 1] * spc[axis2];
+		m_otherSliceAxes[axis].source->SetPoint2(pt);
+		m_otherSliceAxes[axis].actor->GetProperty()->SetColor((axis1 == 0) ? 1 : 0, (axis1 == 1) ? 1 : 0, (axis1 == 2) ? 1 : 0); //TODO: Extract to slicerColor(mode)
+		m_otherSliceAxes[axis].mapper->Update();
+	}
 	emit sliceRangeChanged(minIdx, maxIdx, m_sliceNumber);
 }
 

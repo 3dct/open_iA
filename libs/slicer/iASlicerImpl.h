@@ -202,8 +202,13 @@ public slots:
 	void saveImageStack();
 	//! Save a movie of a full slice-through of the specimen from top to bottom
 	void saveMovie() override;
+	//! Set position to slice (as number of slices in the first active channel in the slicer)
 	void setSliceNumber(int sliceNumber) override;
+	//! Set position to slice (as position along the slice axis in world coordinates)
 	void setSlicePosition(double slicePos) override;
+	//! Set position of another slice planes (used if other slice planes are visualized as lines)
+	void setOtherSlicePlanePos(int sliceAxis, double slicePos);
+	//! Rotate slice around the slice axis by the given angle
 	void rotateSlice(double angle) override;
 	void setSlabThickness(int thickness);
 	void setSlabCompositeMode(int compositeMode);
@@ -345,6 +350,7 @@ private:
 
 	double m_slicerPt[3];       //!< point of last interaction in slicer coordinates
 	double m_globalPt[4];       //!< point of last interaction in global coordinates
+	std::array<iAvtkSourcePoly<vtkLineSource>, 2> m_otherSliceAxes; //! visualization of other slice axes
 	double m_startMeasurePoint[2];
 
 	QCursor m_mouseCursor;
