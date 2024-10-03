@@ -54,3 +54,11 @@ int mapGlobalToSliceAxis(int mode, int index)
 {
 	return GlobalToSliceAxisMapping[index][mode];
 }
+
+QColor slicerColor(iASlicerMode mode)
+{
+	return QColor(
+		(mode == iASlicerMode::YZ) ? 255 : 0,
+		(mode == iASlicerMode::XZ) ? 255 : 0,
+		(mode == iASlicerMode::XY) ? 255 : 0);
+}

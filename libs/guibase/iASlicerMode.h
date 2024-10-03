@@ -4,6 +4,7 @@
 
 #include "iaguibase_export.h"
 
+#include <QColor>
 #include <QString>
 
 //! Index of the coordinate axes, to prevent "magic numbers" in code
@@ -54,3 +55,6 @@ iAguibase_API int mapSliceToGlobalAxis(int mode, int index);
 // ! - 0, 1, 2 for XY
 // Currently not used...
 iAguibase_API int mapGlobalToSliceAxis(int mode, int index);
+
+//! get color assigned to a specific axis-aligned slicer
+iAguibase_API QColor slicerColor(iASlicerMode mode);

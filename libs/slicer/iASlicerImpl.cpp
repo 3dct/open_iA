@@ -2681,11 +2681,3 @@ void iASlicerImpl::updateMagicLens()
 	m_magicLens->updatePosition(ren->GetActiveCamera(), worldP, mousePos);
 	m_renWin->GetInteractor()->Render();
 }
-
-QColor slicerColor(iASlicerMode mode)
-{
-	return QColor(
-		(mode == iASlicerMode::YZ) ? 255 : 0,
-		(mode == iASlicerMode::XZ) ? 255 : 0,
-		(mode == iASlicerMode::XY) ? 255 : 0);
-}
