@@ -171,19 +171,28 @@ void MdiChild::connectSignalsToSlots()
 	{
 		setInteractionMode(camera ? imCamera : imRegistration);
 	});
-	auto adaptSlicerBorders = [this]()
+	auto adjustSliceShowBorders = [this]()
 	{
+		bool otherSlicePlaneShown = false;
 		for (int i = 0; i < 3; ++i)
 		{
-			m_slicerContainer[i]->showBorder(m_renderer->isShowSlicePlanes());
+			otherSlicePlaneShown |= m_slicer[i]->settings().value(iASlicerImpl::ShowOtherSlicePlanes).toBool();
 		}
+		for (int i = 0; i < 3; ++i)
+		{
+			m_slicerContainer[i]->showBorder(m_renderer->isShowSlicePlanes() || otherSlicePlaneShown);
+		}
+	};
+	auto adoptChangedSlicerSettings = [this, adjustSliceShowBorders]()
+	{
+		adjustSliceShowBorders();
 		auto s = m_renderer->settings()[iARendererImpl::MagicLensSize].toInt();
 		auto fw = m_renderer->settings()[iARendererImpl::MagicLensFrameWidth].toInt();
 		m_rendererContainer->vtkWidgetRC->setLensSize(s, s);
 		m_rendererContainer->vtkWidgetRC->setFrameWidth(fw);
 	};
-	connect(m_renderer, &iARendererImpl::settingsChanged, this, adaptSlicerBorders);
-	adaptSlicerBorders();
+	connect(m_renderer, &iARendererImpl::settingsChanged, this, adoptChangedSlicerSettings);
+	adoptChangedSlicerSettings();
 	m_rendererContainer->vtkWidgetRC->setContextMenuEnabled(true);
 	// TODO: merge iAFast3DMagicLensWidget (at least iAQVTKWidget part) with iARenderer, then this can be moved there:
 	connect(m_rendererContainer->vtkWidgetRC, &iAFast3DMagicLensWidget::editSettings, m_renderer, &iARendererImpl::editSettings);
@@ -218,6 +227,7 @@ void MdiChild::connectSignalsToSlots()
 		connect(m_slicer[s], &iASlicerImpl::sliceRotated, this, &MdiChild::slicerRotationChanged);
 		connect(m_slicer[s], &iASlicer::sliceNumberChanged, this, &MdiChild::setSlice);
 		connect(m_slicer[s], &iASlicer::mouseMoved, this, &MdiChild::updatePositionMarker);
+		connect(m_slicer[s], &iASlicerImpl::otherSlicePlaneVisbilityChanged, this, adjustSliceShowBorders);
 		connect(m_slicer[s], &iASlicerImpl::regionSelected, this, [this](int minVal, int maxVal, uint channelID)
 		{
 			// TODO NEWIO: move to better place, e.g. dataset viewer for image data? slicer?

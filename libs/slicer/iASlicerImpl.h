@@ -239,7 +239,10 @@ signals:
 	void sliceRotated(int mode, double angle);
 	//! triggered when the slice number range has changed; parameters are new minimum, maximum and current index
 	void sliceRangeChanged(int minIdx, int maxIdx, int val);
+	//! triggered when a region has been selected; delivers min and max value in the selected region, along with the ID of the channel of the currently visible image
 	void regionSelected(double minVal, double maxVal, uint channelID);
+	//! triggered when the display of the other slice planes (visualized as lines) is changed
+	void otherSlicePlaneVisbilityChanged();
 
 private:
 	QAction* m_actionLinearInterpolation, * m_actionFisheyeLens,

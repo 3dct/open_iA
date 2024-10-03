@@ -655,8 +655,13 @@ void iASlicerImpl::applySettings( QVariantMap const & settings )
 	{
 		m_axisTextActor[0]->SetVisibility(settings[iASlicerImpl::ShowAxesCaption].toBool());
 		m_axisTextActor[1]->SetVisibility(settings[iASlicerImpl::ShowAxesCaption].toBool());
-		m_otherSliceAxes[0].actor->SetVisibility(m_settings[ShowOtherSlicePlanes].toBool());
-		m_otherSliceAxes[1].actor->SetVisibility(m_settings[ShowOtherSlicePlanes].toBool());
+		bool wasVisible = m_otherSliceAxes[0].actor->GetVisibility();
+		if (wasVisible != m_settings[ShowOtherSlicePlanes].toBool())
+		{
+			m_otherSliceAxes[0].actor->SetVisibility(m_settings[ShowOtherSlicePlanes].toBool());
+			m_otherSliceAxes[1].actor->SetVisibility(m_settings[ShowOtherSlicePlanes].toBool());
+			emit otherSlicePlaneVisbilityChanged();
+		}
 	}
 	// compromise between keeping old behavior (tooltips disabled if m_decorations == false),
 	// but still making it possible to enable tooltips via context menu: only enable tooltips
@@ -843,7 +848,7 @@ void iASlicerImpl::setSlicerRange(uint channelID)
 		m_otherSliceAxes[axis].source->SetPoint1(pt);
 		pt[1 - axis] = ext[axis2 * 2 + 1] * spc[axis2];
 		m_otherSliceAxes[axis].source->SetPoint2(pt);
-		auto c = slicerColor(static_cast<iASlicerMode>(axis));
+		auto c = slicerColor(static_cast<iASlicerMode>(axis1));
 		m_otherSliceAxes[axis].actor->GetProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
 		m_otherSliceAxes[axis].mapper->Update();
 	}
