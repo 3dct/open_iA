@@ -725,7 +725,7 @@ void MdiChild::updatePositionMarkerSize()
 		auto unitDist = dataSet.second->unitDistance();
 		for (int c = 0; c < 3; ++c)
 		{
-			maxSpacing[c] = std::max(maxSpacing[c], unitDist[c] * m_preferences.PositionMarkerSize);
+			maxSpacing[c] = std::max(maxSpacing[c], unitDist[c]);
 		}
 	}
 	m_renderer->setUnitSize(maxSpacing);
