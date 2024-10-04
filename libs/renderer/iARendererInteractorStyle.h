@@ -22,6 +22,7 @@ public:
 
 	void OnMouseWheelForward() override;
 	void OnMouseWheelBackward() override;
+	void OnChar() override;  //!< disable all key interactions from vtkInteractorStyle
 signals:
 	void ctrlShiftMouseWheel(int);
 private:
@@ -42,6 +43,7 @@ public:
 
 	void OnMouseWheelForward() override;
 	void OnMouseWheelBackward() override;
+	void OnChar() override;  //!< disable all key interactions from vtkInteractorStyle
 signals:
 	void ctrlShiftMouseWheel(int);
 private:
@@ -62,6 +64,7 @@ public:
 
 	void OnMouseWheelForward() override;
 	void OnMouseWheelBackward() override;
+	void OnChar() override;  //!< disable all key interactions from vtkInteractorStyle
 signals:
 	void ctrlShiftMouseWheel(int);
 private:

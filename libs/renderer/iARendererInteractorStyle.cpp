@@ -29,6 +29,10 @@ void iAvtkInteractorStyleTrackballCamera::OnMouseWheelBackward()
 	}
 }
 
+void iAvtkInteractorStyleTrackballCamera::OnChar()
+{
+}
+
 vtkStandardNewMacro(iAvtkInteractorStyleTrackballCamera);
 
 iAvtkInteractorStyleTrackballCamera::iAvtkInteractorStyleTrackballCamera() = default;
@@ -62,6 +66,10 @@ void iAvtkInteractorStyleJoystickCamera::OnMouseWheelBackward()
 	}
 }
 
+void iAvtkInteractorStyleJoystickCamera::OnChar()
+{
+}
+
 vtkStandardNewMacro(iAvtkInteractorStyleJoystickCamera);
 
 iAvtkInteractorStyleJoystickCamera::iAvtkInteractorStyleJoystickCamera() = default;
@@ -92,6 +100,10 @@ void iAvtkInteractorStyleFlight::OnMouseWheelBackward()
 	{
 		vtkInteractorStyleFlight::OnMouseWheelBackward();
 	}
+}
+
+void iAvtkInteractorStyleFlight::OnChar()
+{
 }
 
 vtkStandardNewMacro(iAvtkInteractorStyleFlight);
