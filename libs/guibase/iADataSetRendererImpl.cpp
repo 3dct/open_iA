@@ -53,7 +53,13 @@ namespace
 	// surface renderer options:
 	constexpr const char* PolyColor = "Color";
 	constexpr const char* PolyOpacity = "Opacity";
-	constexpr const char* PolyWireframe = "Wireframe";
+	constexpr const char* PolyRepresentation = "Representation";
+	constexpr const char* PolyRepPoints = "Points";
+	constexpr const char* PolyRepWireframe = "Wireframe";
+	constexpr const char* PolyRepSurface = "Surface";
+	constexpr const char* PolyRepSurfaceWireframe = "Surface and Wireframe";
+	constexpr const char* PolyWireframeColor = "Wireframe Color";
+	constexpr const char* PolyPointSize = "Point Size";
 
 
 	int string2VtkShadingInterpolation(QString const & type)
@@ -339,7 +345,11 @@ public:
 			addAttr(attr, ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
 			addAttr(attr, PolyColor, iAValueType::Color, "#FFFFFF");
 			addAttr(attr, PolyOpacity, iAValueType::Continuous, 1.0, 0.0, 1.0);
-			addAttr(attr, PolyWireframe, iAValueType::Boolean, false);
+			auto reps = QStringList() << PolyRepPoints << PolyRepWireframe << PolyRepSurface << PolyRepSurfaceWireframe;
+			selectOption(reps, PolyRepSurface);
+			addAttr(attr, PolyRepresentation, iAValueType::Categorical, reps);
+			addAttr(attr, PolyWireframeColor, iAValueType::Color, "#000000");
+			addAttr(attr, PolyPointSize, iAValueType::Continuous, 1.0, 0.1, 1000.0);
 			selfRegister();
 		}
 		return attr;
@@ -400,22 +410,24 @@ void iAPolyActorRenderer::hideDataSet()
 	m_renderer->RemoveActor(m_polyActor);
 }
 
+int mapPolyRepStrToVtk(QString const & rep)
+{
+	return (rep == PolyRepPoints) ? VTK_POINTS : ((rep == PolyRepWireframe) ? VTK_WIREFRAME : VTK_SURFACE);
+}
+
 void iAPolyActorRenderer::applyAttributes(QVariantMap const& values)
 {
 	applyActorProperties(m_polyActor, values);
 
-	QColor color = variantToColor(values[PolyColor]);
+	auto color = variantToColor(values[(values[PolyRepresentation].toString() == PolyRepWireframe) ? PolyWireframeColor : PolyColor]);
 	double opacity = values[PolyOpacity].toDouble();
 	m_polyActor->GetProperty()->SetColor(color.redF(), color.greenF(), color.blueF());
 	m_polyActor->GetProperty()->SetOpacity(opacity);
-	if (values[PolyWireframe].toBool())
-	{
-		m_polyActor->GetProperty()->SetRepresentationToWireframe();
-	}
-	else
-	{
-		m_polyActor->GetProperty()->SetRepresentationToSurface();
-	}
+	m_polyActor->GetProperty()->SetRepresentation(mapPolyRepStrToVtk(values[PolyRepresentation].toString()));
+	m_polyActor->GetProperty()->SetEdgeVisibility(values[PolyRepresentation].toString() == PolyRepSurfaceWireframe);
+	auto wc = variantToColor(values[PolyWireframeColor]);
+	m_polyActor->GetProperty()->SetEdgeColor(wc.redF(), wc.greenF(), wc.blueF());
+	m_polyActor->GetProperty()->SetPointSize(values[PolyPointSize].toFloat());
 	m_polyActor->SetPickable(values[Pickable].toBool());
 }
 
