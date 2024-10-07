@@ -730,7 +730,7 @@ public:
 private:
 	void sendMessage(quint64 clientID, QByteArray const& b)
 	{
-		LOG(lvlDebug, QString("Sending message to client %1; data: %2").arg(clientID).arg(toHexStr(b)));
+		//LOG(lvlDebug, QString("Sending message to client %1; data: %2").arg(clientID).arg(toHexStr(b)));
 		m_clientSocket[clientID]->sendBinaryMessage(b);
 	}
 
@@ -942,12 +942,13 @@ private:
 			rcvStream.setFloatingPointPrecision(QDataStream::SinglePrecision);
 			MessageType type;
 			rcvStream >> type;
+			/*
 			LOG(lvlDebug, QString("%1: Received message of type %2 from client ID=%3; (data: %4)")
 					.arg(iAUnityWebsocketServerTool::Name)
 					.arg(static_cast<int>(type))
 					.arg(clientID)
 					.arg(toHexStr(rcvData)));
-
+			*/
 			if (m_clientState[clientID] == ClientState::AwaitingProtocolNegotiation)
 			{
 				handleVersionNegotiation(type, clientID, rcvStream);  // no need to handle return type (yet)
