@@ -249,6 +249,7 @@ namespace
 	std::array<float, 3> DefaultPlaneNormal = { 0, 0, 1 };
 //	std::array<float, 3> DefaultCameraViewDirection = { 0, 0, -1 };
 
+/*
 	QString toHexStr(QByteArray const & ba)
 	{
 		QString result;
@@ -259,8 +260,8 @@ namespace
 				.arg((b & 0x0F), 0, 16);
 		}
 		return result;
-		//
 	}
+*/
 
 	const quint64 NoSyncedClient = std::numeric_limits<quint64>::max();
 	const quint64 ServerID = 1000; // ID of the server (for syncing its view/camera to clients)
