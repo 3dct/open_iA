@@ -636,7 +636,7 @@ public:
 			m_clientSocket[clientID] = client;
 			m_clientState[clientID] = ClientState::AwaitingProtocolNegotiation;
 
-			m_clientCamVis[clientID] = std::make_unique<iACameraVis>(child->renderer()->renderer(), m_maxSize / 20, clientColorBody, clientColorVec);
+			m_clientCamVis[clientID] = std::make_unique<iACameraVis>(child->renderer()->renderer(), m_maxSize / 10, clientColorBody, clientColorVec);
 			connect(m_clientCamVis[clientID].get(), &iACameraVis::updateRequired, this, [this, clientID, child]
 			{
 				m_clientCamVis[clientID]->updateSource();
