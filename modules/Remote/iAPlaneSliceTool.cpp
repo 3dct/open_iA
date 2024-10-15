@@ -212,8 +212,8 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 		//  CORRECT WAY: store origin, pt1, pt2 for plane?
 		//  NOT working way: compute them relative from current origin - but origin might need to change as well
 
-		child->updateRenderer();
 		updateSlice();
+		child->updateRenderer();
 	});
 	listWidget->layout()->addWidget(m_snapshotTable);
 
