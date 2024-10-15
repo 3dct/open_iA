@@ -165,13 +165,13 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_dataSetIdx = child->firstImageDataSetIdx();
 	if (m_dataSetIdx == iAMdiChild::NoDataSet || !child->dataSetViewer(m_dataSetIdx))
 	{
-		throw std::runtime_error("Arbitrary slicing tool: Volume/Image dataset required but none available; either no such dataset is loaded, or it is not fully initialized yet!");
+		throw std::runtime_error("Free slicing tool: Volume/Image dataset required but none available; either no such dataset is loaded, or it is not fully initialized yet!");
 	}
 	// only create widget stuff after throwing exceptions (otherwise - memory leak!)
 	m_sliceWidget = new iAQVTKWidget(child);
 	m_snapshotTable = new QTableWidget;
 	m_curPosLabel = new iAQCropLabel;
-	m_sliceDW = new iADockWidgetWrapper(m_sliceWidget, "Arbitrary Slice", "ArbitrarySliceViewer", "https://github.com/3dct/open_iA/wiki/Arbitrary-Slice-Plane");
+	m_sliceDW = new iADockWidgetWrapper(m_sliceWidget, "Free Slice", "FreeSliceViewer", "https://github.com/3dct/open_iA/wiki/Free-Slice-Plane");
 
 	auto dwWidget = createContainerWidget<QVBoxLayout>(1);
 	m_listDW = new iADockWidgetWrapper(dwWidget, "Snapshot List", "SnapshotList", "https://github.com/3dct/open_iA/wiki/Remote");
@@ -298,7 +298,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 
 	auto syncAction = new QAction("Synchronize");
 	syncAction->setCheckable(true);
-	syncAction->setToolTip("Synchronize with axis-aligned views: Whenever the slice in an axis-aligned slicer is changed, the arbitrary slice plane will be set to the same position");
+	syncAction->setToolTip("Synchronize with axis-aligned views: Whenever the slice in an axis-aligned slicer is changed, the free slice plane will be set to the same position");
 	QObject::connect(syncAction, &QAction::triggered, child, [this, syncAction]()
 	{
 		auto sliceChanged = [this](int mode, int sliceNumber)
@@ -616,7 +616,7 @@ void iAPlaneSliceTool::moveAlongCurrentDir(int dir)
 	updateSliceFromUser();
 }
 
-const QString iAPlaneSliceTool::Name("Arbitrary Slice Plane");
+const QString iAPlaneSliceTool::Name("Free Slice Plane");
 
 
 
