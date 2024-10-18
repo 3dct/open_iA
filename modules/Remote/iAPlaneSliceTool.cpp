@@ -9,7 +9,6 @@
 #include <iAMdiChild.h>
 #include <iAMainWindow.h>
 #include <iAParameterDlg.h>
-#include <iAQCropLabel.h>
 #include <iAQVTKWidget.h>
 #include <iARenderer.h>
 #include <iASlicer.h>
@@ -42,6 +41,8 @@
 #include <QApplication>
 #include <QBoxLayout>
 #include <QHeaderView>
+#include <QLabel>
+#include <QLineEdit>
 #include <QMessageBox>
 #include <QSettings>
 #include <QTableWidget>
@@ -142,6 +143,32 @@ namespace
 		Normal,
 		Delete
 	};
+
+	enum ParamEdit
+	{
+		Origin,
+		Pt1,
+		Pt2,
+		Center,
+		Normal,
+		Count
+	};
+
+	const QString ParamNames[] = {
+		"Origin",
+		"Pt1",
+		"Pt2",
+		"Center",
+		"Normal",
+	};
+	void setVecEdit(std::vector<QLineEdit*> const& edits, std::array<double, 3> const& values)
+	{
+		assert(edits.size() == 3);
+		for (int i = 0; i < edits.size(); ++i)
+		{
+			edits[i]->setText(QString::number(values[i], 'g', 6));
+		}
+	}
 }
 
 template<typename Layout>
@@ -170,12 +197,31 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	// only create widget stuff after throwing exceptions (otherwise - memory leak!)
 	m_sliceWidget = new iAQVTKWidget(child);
 	m_snapshotTable = new QTableWidget;
-	m_curPosLabel = new iAQCropLabel;
 	m_sliceDW = new iADockWidgetWrapper(m_sliceWidget, "Free Slice", "FreeSliceViewer", "https://github.com/3dct/open_iA/wiki/Free-Slice-Plane");
 
 	auto dwWidget = createContainerWidget<QVBoxLayout>(1);
-	m_listDW = new iADockWidgetWrapper(dwWidget, "Snapshot List", "SnapshotList", "https://github.com/3dct/open_iA/wiki/Remote");
-	dwWidget->layout()->addWidget(m_curPosLabel);
+	m_listDW = new iADockWidgetWrapper(dwWidget, "Snapshot List", "SnapshotList", "https://github.com/3dct/open_iA/wiki/Free-Slice-Plane");
+
+	auto paramContainer = new QWidget();
+	auto gl = new QGridLayout;
+	paramContainer->setLayout(gl);
+	gl->setSpacing(2);
+	gl->setContentsMargins(0, 0, 0, 0);
+	for (int i = 0; i < ParamEdit::Count; ++i)
+	{
+		gl->addWidget(new QLabel(ParamNames[i]), i, 0);
+		std::vector<QLineEdit*> edits;
+		for (int j = 0; j < 3; ++j)
+		{
+			auto e = new QLineEdit();
+			e->setReadOnly(true);
+			edits.push_back(e);
+			gl->addWidget(e, i, 1+j);
+		}
+		m_paramEdit.emplace_back(edits);
+	}
+	dwWidget->layout()->addWidget(paramContainer);
+
 	auto listWidget = createContainerWidget<QHBoxLayout>(1);
 
 	QStringList columnNames = QStringList() << "ID" << "Position" << "Normal" << "Delete";
@@ -535,13 +581,26 @@ void iAPlaneSliceTool::clearSnapshots()
 void iAPlaneSliceTool::updateSlice()
 {
 	auto cam = m_sliceWidget->renderWindow()->GetRenderers()->GetFirstRenderer()->GetActiveCamera();
-	std::array<double, 3> pos, normal;
-	m_planeWidget->GetPlane(m_cutPlane.Get());
-	m_planeWidget->GetCenter(pos.data());
-	m_planeWidget->GetNormal(normal.data());
-	m_curPosLabel->setText(QString("Plane position=(%1), normal=(%2)").arg(arrayToString(pos)).arg(arrayToString(normal)));
+	updatePlaneParamDisplay();
 	transferPlaneParamsToCamera(cam, m_planeWidget);
 	m_sliceWidget->interactor()->Render();
+}
+
+void iAPlaneSliceTool::updatePlaneParamDisplay()
+{
+	std::array<double, 3> center, normal, origin, pt1, pt2;
+	m_planeWidget->GetPlane(m_cutPlane.Get());
+	m_planeWidget->GetCenter(center.data());
+	m_planeWidget->GetNormal(normal.data());
+	m_planeWidget->GetOrigin(origin.data());
+	m_planeWidget->GetPoint1(pt1.data());
+	m_planeWidget->GetPoint2(pt2.data());
+	setVecEdit(m_paramEdit[Origin], origin);
+	setVecEdit(m_paramEdit[Pt1], pt1);
+	setVecEdit(m_paramEdit[Pt2], pt2);
+	setVecEdit(m_paramEdit[Center], center);
+	setVecEdit(m_paramEdit[Normal], normal);
+	//m_curPosLabel->setText(QString("Plane position=(%1), normal=(%2)").arg(arrayToString(pos)).arg(arrayToString(normal)));
 }
 
 void iAPlaneSliceTool::updateSliceFromUser()

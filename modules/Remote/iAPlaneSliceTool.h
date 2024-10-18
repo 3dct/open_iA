@@ -25,6 +25,7 @@ class iAMdiChild;
 class iAQCropLabel;
 class iAQVTKWidget;
 
+class QLineEdit;
 class QTableWidget;
 class QWidget;
 
@@ -69,12 +70,13 @@ public slots:
 private:
 	void updateSlice();
 	void updateSliceFromUser();
+	void updatePlaneParamDisplay();
 	void resetPlaneParameters(iAAxisIndex axis, bool posSign);
 	void setAxisAligned(iAAxisIndex axis, bool posSign, double slicePos);
 
 	iAQVTKWidget* m_sliceWidget;
 	QTableWidget* m_snapshotTable;
-	iAQCropLabel* m_curPosLabel;
+	std::vector<std::vector<QLineEdit*>> m_paramEdit;
 	iADockWidgetWrapper * m_sliceDW, * m_listDW;
 	vtkSmartPointer<iAvtkPlaneWidget> m_planeWidget;
 	vtkSmartPointer<vtkImageResliceMapper> m_reslicer;
