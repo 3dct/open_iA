@@ -33,7 +33,6 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QMetaEnum>
-#include <QMessageBox>
 #include <QTableWidget>
 #include <QThread>
 #include <QToolButton>
