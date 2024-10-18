@@ -2,13 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iARemotePortSettings.h"
 
-//#include <iALog.h>
+#if QT_VERSION >= QT_VERSION_CHECK(6,8,0)
+#include <iALog.h>
+#endif
 
 #include <set>
 
 #include <QWebSocketServer>
 #ifdef QT_HTTPSERVER
 #include <QHttpServer>
+#include <QTcpServer>
 #endif
 
 namespace
@@ -57,7 +60,19 @@ quint16 connectWebSocket(QWebSocketServer* server, quint16 port, int const maxTr
 #ifdef QT_HTTPSERVER
 quint16 connectHttp(QHttpServer* server, quint16 port, int const maxTries)
 {
-	return connectPortInternal(server, port, maxTries);
+	auto tcpserver = new QTcpServer();
+	auto finalPort = connectPortInternal(tcpserver, port, maxTries);
+#if QT_VERSION >= QT_VERSION_CHECK(6,8,0)
+	bool result =
+#endif
+		server->bind(tcpserver); // pre-6.8 bind cannot fail... (at least it has no bool return code)
+#if QT_VERSION >= QT_VERSION_CHECK(6,8,0)
+	if (!result)     // ...and even >= 6.8 probably only returns false if given TCP server not listening...
+	{
+		LOG(lvlError, "HttpServer could not bind to given TCP server!");
+	}
+#endif
+	return finalPort;
 }
 #endif
 
