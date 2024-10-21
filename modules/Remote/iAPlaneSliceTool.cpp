@@ -85,11 +85,11 @@ private:
 vtkStandardNewMacro(iAvtkPlaneWidget);
 
 //! own interactor style to be able to adapt Ctrl+Shift+Mousewheel
-class iAArbSlicerInteractorStyle : public vtkInteractorStyleImage
+class iAFreeSlicerInteractorStyle : public vtkInteractorStyleImage
 {
 private:
-	vtkTypeMacro(iAArbSlicerInteractorStyle, vtkInteractorStyleImage);
-	static iAArbSlicerInteractorStyle* New();
+	vtkTypeMacro(iAFreeSlicerInteractorStyle, vtkInteractorStyleImage);
+	static iAFreeSlicerInteractorStyle* New();
 
 	void OnMouseWheelForward() override
 	{
@@ -115,12 +115,12 @@ private:
 	}
 private:
 	//! disable default constructor.
-	iAArbSlicerInteractorStyle() {}
-	Q_DISABLE_COPY_MOVE(iAArbSlicerInteractorStyle);
+	iAFreeSlicerInteractorStyle() {}
+	Q_DISABLE_COPY_MOVE(iAFreeSlicerInteractorStyle);
 	iAPlaneSliceTool* m_tool;
 };
 
-vtkStandardNewMacro(iAArbSlicerInteractorStyle);
+vtkStandardNewMacro(iAFreeSlicerInteractorStyle);
 
 namespace
 {
@@ -527,7 +527,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	ren->SetBackground(bgc.redF(), bgc.greenF(), bgc.blueF());
 
 	m_sliceWidget->renderWindow()->AddRenderer(ren);
-	vtkNew<iAArbSlicerInteractorStyle> style;
+	vtkNew<iAFreeSlicerInteractorStyle> style;
 	style->setPlaneSliceTool(this);
 	m_sliceWidget->renderWindow()->GetInteractor()->SetInteractorStyle(style);
 
