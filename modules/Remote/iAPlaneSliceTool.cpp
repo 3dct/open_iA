@@ -317,7 +317,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	m_sliceDW = new iADockWidgetWrapper(m_sliceWidget, "Free Slice", "FreeSliceViewer", "https://github.com/3dct/open_iA/wiki/Free-Slice-Plane");
 
 	auto dwWidget = createContainerWidget<QVBoxLayout>(1);
-	m_listDW = new iADockWidgetWrapper(dwWidget, "Snapshot List", "SnapshotList", "https://github.com/3dct/open_iA/wiki/Free-Slice-Plane");
+	m_listDW = new iADockWidgetWrapper(dwWidget, "Snapshot List", "SnapshotList", "https://github.com/3dct/open_iA/wiki/Free-Slice-Plane#snapshots");
 
 	iAQHideableSection* planeInfoSection = new iAQHideableSection("Plane Information", 100, dwWidget);
 	auto gl = createLayout<QGridLayout>(2);
