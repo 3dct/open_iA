@@ -48,6 +48,10 @@
 #include <QTableWidget>
 #include <QToolButton>
 
+#include <QParallelAnimationGroup>
+#include <QPropertyAnimation>
+#include <QScrollArea>
+
 //! a vtkPlaneWidget but overriding the base classes treatment of handle sizes
 class iAvtkPlaneWidget : public vtkPlaneWidget
 {
@@ -169,15 +173,128 @@ namespace
 			edits[i]->setText(QString::number(values[i], 'g', 6));
 		}
 	}
+
+	//! Adds a section to any layout that can be toggled hidden or shown, with toggle button with arrow icon and section name always shown
+	//! source: https://github.com/MichaelVoelkel/qt-collapsible-section/blob/master/Section.cpp (LGPL-3.0 license) /
+	//!         https://stackoverflow.com/questions/32476006/how-to-make-an-expandable-collapsable-section-widget-in-qt/37119983#37119983
+	//! TODO: Move to separate source files for reusability
+	class iAQHideableSection : public QWidget
+	{
+	public:
+		iAQHideableSection(const QString& title, const int animationDuration, QWidget* parent)
+			: QWidget(parent), animationDuration(animationDuration)
+		{
+			toggleButton = new QToolButton(this);
+			headerLine = new QFrame(this);
+			toggleAnimation = new QParallelAnimationGroup(this);
+			contentArea = new QScrollArea(this);
+			mainLayout = new QGridLayout(this);
+
+			toggleButton->setStyleSheet("QToolButton {border: none;} QToolButton:checked {background: transparent;}");
+			toggleButton->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
+			toggleButton->setArrowType(Qt::ArrowType::RightArrow);
+			toggleButton->setText(title);
+			toggleButton->setCheckable(true);
+			toggleButton->setChecked(false);
+
+			headerLine->setFrameShape(QFrame::HLine);
+			headerLine->setFrameShadow(QFrame::Sunken);
+			headerLine->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+
+			contentArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+			// start out collapsed
+			contentArea->setMaximumHeight(0);
+			contentArea->setMinimumHeight(0);
+
+			// let the entire widget grow and shrink with its content
+			toggleAnimation->addAnimation(new QPropertyAnimation(this, "maximumHeight"));
+			toggleAnimation->addAnimation(new QPropertyAnimation(this, "minimumHeight"));
+			toggleAnimation->addAnimation(new QPropertyAnimation(contentArea, "maximumHeight"));
+
+			mainLayout->setVerticalSpacing(0);
+			mainLayout->setContentsMargins(0, 0, 0, 0);
+
+			int row = 0;
+			mainLayout->addWidget(toggleButton, row, 0, 1, 1, Qt::AlignLeft);
+			mainLayout->addWidget(headerLine, row++, 2, 1, 1);
+			mainLayout->addWidget(contentArea, row, 0, 1, 3);
+			setLayout(mainLayout);
+
+			connect(toggleButton, &QToolButton::toggled, this, &iAQHideableSection::toggle);
+		}
+
+		void toggle(bool expanded)
+		{
+			toggleButton->setArrowType(expanded ? Qt::ArrowType::DownArrow : Qt::ArrowType::RightArrow);
+			toggleAnimation->setDirection(expanded ? QAbstractAnimation::Forward : QAbstractAnimation::Backward);
+			toggleAnimation->start();
+
+			this->isExpanded = expanded;
+
+			qDebug() << "MV: toggle: isExpanded " << isExpanded;
+		}
+
+		void setContentLayout(QLayout* contentLayout)
+		{
+			delete contentArea->layout();
+			contentArea->setLayout(contentLayout);
+			collapsedHeight = sizeHint().height() - contentArea->maximumHeight();
+
+			updateHeights();
+		}
+
+		void setTitle(QString title)
+		{
+			toggleButton->setText(std::move(title));
+		}
+
+		void updateHeights()
+		{
+			int contentHeight = contentArea->layout()->sizeHint().height();
+
+			for (int i = 0; i < toggleAnimation->animationCount() - 1; ++i)
+			{
+				QPropertyAnimation* SectionAnimation = static_cast<QPropertyAnimation*>(toggleAnimation->animationAt(i));
+				SectionAnimation->setDuration(animationDuration);
+				SectionAnimation->setStartValue(collapsedHeight);
+				SectionAnimation->setEndValue(collapsedHeight + contentHeight);
+			}
+
+			QPropertyAnimation* contentAnimation = static_cast<QPropertyAnimation*>(toggleAnimation->animationAt(toggleAnimation->animationCount() - 1));
+			contentAnimation->setDuration(animationDuration);
+			contentAnimation->setStartValue(0);
+			contentAnimation->setEndValue(contentHeight);
+
+			toggleAnimation->setDirection(isExpanded ? QAbstractAnimation::Forward : QAbstractAnimation::Backward);
+			toggleAnimation->start();
+		}
+
+	private:
+		QGridLayout* mainLayout;
+		QToolButton* toggleButton;
+		QFrame* headerLine;
+		QParallelAnimationGroup* toggleAnimation;
+		QScrollArea* contentArea;
+		int animationDuration;
+		int collapsedHeight;
+		bool isExpanded = false;
+	};
 }
 
+template<typename Layout>
+Layout* createLayout(int spacing)
+{
+	auto l = new Layout;
+	l->setContentsMargins(0, 0, 0, 0);
+	l->setSpacing(spacing);
+	return l;
+}
 template<typename Layout>
 QWidget* createContainerWidget(int spacing)
 {
 	auto w = new QWidget();
-	w->setLayout(new Layout);
-	w->layout()->setContentsMargins(0, 0, 0, 0);
-	w->layout()->setSpacing(spacing);
+	w->setLayout(createLayout<Layout>(spacing));
 	return w;
 }
 
@@ -202,11 +319,8 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	auto dwWidget = createContainerWidget<QVBoxLayout>(1);
 	m_listDW = new iADockWidgetWrapper(dwWidget, "Snapshot List", "SnapshotList", "https://github.com/3dct/open_iA/wiki/Free-Slice-Plane");
 
-	auto paramContainer = new QWidget();
-	auto gl = new QGridLayout;
-	paramContainer->setLayout(gl);
-	gl->setSpacing(2);
-	gl->setContentsMargins(0, 0, 0, 0);
+	iAQHideableSection* planeInfoSection = new iAQHideableSection("Plane Information", 100, dwWidget);
+	auto gl = createLayout<QGridLayout>(2);
 	for (int i = 0; i < ParamEdit::Count; ++i)
 	{
 		gl->addWidget(new QLabel(ParamNames[i]), i, 0);
@@ -220,7 +334,8 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 		}
 		m_paramEdit.emplace_back(edits);
 	}
-	dwWidget->layout()->addWidget(paramContainer);
+	planeInfoSection->setContentLayout(gl);
+	dwWidget->layout()->addWidget(planeInfoSection);
 
 	auto listWidget = createContainerWidget<QHBoxLayout>(1);
 
