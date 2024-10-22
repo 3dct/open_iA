@@ -93,7 +93,7 @@ void iACameraVis::hide()
 bool iACameraVis::update(iAVec3d const& pos, iAVec3d const& dir, iAVec3d const& up)
 {
 	if ((pos == m_pos && dir == m_dir && up == m_up) ||  // no change
-		!dblApproxEqual(dotProduct(m_dir, m_up), 0.0, 0.001))  // invalid data - dir and up need to be perpendicular
+		!dblApproxEqual(dotProduct(dir, up), 0.0, 0.001))  // invalid data - dir and up need to be perpendicular
 	{
 		return false;
 	}
