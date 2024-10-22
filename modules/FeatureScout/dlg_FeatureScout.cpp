@@ -277,10 +277,6 @@ dlg_FeatureScout::dlg_FeatureScout(iAMdiChild* parent, iAObjectType objectType, 
 	}
 	if (m_3dvis)
 	{
-		m_3dactor = m_3dvis->createActor(parent->renderer()->renderer());
-		m_3dactor->show();
-		connect(m_3dactor.get(), &iAObjectVisActor::updated, m_activeChild, &iAMdiChild::updateRenderer);
-		parent->renderer()->renderer()->ResetCamera();
 		m_blobManager->SetRenderers(parent->renderer()->renderer(), m_renderer->labelRenderer());
 		m_blobManager->SetBounds(m_3dvis->bounds());
 		m_blobManager->SetProtrusion(1.5);
