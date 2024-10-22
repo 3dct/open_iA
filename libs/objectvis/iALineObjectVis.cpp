@@ -129,7 +129,7 @@ vtkPolyData* iALineObjectVis::finalPolyData()
 
 QString iALineObjectVis::visualizationStatistics() const
 {
-	return QString("# lines: %1; # line segments: %2; # points: %3")
+	return QString("Lines: %1; Line segments: %2; Points: %3")
 		.arg(m_linePolyData->GetNumberOfCells()).arg(m_totalNumOfSegments).arg(m_points->GetNumberOfPoints());
 }
 

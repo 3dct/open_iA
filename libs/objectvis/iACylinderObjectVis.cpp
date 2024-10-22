@@ -107,7 +107,7 @@ void iACylinderObjectVis::setSelection(std::vector<size_t> const & sortedSelInds
 
 QString iACylinderObjectVis::visualizationStatistics() const
 {
-	return iALineObjectVis::visualizationStatistics() + "; # cylinder sides: " +
+	return iALineObjectVis::visualizationStatistics() + "; Cylinder sides: " +
 		QString::number(m_tubeFilter->GetNumberOfSides());
 }
 
