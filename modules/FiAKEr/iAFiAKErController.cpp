@@ -360,7 +360,11 @@ void iAFiAKErController::addChartCB()
 	cb->setChecked(false);
 	cb->setEnabled(true);
 	cb->setProperty("chartID", static_cast<quint64>(m_chartCount - 1));
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 	connect(cb, &QCheckBox::stateChanged, this, &iAFiAKErController::optimDataToggled);
+#else
+	connect(cb, &QCheckBox::checkStateChanged, this, &iAFiAKErController::optimDataToggled);
+#endif
 	m_settingsView->checkboxContainer->layout()->addWidget(cb);
 	m_chartCB.push_back(cb);
 	m_optimStepChart.push_back(nullptr);
@@ -434,9 +438,14 @@ void iAFiAKErController::setupSettingsView()
 	m_showReferenceWidget->layout()->setContentsMargins(0, 0, 0, 0);
 	m_showReferenceWidget->layout()->setSpacing(ControlSpacing);
 	m_chkboxShowLines = new QCheckBox("Connect");
-	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceToggled);
 	connect(m_spnboxReferenceCount, QOverload<int>::of(&QSpinBox::valueChanged), this, &iAFiAKErController::showReferenceCountChanged);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+	connect(m_chkboxShowReference, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceToggled);
 	connect(m_chkboxShowLines, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceLinesToggled);
+#else
+	connect(m_chkboxShowReference, &QCheckBox::checkStateChanged, this, &iAFiAKErController::showReferenceToggled);
+	connect(m_chkboxShowLines, &QCheckBox::checkStateChanged, this, &iAFiAKErController::showReferenceLinesToggled);
+#endif
 	m_showReferenceWidget->layout()->addWidget(m_chkboxShowReference);
 	m_showReferenceWidget->layout()->addWidget(m_spnboxReferenceCount);
 	m_showReferenceWidget->layout()->addWidget(new QLabel("nearest ref. fibers"));
@@ -463,12 +472,24 @@ void iAFiAKErController::setupSettingsView()
 	connect(m_settingsView->slOpacityContext, &QSlider::valueChanged, this, &iAFiAKErController::contextOpacityChanged);
 	connect(m_settingsView->slDiameterFactorDefault, &QSlider::valueChanged, this, &iAFiAKErController::diameterFactorChanged);
 	connect(m_settingsView->slDiameterFactorContext, &QSlider::valueChanged, this, &iAFiAKErController::contextDiameterFactorChanged);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 	connect(m_settingsView->cbFiberContextShow, &QCheckBox::stateChanged, this, &iAFiAKErController::showFiberContextChanged);
 	connect(m_settingsView->cbFiberContextMerge, &QCheckBox::stateChanged, this, &iAFiAKErController::mergeFiberContextBoxesChanged);
-	connect(m_settingsView->sbFiberContextSpacing, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &iAFiAKErController::contextSpacingChanged);
 	connect(m_settingsView->cbBoundingBox, &QCheckBox::stateChanged, this, &iAFiAKErController::showBoundingBoxChanged);
 	connect(m_settingsView->cbShowWireFrame, &QCheckBox::stateChanged, this, &iAFiAKErController::showWireFrameChanged);
 	connect(m_settingsView->cbShowLines, &QCheckBox::stateChanged, this, &iAFiAKErController::showLinesChanged);
+	connect(m_settingsView->cbShowReferenceDistribution, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceInChartToggled);
+	connect(m_settingsView->cbLinkPreviews, &QCheckBox::stateChanged, this, &iAFiAKErController::linkPreviewsToggled);
+#else
+	connect(m_settingsView->cbFiberContextShow, &QCheckBox::checkStateChanged, this, &iAFiAKErController::showFiberContextChanged);
+	connect(m_settingsView->cbFiberContextMerge, &QCheckBox::checkStateChanged, this, &iAFiAKErController::mergeFiberContextBoxesChanged);
+	connect(m_settingsView->cbBoundingBox, &QCheckBox::checkStateChanged, this, &iAFiAKErController::showBoundingBoxChanged);
+	connect(m_settingsView->cbShowWireFrame, &QCheckBox::checkStateChanged, this, &iAFiAKErController::showWireFrameChanged);
+	connect(m_settingsView->cbShowLines, &QCheckBox::checkStateChanged, this, &iAFiAKErController::showLinesChanged);
+	connect(m_settingsView->cbShowReferenceDistribution, &QCheckBox::checkStateChanged, this, &iAFiAKErController::showReferenceInChartToggled);
+	connect(m_settingsView->cbLinkPreviews, &QCheckBox::checkStateChanged, this, &iAFiAKErController::linkPreviewsToggled);
+#endif
+	connect(m_settingsView->sbFiberContextSpacing, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this, &iAFiAKErController::contextSpacingChanged);
 	connect(m_settingsView->pbSampleSelectedFiber, &QAbstractButton::clicked, this, &iAFiAKErController::visualizeCylinderSamplePoints);
 	connect(m_settingsView->pbHideSamplePoints, &QAbstractButton::clicked, this, &iAFiAKErController::hideSamplePoints);
 	connect(m_settingsView->pbSpatialOverview, &QAbstractButton::clicked, this, &iAFiAKErController::showSpatialOverviewButton);
@@ -477,8 +498,6 @@ void iAFiAKErController::setupSettingsView()
 	connect(m_playTimer, &QTimer::timeout, this, &iAFiAKErController::playTimer);
 	connect(m_settingsView->sbAnimationDelay, QOverload<int>::of(&QSpinBox::valueChanged), this, &iAFiAKErController::playDelayChanged);
 	connect(m_settingsView->sbHistogramBins,  QOverload<int>::of(&QSpinBox::valueChanged), this, &iAFiAKErController::histogramBinsChanged);
-	connect(m_settingsView->cbShowReferenceDistribution, &QCheckBox::stateChanged, this, &iAFiAKErController::showReferenceInChartToggled);
-	connect(m_settingsView->cbLinkPreviews, &QCheckBox::stateChanged, this, &iAFiAKErController::linkPreviewsToggled);
 	connect(m_settingsView->cmbboxDistributionPlotType, QOverload<int>::of(&QComboBox::currentIndexChanged),
 		this, &iAFiAKErController::distributionChartTypeChanged);
 	connect(m_settingsView->cmbboxStackedBarChartColors, QOverload<int>::of(&QComboBox::currentIndexChanged),
@@ -631,7 +650,11 @@ QWidget* iAFiAKErController::setupResultListView()
 	connect(m_distributionChoice, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iAFiAKErController::distributionChoiceChanged);
 	m_distributionChoice->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 	m_colorByDistribution = new QCheckBox("Color by");
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 	connect(m_colorByDistribution, &QCheckBox::stateChanged, this, &iAFiAKErController::colorByDistrToggled);
+#else
+	connect(m_colorByDistribution, &QCheckBox::checkStateChanged, this, &iAFiAKErController::colorByDistrToggled);
+#endif
 
 	addHeaderLabel(m_resultsListLayout, m_nameActionColumn, "Name/Actions", QSizePolicy::Fixed);
 	if (m_showPreviews)
@@ -744,8 +767,13 @@ QWidget* iAFiAKErController::setupResultListView()
 		ui.nameActions->setProperty("resultID", static_cast<quint64>(resultID));
 		connect(ui.stackedBars, &iAStackedBarChart::dblClicked, this, &iAFiAKErController::referenceToggled);
 		connect(ui.nameActions, &iASignallingWidget::dblClicked, this, &iAFiAKErController::referenceToggled);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 		connect(m_showResultVis[resultID], &QCheckBox::stateChanged, this, &iAFiAKErController::toggleVis);
 		connect(m_showResultBox[resultID], &QCheckBox::stateChanged, this, &iAFiAKErController::toggleBoundingBox);
+#else
+		connect(m_showResultVis[resultID], &QCheckBox::checkStateChanged, this, &iAFiAKErController::toggleVis);
+		connect(m_showResultBox[resultID], &QCheckBox::checkStateChanged, this, &iAFiAKErController::toggleBoundingBox);
+#endif
 	}
 	updateResultList();
 

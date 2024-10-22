@@ -93,8 +93,13 @@ iAMultimodalWidget::iAMultimodalWidget(iAMdiChild* mdiChild, NumOfMod num):
 	m_timer_updateVisualizations->setSingleShot(true);
 	m_timerWait_updateVisualizations = TIMER_UPDATE_VISUALIZATIONS_WAIT_MS;
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 	connect(m_checkBox_weightByOpacity, &QCheckBox::stateChanged, this, &iAMultimodalWidget::checkBoxWeightByOpacityChanged);
 	connect(m_checkBox_syncedCamera,    &QCheckBox::stateChanged, this, &iAMultimodalWidget::checkBoxSyncedCameraChanged);
+#else
+	connect(m_checkBox_weightByOpacity, &QCheckBox::checkStateChanged, this, &iAMultimodalWidget::checkBoxWeightByOpacityChanged);
+	connect(m_checkBox_syncedCamera, &QCheckBox::checkStateChanged, this, &iAMultimodalWidget::checkBoxSyncedCameraChanged);
+#endif
 
 	for (int i = 0; i < 3; ++i)
 	{

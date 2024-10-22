@@ -122,7 +122,11 @@ iAInSpectrTool::iAInSpectrTool( iAMainWindow * mainWnd, iAMdiChild * child ) : i
 					}
 				}
 				dlgXRF->init(minEnergy, maxEnergy, haveEnergyLevels, m_child);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 				connect(dlgXRF->cb_spectralColorImage, &QCheckBox::stateChanged, this, &iAInSpectrTool::visualizeXRF);
+#else
+				connect(dlgXRF->cb_spectralColorImage, &QCheckBox::checkStateChanged, this, &iAInSpectrTool::visualizeXRF);
+#endif
 				connect(dlgXRF->sl_peakOpacity, &QSlider::valueChanged, this, &iAInSpectrTool::updateXRFOpacity);
 				connect(dlgXRF->pb_compute, &QPushButton::clicked, this, &iAInSpectrTool::updateXRF);
 				m_child->splitDockWidget(dlgRefSpectra, dlgXRF, Qt::Horizontal);

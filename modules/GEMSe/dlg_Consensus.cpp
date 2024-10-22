@@ -1161,7 +1161,11 @@ void dlg_Consensus::AddResult(vtkSmartPointer<vtkTable> table, QString const & t
 	QCheckBox * checkBox = new QCheckBox;
 	//if (i == 3) checkBox->setChecked(true);
 	twSampleResults->setCellWidget(idx, 0, checkBox);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 	connect(checkBox, &QCheckBox::stateChanged, this, &dlg_Consensus::CheckBoxStateChanged);
+#else
+	connect(checkBox, &QCheckBox::checkStateChanged, this, &dlg_Consensus::CheckBoxStateChanged);
+#endif
 	twSampleResults->setItem(idx, 1, new QTableWidgetItem(title));
 	m_checkBoxResultIDMap.insert(checkBox, idx);
 	if (m_results.size() != idx)

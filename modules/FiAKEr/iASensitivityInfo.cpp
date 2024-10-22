@@ -487,16 +487,25 @@ public:
 			&iASensitivityInfo::updateSpatialOverviewColors);
 		cmbboxAlgoInfoMode->setCurrentIndex(iAAlgorithmInfo::DefaultDisplayMode);
 		connect(cmbboxAlgoInfoMode, QOverload<int>::of(&QComboBox::currentIndexChanged), sensInf, &iASensitivityInfo::algoInfoModeChanged);
+		connect(sbLegendWidth, QOverload<int>::of(&QSpinBox::valueChanged), sensInf, &iASensitivityInfo::algoSetLegendWidth);
+		connect(sbSPSpacing, QOverload<int>::of(&QSpinBox::valueChanged), sensInf, &iASensitivityInfo::updateSPSpacing);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 		connect(cbShowArrows, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::algoToggleArrowHeads);
 		connect(cbHighlightSelected, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::algoToggleShowHighlight);
 		connect(cbMergeHighlights, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::algoToggleMergeHighlight);
-		connect(sbLegendWidth, QOverload<int>::of(&QSpinBox::valueChanged), sensInf, &iASensitivityInfo::algoSetLegendWidth);
 		connect(cbNormalizePerOutput, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::normalizePerOutputChanged);
 		connect(cbColoredInOut, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::colorInOutChanged);
 		connect(cbLimitSpatialOverviewRange, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::updateSpatialOverviewColors);
-		connect(sbSPSpacing, QOverload<int>::of(&QSpinBox::valueChanged), sensInf, &iASensitivityInfo::updateSPSpacing);
-
 		connect(cbUnselectedSTARLines, &QCheckBox::stateChanged, sensInf, &iASensitivityInfo::updateSPDifferenceColors);
+#else
+		connect(cbShowArrows, &QCheckBox::checkStateChanged, sensInf, &iASensitivityInfo::algoToggleArrowHeads);
+		connect(cbHighlightSelected, &QCheckBox::checkStateChanged, sensInf, &iASensitivityInfo::algoToggleShowHighlight);
+		connect(cbMergeHighlights, &QCheckBox::checkStateChanged, sensInf, &iASensitivityInfo::algoToggleMergeHighlight);
+		connect(cbNormalizePerOutput, &QCheckBox::checkStateChanged, sensInf, &iASensitivityInfo::normalizePerOutputChanged);
+		connect(cbColoredInOut, &QCheckBox::checkStateChanged, sensInf, &iASensitivityInfo::colorInOutChanged);
+		connect(cbLimitSpatialOverviewRange, &QCheckBox::checkStateChanged, sensInf, &iASensitivityInfo::updateSpatialOverviewColors);
+		connect(cbUnselectedSTARLines, &QCheckBox::checkStateChanged, sensInf, &iASensitivityInfo::updateSPDifferenceColors);
+#endif
 
 		connect(rbBar, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);
 		connect(rbLines, &QRadioButton::toggled, sensInf, &iASensitivityInfo::histoChartTypeToggled);

@@ -134,8 +134,13 @@ dlg_GEMSeControl::dlg_GEMSeControl(
 	connect(sbMagicLensCount, QOverload<int>::of(&QSpinBox::valueChanged), this, &dlg_GEMSeControl::setMagicLensCount);
 	connect(cbColorThemes, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_GEMSeControl::setColorTheme);
 	connect(cbRepresentative, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_GEMSeControl::setRepresentative);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 	connect(cbProbabilityProbing, &QCheckBox::stateChanged, this, &dlg_GEMSeControl::setProbabilityProbing);
 	connect(cbCorrectnessUncertainty, &QCheckBox::stateChanged, this, &dlg_GEMSeControl::setCorrectnessUncertainty);
+#else
+	connect(cbProbabilityProbing, &QCheckBox::checkStateChanged, this, &dlg_GEMSeControl::setProbabilityProbing);
+	connect(cbCorrectnessUncertainty, &QCheckBox::checkStateChanged, this, &dlg_GEMSeControl::setCorrectnessUncertainty);
+#endif
 
 	iAMdiChild* mdiChild = dynamic_cast<iAMdiChild*>(parent());
 	// TODO NEWIO: listen to viewer

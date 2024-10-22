@@ -87,7 +87,11 @@ iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolu
 	connect(m_ui->tbApplyForAll, &QToolButton::clicked, this, &iAVolumePlayerWidget::applyForAll);
 	connect(m_ui->dataTable->horizontalHeader(), &QHeaderView::sectionClicked, this, &iAVolumePlayerWidget::selectAll);
 	connect(&m_timer, &QTimer::timeout, this, &iAVolumePlayerWidget::nextVolume);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 	connect(m_ui->blending, &QCheckBox::stateChanged, this, &iAVolumePlayerWidget::blendingStateChanged);
+#else
+	connect(m_ui->blending, &QCheckBox::checkStateChanged, this, &iAVolumePlayerWidget::blendingStateChanged);
+#endif
 
 	m_ui->sbSpeed->setMinimum(TimerMinFPS);
 	m_ui->sbSpeed->setMaximum(TimerMaxFPS);
@@ -112,7 +116,11 @@ iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolu
 		cb->setChecked(true);
 		m_checkBoxes.push_back(cb);
 		m_ui->dataTable->setCellWidget(static_cast<int>(i), m_checkColumn, cb);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 		connect(cb, &QCheckBox::stateChanged, this, &iAVolumePlayerWidget::enableVolume);
+#else
+		connect(cb, &QCheckBox::checkStateChanged, this, &iAVolumePlayerWidget::enableVolume);
+#endif
 		m_ui->dataTable->setRowHeight(static_cast<int>(i), 17);
 		auto const dim = m_volumeViewers[i]->volume()->vtkImage()->GetDimensions();
 		m_ui->dataTable->setItem(static_cast<int>(i), m_dimColumn, new QTableWidgetItem(QString("%1, %2, %3").arg(dim[0]).arg(dim[1]).arg(dim[2])));
