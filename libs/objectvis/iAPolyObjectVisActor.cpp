@@ -38,7 +38,6 @@ private:
 iAPolyObjectVisActor::iAPolyObjectVisActor(vtkRenderer* ren, iAColoredPolyObjectVis* obj) :
 	iAObjectVisActor(ren),
 	m_visible(false),
-	m_clippingPlanesEnabled(false),
 	m_simple(false),
 	m_outlineVisible(false),
 	m_obj(obj),
@@ -170,25 +169,15 @@ void iAPolyObjectVisActor::setShowSimple(bool simple)
 	}
 }
 
-void iAPolyObjectVisActor::setClippingPlanes(vtkPlane* planes[3])
+void iAPolyObjectVisActor::addClippingPlane(vtkPlane* p)
 {
-	if (m_clippingPlanesEnabled)
-	{
-		return;
-	}
-	m_clippingPlanesEnabled = true;
-	for (int i = 0; i < 3; ++i)
-	{
-		m_mapper->AddClippingPlane(planes[i]);
-	}
+	m_mapper->AddClippingPlane(p);
 }
 
-void iAPolyObjectVisActor::removeClippingPlanes()
+void iAPolyObjectVisActor::removeClippingPlane(vtkPlane* p)
 {
-	m_mapper->RemoveAllClippingPlanes();
-	m_clippingPlanesEnabled = false;
+	m_mapper->RemoveClippingPlane(p);
 }
-
 
 bool iAPolyObjectVisActor::visible() const
 {

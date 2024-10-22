@@ -105,7 +105,7 @@ double const* iAObjectsRenderer::orientation() const
 {
 	if (m_objActor)
 	{
-	return dynamic_cast<iAPolyObjectVisActor*>(m_objActor.get())->actor()->GetOrientation();
+		return dynamic_cast<iAPolyObjectVisActor*>(m_objActor.get())->actor()->GetOrientation();
 	}
 	else
 	{
@@ -154,6 +154,24 @@ iAAttributes& iAObjectsRenderer::defaultAttributes()
 {
 	static iAAttributes& attr = iAObjectsRendererSettings::defaultAttributes();
 	return attr;
+}
+
+void iAObjectsRenderer::addCuttingPlane(vtkPlane* p)
+{
+	auto actor = dynamic_cast<iAPolyObjectVisActor*>(m_objActor.get());
+	if (actor)
+	{
+		actor->addClippingPlane(p);
+	}
+}
+
+void iAObjectsRenderer::removeCuttingPlane(vtkPlane* p)
+{
+	auto actor = dynamic_cast<iAPolyObjectVisActor*>(m_objActor.get());
+	if (actor)
+	{
+		actor->removeClippingPlane(p);
+	}
 }
 
 void iAObjectsRenderer::showDataSet()

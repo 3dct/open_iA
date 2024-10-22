@@ -8,8 +8,8 @@
 
 #include <vtkSmartPointer.h>
 
-class iARenderDeleteListener;
 class iAColoredPolyObjectVis;
+class iARenderDeleteListener;
 
 class vtkActor;
 class vtkOutlineFilter;
@@ -41,10 +41,11 @@ public:
 	void setShowSimple(bool simple);
 	//! switch between "normal" surface display mode and wireframe display
 	void setShowWireFrame(bool show);
-	//! set given planes as clipping planes for the viewed object
-	void setClippingPlanes(vtkPlane* planes[3]);
-	//! remove any clipping planes
-	void removeClippingPlanes();
+	//! add a clipping plane
+	void addClippingPlane(vtkPlane* p);
+	//! remove a clipping plane
+	void removeClippingPlane(vtkPlane* p);
+
 	//! retrieve actor that contains object (think of removing this method!)
 	vtkActor* actor();
 	//! update the renderer displaying the object.
@@ -53,7 +54,7 @@ public:
 	void updateMapper();
 
 private:
-	bool m_visible, m_clippingPlanesEnabled, m_simple, m_outlineVisible;
+	bool m_visible, m_simple, m_outlineVisible;
 	iAColoredPolyObjectVis* m_obj;
 
 	vtkSmartPointer<vtkPolyDataMapper> m_mapper;

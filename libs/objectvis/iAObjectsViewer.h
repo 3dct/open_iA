@@ -29,6 +29,9 @@ public:
 	vtkProp3D* vtkProp() override;
 	static iAAttributes& defaultAttributes();
 
+	void addCuttingPlane(vtkPlane* p) override;
+	void removeCuttingPlane(vtkPlane* p) override;
+
 private:
 	void showDataSet() override;
 	void hideDataSet() override;
