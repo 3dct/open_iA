@@ -72,11 +72,13 @@ void iAVREnvironment::start()
 	m_renderer->SetActiveCamera(iAvtkVR::createCamera(m_backend) );
 	m_renderer->ResetCamera();
 	m_renderer->ResetCameraClippingRange();
-#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0) && VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 3, 20240101)
+//#if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0) && VTK_VERSION_NUMBER < VTK_VERSION_CHECK(9, 3, 20240101)
 	// workaround for dysfunctional culler culling right eye in VTK >= 9.2;
 	// see also https://discourse.vtk.org/t/openvr-problems-with-vtk-9-2/10992
+	// even in master (decd60aaf1f975d9264a9fd05445d60eaee1d6c9) / vtk 9.4 the issue does not seem fully solved
+	// (right eye culling issues there) so keeping this workaround in place for now:
 	m_renderer->RemoveCuller(m_renderer->GetCullers()->GetLastItem());
-#endif
+//#endif
 	m_interactor->GetPickingManager()->EnabledOn();
 
 	m_vrMainThread = new iAVRMainThread(m_renderWindow, m_interactor, m_backend);
