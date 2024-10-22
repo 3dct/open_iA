@@ -90,7 +90,11 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	}
 	if (renderFlagSet(RenderCutPlane))
 	{
-		m_renderer->setCuttingPlanes(child->renderer()->slicePlanes());
+		for (auto p : child->renderer()->slicePlanes())
+		{
+			m_renderer->addCuttingPlane(p);
+		}
+		child->renderer()->setCuttingActive(true);
 	}
 	adaptRendererSceneBounds(child);
 	child->dataSetListWidget()->addDataSet(m_dataSet, dataSetIdx);
@@ -177,12 +181,18 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			setRenderFlag(RenderCutPlane, checked);
 			if (checked)
 			{
-				m_renderer->setCuttingPlanes(child->renderer()->slicePlanes());
+				for (auto p : child->renderer()->slicePlanes())
+				{
+					m_renderer->addCuttingPlane(p);
+				}
 				child->renderer()->setCuttingActive(true);
 			}
 			else
 			{
-				m_renderer->removeCuttingPlanes();
+				for (auto p : child->renderer()->slicePlanes())
+				{
+					m_renderer->removeCuttingPlane(p);
+				}
 				// only disable renderer updates on slice plane changes if cutting is disabled for all other datasets viewers:
 				bool allDisabled = true;
 				for (auto d : child->dataSetMap())

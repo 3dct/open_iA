@@ -88,8 +88,6 @@ public:
 	virtual void setMovable(bool movable);
 	*/
 
-	virtual void setCuttingPlanes(std::array<vtkPlane*, 3> p);
-	virtual void removeCuttingPlanes();
 	virtual void addCuttingPlane(vtkPlane* p);
 	virtual void removeCuttingPlane(vtkPlane* p);
 

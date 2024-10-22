@@ -245,14 +245,6 @@ void iADataSetRenderer::updateOutlineTransform()
 	m_outline->setOrientationAndPosition(pos, ori);
 }
 
-void iADataSetRenderer::setCuttingPlanes(std::array<vtkPlane*, 3> p)
-{
-	Q_UNUSED(p);
-}
-
-void iADataSetRenderer::removeCuttingPlanes()
-{}
-
 void iADataSetRenderer::addCuttingPlane(vtkPlane* p)
 {
 	Q_UNUSED(p);

@@ -51,6 +51,8 @@
 #ifndef iAvtkClipPolyData_h
 #define iAvtkClipPolyData_h
 
+#include "iaguibase_export.h"
+
 #include "vtkFiltersCoreModule.h" // For export macro
 #include "vtkPolyDataAlgorithm.h"
 
@@ -58,7 +60,7 @@
 class vtkImplicitFunction;
 class vtkIncrementalPointLocator;
 
-class iAvtkClipPolyData : public vtkPolyDataAlgorithm
+class iAguibase_API iAvtkClipPolyData : public vtkPolyDataAlgorithm
 {
 public:
   vtkTypeMacro(iAvtkClipPolyData,vtkPolyDataAlgorithm);

@@ -35,7 +35,7 @@ void iAvtkClipPolyData::RemoveClipFunction(vtkImplicitFunction* func)
 
 bool iAvtkClipPolyData::HasClipFunctions() const
 {
-  return ClipFunctions.empty();
+  return !ClipFunctions.empty();
 }
 
 void iAvtkClipPolyData::ClearClipFunctions()

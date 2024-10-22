@@ -45,8 +45,6 @@ public:
 	vtkProp3D* vtkProp() override;
 	QVariantMap attributeValues() const override;
 
-	void setCuttingPlanes(std::array<vtkPlane*, 3> p) override;
-	void removeCuttingPlanes() override;
 	void addCuttingPlane(vtkPlane* p) override;
 	void removeCuttingPlane(vtkPlane* p) override;
 
