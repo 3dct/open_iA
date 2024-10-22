@@ -4,7 +4,6 @@
 
 #include "iAMainWindow.h"
 #include "iAValueTypeVectorHelpers.h"
-#include "iAvtkClipPolyData.h"
 
 #include "iADefaultSettings.h"
 #include <iAPolyData.h>
@@ -468,12 +467,9 @@ vtkActor* iAPolyActorRenderer::actor()
 
 iAPolyDataRenderer::iAPolyDataRenderer(vtkRenderer* renderer, iAPolyData const * data, QVariantMap const& overrideValues) :
 	iAPolyActorRenderer(renderer, overrideValues),
-	m_data(data),
-	m_planeCutter(vtkSmartPointer<iAvtkClipPolyData>::New())
+	m_data(data)
 {
 	mapper()->SetInputData(data->poly());
-	//m_polyMapper->SelectColorArray("Colors");
-	m_planeCutter->SetInputData(m_data->poly());
 }
 
 iAAABB iAPolyDataRenderer::bounds()
@@ -483,21 +479,12 @@ iAAABB iAPolyDataRenderer::bounds()
 
 void iAPolyDataRenderer::addCuttingPlane(vtkPlane* p)
 {
-	bool hadClipFunctions = m_planeCutter->HasClipFunctions();
-	m_planeCutter->AddClipFunction(p);
-	if (!hadClipFunctions)
-	{
-		mapper()->SetInputConnection(m_planeCutter->GetOutputPort());
-	}
+	mapper()->AddClippingPlane(p);
 }
 
 void iAPolyDataRenderer::removeCuttingPlane(vtkPlane* p)
 {
-	m_planeCutter->RemoveClipFunction(p);
-	if (!m_planeCutter->HasClipFunctions())
-	{
-		mapper()->SetInputData(m_data->poly());
-	}
+	mapper()->RemoveClippingPlane(p);
 }
 
 #include "iAGeometricObject.h"
