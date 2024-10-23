@@ -65,25 +65,42 @@ iASSView::iASSView(QWidget* parent) :
 	connect(sbNum, QOverload<int>::of(&QSpinBox::valueChanged), this, &iASSView::setSliceSpinBox);
 	connect(verticalScrollBar, &QScrollBar::valueChanged, this, &iASSView::setSliceScrollBar);
 	connect(cbDir, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iASSView::setSlicerDirection);
-	connect(m_SSViewSettings->cbShowMasks, &QCheckBox::stateChanged, this, &iASSView::setShowMasks);
 	connect(m_SSViewSettings->sMasksOpacity, &QSlider::valueChanged, this, &iASSView::setMasksOpacity);
-	connect(m_SSViewSettings->cbShowGT, &QCheckBox::stateChanged, this, &iASSView::setShowGT);
 	connect(m_SSViewSettings->sGTOpacity, &QSlider::valueChanged, this, &iASSView::setGTOpacity);
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+	connect(m_SSViewSettings->cbShowMasks, &QCheckBox::stateChanged, this, &iASSView::setShowMasks);
+	connect(m_SSViewSettings->cbShowGT, &QCheckBox::stateChanged, this, &iASSView::setShowGT);
 	connect(m_SSViewSettings->cbShowContours, &QCheckBox::stateChanged, this, &iASSView::setShowContours);
 	connect(m_SSViewSettings->cbShowVolume, &QCheckBox::stateChanged, this, &iASSView::setShowVolume);
 	connect(m_SSViewSettings->cbShowSurface, &QCheckBox::stateChanged, this, &iASSView::setShowSurface);
 	connect(m_SSViewSettings->cbShowWireframe, &QCheckBox::stateChanged, this, &iASSView::setShowWireframe);
-	connect(m_SSViewSettings->cbDeviation, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iASSView::setDeviationMode);
-	connect(m_SSViewSettings->sSensitivity, &QSlider::valueChanged, this, &iASSView::setSensitivity);
-
 	connect(m_SSViewSettings->cbShowMasks, &QCheckBox::stateChanged, this, &iASSView::updateSettings);
-	connect(m_SSViewSettings->sMasksOpacity, &QSlider::valueChanged, this, &iASSView::updateSettings);
-	connect(m_SSViewSettings->cbShowGT, &QCheckBox::stateChanged, this,   &iASSView::updateSettings);
-	connect(m_SSViewSettings->sGTOpacity, &QSlider::valueChanged, this, &iASSView::updateSettings);
+	connect(m_SSViewSettings->cbShowGT, &QCheckBox::stateChanged, this, &iASSView::updateSettings);
 	connect(m_SSViewSettings->cbShowContours, &QCheckBox::stateChanged, this, &iASSView::updateSettings);
 	connect(m_SSViewSettings->cbShowVolume, &QCheckBox::stateChanged, this, &iASSView::updateSettings);
 	connect(m_SSViewSettings->cbShowSurface, &QCheckBox::stateChanged, this, &iASSView::updateSettings);
 	connect(m_SSViewSettings->cbShowWireframe, &QCheckBox::stateChanged, this, &iASSView::updateSettings);
+#else
+	connect(m_SSViewSettings->cbShowMasks, &QCheckBox::checkStateChanged, this, &iASSView::setShowMasks);
+	connect(m_SSViewSettings->cbShowGT, &QCheckBox::checkStateChanged, this, &iASSView::setShowGT);
+	connect(m_SSViewSettings->cbShowContours, &QCheckBox::checkStateChanged, this, &iASSView::setShowContours);
+	connect(m_SSViewSettings->cbShowVolume, &QCheckBox::checkStateChanged, this, &iASSView::setShowVolume);
+	connect(m_SSViewSettings->cbShowSurface, &QCheckBox::checkStateChanged, this, &iASSView::setShowSurface);
+	connect(m_SSViewSettings->cbShowWireframe, &QCheckBox::checkStateChanged, this, &iASSView::setShowWireframe);
+	connect(m_SSViewSettings->cbShowMasks, &QCheckBox::checkStateChanged, this, &iASSView::updateSettings);
+	connect(m_SSViewSettings->cbShowGT, &QCheckBox::checkStateChanged, this, &iASSView::updateSettings);
+	connect(m_SSViewSettings->cbShowContours, &QCheckBox::checkStateChanged, this, &iASSView::updateSettings);
+	connect(m_SSViewSettings->cbShowVolume, &QCheckBox::checkStateChanged, this, &iASSView::updateSettings);
+	connect(m_SSViewSettings->cbShowSurface, &QCheckBox::checkStateChanged, this, &iASSView::updateSettings);
+	connect(m_SSViewSettings->cbShowWireframe, &QCheckBox::checkStateChanged, this, &iASSView::updateSettings);
+#endif
+
+	connect(m_SSViewSettings->cbDeviation, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iASSView::setDeviationMode);
+	connect(m_SSViewSettings->sSensitivity, &QSlider::valueChanged, this, &iASSView::setSensitivity);
+
+	connect(m_SSViewSettings->sMasksOpacity, &QSlider::valueChanged, this, &iASSView::updateSettings);
+	connect(m_SSViewSettings->sGTOpacity, &QSlider::valueChanged, this, &iASSView::updateSettings);
 	connect(m_SSViewSettings->cbDeviation, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iASSView::updateSettings);
 	connect(m_SSViewSettings->sSensitivity, &QSlider::valueChanged, this, &iASSView::updateSettings);
 
