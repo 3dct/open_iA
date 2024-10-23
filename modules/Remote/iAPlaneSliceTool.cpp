@@ -168,7 +168,7 @@ namespace
 	void setVecEdit(std::vector<QLineEdit*> const& edits, std::array<double, 3> const& values)
 	{
 		assert(edits.size() == 3);
-		for (int i = 0; i < edits.size(); ++i)
+		for (size_t i = 0; i < edits.size(); ++i)
 		{
 			edits[i]->setText(QString::number(values[i], 'g', 6));
 		}
