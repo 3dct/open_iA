@@ -10,10 +10,10 @@
 #include <QTableWidget>
 #include <QBoxLayout>
 
-void iAAboutDlg::show(QWidget* parent, QPixmap const & aboutImg, QString const & buildInfo, QString const & gitVersion, int screenHeight)
+void iAAboutDlg::show(QWidget* parent, QString const & appName, QPixmap const & aboutImg, QString const & buildInfo, QString const & gitVersion, int screenHeight)
 {
 	QDialog dlg(parent);
-	dlg.setWindowTitle("About open_iA");
+	dlg.setWindowTitle("About "+ appName);
 	dlg.setLayout(new QVBoxLayout());
 
 	auto imgLabel = new QLabel();

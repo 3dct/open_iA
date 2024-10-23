@@ -8,5 +8,5 @@ class QWidget;
 
 namespace iAAboutDlg
 {
-	void show(QWidget* parent, QPixmap const& aboutImg, QString const& buildInfo, QString const& gitVersion, int screenHeight);
+	void show(QWidget* parent, QString const& appName, QPixmap const& aboutImg, QString const& buildInfo, QString const& gitVersion, int screenHeight);
 }

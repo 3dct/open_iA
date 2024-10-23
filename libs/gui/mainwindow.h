@@ -129,7 +129,7 @@ private:
 	void dragEnterEvent(QDragEnterEvent *e) override;
 	void dropEvent(QDropEvent *e) override;
 	bool event(QEvent* e) override; //!< required to catch StyleChange event (changeEvent not triggered)
-	void connectSignalsToSlots();
+	void connectSignalsToSlots(QString const& appName);
 	void readSettings();
 	void writeSettings();
 	void createRecentFileActions();

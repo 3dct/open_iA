@@ -251,7 +251,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_dwJobs->setFeatures(m_dwJobs->features() & ~QDockWidget::DockWidgetVerticalTitleBar);
 
 	createRecentFileActions();
-	connectSignalsToSlots();
+	connectSignalsToSlots(appName);
 	m_slicerToolsGroup = new QActionGroup(this);
 	m_slicerToolsGroup->setExclusive(false);
 	m_slicerToolsGroup->addAction(m_ui->actionRawProfile);
@@ -1112,7 +1112,7 @@ void MainWindow::closeMdiChild(iAMdiChild* child)
 	delete subWin;
 }
 
-void MainWindow::connectSignalsToSlots()
+void MainWindow::connectSignalsToSlots(QString const& appName)
 {
 	// de-duplicate standard-pattern of forwarding events to the currently active mdi child:
 	auto childCall = [this](auto method, auto... params) {
@@ -1210,8 +1210,8 @@ void MainWindow::connectSignalsToSlots()
 		});
 		m_ui->menuHelp->insertAction(m_ui->actionAbout, a);
 	}
-	connect(m_ui->actionAbout, &QAction::triggered, this, [this]
-		{ iAAboutDlg::show(this, m_splashScreenImg, m_buildInformation, m_gitVersion, screen()->geometry().height()); });
+	connect(m_ui->actionAbout, &QAction::triggered, this, [this, appName]
+		{ iAAboutDlg::show(this, appName, m_splashScreenImg, m_buildInformation, m_gitVersion, screen()->geometry().height()); });
 
 	// Camera-related actions:
 	connect(m_ui->actionViewXDirectionInRaycaster, &QAction::triggered,  this, [childCall] { childCall(&MdiChild::setPredefCamPos, iACameraPosition::PX); });
