@@ -128,7 +128,7 @@ namespace
 	{
 		//vtkNew<vtkPlane> p; tool->m_planeWidget->GetPlane(p); tool->m_reslicer->SetSlicePlane(p); -> leads to vtkImageSlice also rotating around
 		// instead, we need to change the camera's parameters to adapt where we slice, instead of setting the slice plane in resliceMapper directly;
-		// see https://vtkusers.public.kitware.narkive.com/N0oCzOND/setcutplane-not-working-in-vtkimagereslicemapper
+		// see https://public.kitware.com/pipermail/vtkusers/2012-October/077030.html
 		iAVec3d center(planeWidget->GetCenter());
 		iAVec3d origin(planeWidget->GetOrigin());
 		iAVec3d normal(planeWidget->GetNormal());

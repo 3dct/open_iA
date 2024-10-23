@@ -66,7 +66,7 @@ void iAVREnvironment::start()
 	}
 	m_renderWindow->AddRenderer(m_renderer);
 	// MultiSamples needs to be set to 0 to make Volume Rendering work:
-	// https://vtkusers.public.kitware.narkive.com/xVSi4EaU/problems-in-rendering-volume-with-vtkopenvr
+	// https://public.kitware.com/pipermail/vtkusers/2016-July/095853.html
 	//m_renderWindow->SetMultiSamples(0);
 	m_interactor->SetRenderWindow(m_renderWindow);
 	m_renderer->SetActiveCamera(iAvtkVR::createCamera(m_backend) );
