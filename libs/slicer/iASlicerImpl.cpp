@@ -19,7 +19,6 @@
 #include <iAProgress.h>
 #include <iARulerWidget.h>
 #include <iARulerRepresentation.h>
-#include <iASlicerSettings.h>
 #include <iAStringHelper.h>
 #include <iAToolsITK.h>
 #include <iAToolsVTK.h>

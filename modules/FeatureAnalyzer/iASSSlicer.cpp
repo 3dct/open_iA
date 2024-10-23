@@ -8,7 +8,6 @@
 #include <iAChannelData.h>
 #include <iAChannelSlicerData.h>
 #include <iASlicerImpl.h>
-#include <iASlicerSettings.h>
 
 #include <iAConnector.h>
 #include <iAITKIO.h>

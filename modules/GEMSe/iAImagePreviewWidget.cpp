@@ -10,7 +10,6 @@
 #include <iAConnector.h>
 #include <iALog.h>
 #include <iASlicerImpl.h>
-#include <iASlicerSettings.h>
 
 #include <vtkDiscretizableColorTransferFunction.h>
 #include <vtkImageActor.h>

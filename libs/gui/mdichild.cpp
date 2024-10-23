@@ -680,7 +680,6 @@ void MdiChild::slicerRotationChanged(int mode, double angle)
 void MdiChild::linkSliceViews(bool l)
 {
 	m_slicerSettings.LinkViews = l;
-	emit linkSliceViewsChanged(l);
 }
 
 void MdiChild::linkMDIs(bool lm)
