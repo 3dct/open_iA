@@ -6,7 +6,11 @@ dlg_ProjectionParameters::dlg_ProjectionParameters()
 {
 	setupUi(this);
 	connect(cbAlgorithmType, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &dlg_ProjectionParameters::algorithmChanged);
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 	connect(cbCorrectCenterOfRotation, &QCheckBox::stateChanged, this, &dlg_ProjectionParameters::centerOfRotationEnabled);
+#else
+	connect(cbCorrectCenterOfRotation, &QCheckBox::checkStateChanged, this, &dlg_ProjectionParameters::centerOfRotationEnabled);
+#endif
 }
 
 
