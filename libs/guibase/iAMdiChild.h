@@ -84,8 +84,6 @@ public:
 	virtual void multiview() = 0;
 
 	// Settings:
-	//virtual iARenderSettings const& renderSettings() const = 0;
-	virtual iASlicerSettings const& slicerSettings() const = 0;
 	virtual iAPreferences const& preferences() const = 0;
 	//! Whether this child has the linked views feature enabled
 	virtual bool linkedViews() const = 0;

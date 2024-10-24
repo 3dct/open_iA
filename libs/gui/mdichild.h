@@ -65,7 +65,7 @@ public:
 
 	void applyPreferences(iAPreferences const & p);
 	void applySlicerSettings(iASlicerSettings const & ss);
-	iASlicerSettings const & slicerSettings() const override;
+	iASlicerSettings const & slicerSettings() const;
 	iAPreferences    const & preferences()    const override;
 
 	void toggleSliceProfile(bool isEnabled);
