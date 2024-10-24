@@ -769,6 +769,9 @@ void MainWindow::prefs()
 	addAttr(params, "Looks", iAValueType::Categorical, looks);
 	addAttr(params, "Font size", iAValueType::Discrete, QString::number(p.FontSize), 4, 120);
 	addAttr(params, "Size limit for automatic 3D rendering (MB)", iAValueType::Discrete, p.LimitForAuto3DRender, 0);
+	auto axisColorThemes = QStringList() << "Default (X=red, Y=green, Z=blue)" << "Colorblind safe (Brewer 3-class Dark2)";
+	axisColorThemes[axisColorMode()] = "!" + axisColorThemes[axisColorMode()];
+	addAttr(params, "Axis colors", iAValueType::Categorical, axisColorThemes);
 	iAParameterDlg dlg(this, PrefNiceName, params, descr);
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -800,6 +803,7 @@ void MainWindow::prefs()
 	{
 		activeMDI()->applyPreferences(m_defaultPreferences);
 	}
+	axisColorMode() = axisColorThemes.indexOf(values["Axis colors"].toString());
 	iALogWidget::get()->setLogToFile(logToFile, logFileName, true);
 }
 
@@ -1315,6 +1319,7 @@ void MainWindow::readSettings()
 
 	// performance:
 	m_defaultPreferences.LimitForAuto3DRender = settings.value("Preferences/prefLimitForAuto3DRender", defaultPrefs.LimitForAuto3DRender).toInt();
+	axisColorMode() = settings.value("Preferences/axisColorTheme", 0).toInt();
 
 	iASlicerSettings fallbackSS;
 	m_defaultSlicerSettings.LinkViews = settings.value("Slicer/ssLinkViews", fallbackSS.LinkViews).toBool();
@@ -1339,6 +1344,7 @@ void MainWindow::writeSettings()
 
 	settings.setValue("Preferences/defaultLayout", m_layout->currentText());
 	settings.setValue("Preferences/prefLimitForAuto3DRender", m_defaultPreferences.LimitForAuto3DRender);
+	settings.setValue("Preferences/axisColorTheme", axisColorMode());
 	settings.setValue("Preferences/prefStatExt", m_defaultPreferences.PositionMarkerSize);
 	settings.setValue("Preferences/prefPrintParameters", m_defaultPreferences.PrintParameters);
 	settings.setValue("Preferences/prefResultInNewWindow", m_defaultPreferences.ResultInNewWindow);

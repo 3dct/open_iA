@@ -187,7 +187,7 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 		m_slicePlaneViews[s].actor->GetProperty()->LightingOff();
 		m_slicePlaneViews[s].actor->SetPickable(false);
 		m_slicePlaneViews[s].actor->SetDragable(false);
-		auto c = slicerColor(static_cast<iASlicerMode>(s));
+		auto c = axisColor(s);
 		m_slicePlaneViews[s].actor->GetProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
 		m_slicePlaneViews[s].actor->GetProperty()->SetOpacity(1.0);
 	}
@@ -225,17 +225,18 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_annotatedCubeActor->GetCubeProperty()->SetColor(0.7, 0.78, 1);
 	m_annotatedCubeActor->GetTextEdgesProperty()->SetDiffuse(0);
 	m_annotatedCubeActor->GetTextEdgesProperty()->SetAmbient(0);
-	m_annotatedCubeActor->GetXPlusFaceProperty()->SetColor(1, 0, 0);
+	auto xc = axisColor(iAAxisIndex::X), yc = axisColor(iAAxisIndex::Y), zc = axisColor(iAAxisIndex::Z);
+	m_annotatedCubeActor->GetXPlusFaceProperty()->SetColor(xc.redF(), xc.greenF(), xc.blueF());
 	m_annotatedCubeActor->GetXPlusFaceProperty()->SetInterpolationToFlat();
-	m_annotatedCubeActor->GetXMinusFaceProperty()->SetColor(1, 0, 0);
+	m_annotatedCubeActor->GetXMinusFaceProperty()->SetColor(xc.redF(), xc.greenF(), xc.blueF());
 	m_annotatedCubeActor->GetXMinusFaceProperty()->SetInterpolationToFlat();
-	m_annotatedCubeActor->GetYPlusFaceProperty()->SetColor(0, 1, 0);
+	m_annotatedCubeActor->GetYPlusFaceProperty()->SetColor(yc.redF(), yc.greenF(), yc.blueF());
 	m_annotatedCubeActor->GetYPlusFaceProperty()->SetInterpolationToFlat();
-	m_annotatedCubeActor->GetYMinusFaceProperty()->SetColor(0, 1, 0);
+	m_annotatedCubeActor->GetYMinusFaceProperty()->SetColor(yc.redF(), yc.greenF(), yc.blueF());
 	m_annotatedCubeActor->GetYMinusFaceProperty()->SetInterpolationToFlat();
-	m_annotatedCubeActor->GetZPlusFaceProperty()->SetColor(0, 0, 1);
+	m_annotatedCubeActor->GetZPlusFaceProperty()->SetColor(zc.redF(), zc.greenF(), zc.blueF());
 	m_annotatedCubeActor->GetZPlusFaceProperty()->SetInterpolationToFlat();
-	m_annotatedCubeActor->GetZMinusFaceProperty()->SetColor(0, 0, 1);
+	m_annotatedCubeActor->GetZMinusFaceProperty()->SetColor(zc.redF(), zc.greenF(), zc.blueF());
 	m_annotatedCubeActor->GetZMinusFaceProperty()->SetInterpolationToFlat();
 
 	// set up position marker:
@@ -249,6 +250,12 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 	m_axesActor->AxisLabelsOff();
 	m_axesActor->SetShaftTypeToCylinder();
 	m_axesActor->SetTotalLength(1, 1, 1);
+	m_axesActor->GetXAxisShaftProperty()->SetColor(xc.redF(), xc.greenF(), xc.blueF());
+	m_axesActor->GetXAxisTipProperty()->SetColor(xc.redF(), xc.greenF(), xc.blueF());
+	m_axesActor->GetYAxisShaftProperty()->SetColor(yc.redF(), yc.greenF(), yc.blueF());
+	m_axesActor->GetYAxisTipProperty()->SetColor(yc.redF(), yc.greenF(), yc.blueF());
+	m_axesActor->GetZAxisShaftProperty()->SetColor(zc.redF(), zc.greenF(), zc.blueF());
+	m_axesActor->GetZAxisTipProperty()->SetColor(zc.redF(), zc.greenF(), zc.blueF());
 
 	// add actors of helpers to renderer:
 	m_ren->GradientBackgroundOn();

@@ -56,5 +56,8 @@ iAguibase_API int mapSliceToGlobalAxis(int mode, int index);
 // Currently not used...
 iAguibase_API int mapGlobalToSliceAxis(int mode, int index);
 
-//! get color assigned to a specific axis-aligned slicer
-iAguibase_API QColor slicerColor(iASlicerMode mode);
+//! modifiable index of the axis color mode
+iAguibase_API int& axisColorMode();
+
+//! get color assigned to a specific axis
+iAguibase_API QColor axisColor(int axis);

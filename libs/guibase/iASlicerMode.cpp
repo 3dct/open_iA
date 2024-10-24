@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iASlicerMode.h"
 
+#include <array>
+
 QString axisName(int axis)
 {
 	switch (axis)
@@ -55,10 +57,17 @@ int mapGlobalToSliceAxis(int mode, int index)
 	return GlobalToSliceAxisMapping[index][mode];
 }
 
-QColor slicerColor(iASlicerMode mode)
+int& axisColorMode()
 {
-	return QColor(
-		(mode == iASlicerMode::YZ) ? 255 : 0,
-		(mode == iASlicerMode::XZ) ? 255 : 0,
-		(mode == iASlicerMode::XY) ? 255 : 0);
+	static int colorMode = 0;
+	return colorMode;
+}
+
+QColor axisColor(int mode)
+{   // see e.g. https://stackoverflow.com/questions/15810171 for why a "flat" list is initialized here:
+	static std::array<std::array<QColor, 3>, 2> colors{
+		 QColor(255, 0 , 0), QColor(0, 255, 0), QColor(0, 0, 255) ,
+		 QColor(217, 95, 2), QColor(27, 158, 119), QColor(117, 112, 179)
+	};
+	return colors[axisColorMode()][mode];
 }

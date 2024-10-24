@@ -12,7 +12,7 @@ iASlicerContainer::iASlicerContainer(iASlicerImpl* slicer):
 	setupUi(this);
 	QString slicePlaneName = slicerModeString(slicer->mode());
 	QString sliceAxisString = axisName(slicer->globalAxis(iAAxisIndex::Z));
-	QColor color(slicerColor(slicer->mode()));
+	QColor color(axisColor(slicer->mode()));
 	lbTitle->setText(slicePlaneName);
 	lbSlice->setText(QString("Slice # %1").arg(sliceAxisString));
 	lbRotation->setText(QString("Rot %1").arg(sliceAxisString));
