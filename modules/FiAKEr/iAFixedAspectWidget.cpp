@@ -3,6 +3,7 @@
 #include "iAFixedAspectWidget.h"
 
 #include "iALog.h"
+#include <iAQWidgetHelper.h>
 
 #include <QApplication>
 #include <QPainter>
@@ -45,9 +46,7 @@ iAFixedAspectWidget::iAFixedAspectWidget(double aspect, Qt::Alignment verticalAl
 	m_fill1(nullptr),
 	m_fill2(nullptr)
 {
-	setLayout(new QVBoxLayout());
-	layout()->setSpacing(0);
-	layout()->setContentsMargins(0, 0, 0, 0);
+	setLayout(createLayout<QVBoxLayout>(0));
 	if (verticalAlign != Qt::AlignTop)
 	{
 		m_fill1 = new iAColoredWidget();

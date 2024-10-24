@@ -16,6 +16,7 @@
 #include <iAMdiChild.h>
 #include <iAQTtoUIConnector.h>
 #include <iAQVTKWidget.h>
+#include <iAQWidgetHelper.h>
 #include <iARenderer.h>
 #include <iAThemeHelper.h>
 #include <iATransferFunction.h>
@@ -224,22 +225,16 @@ void dlg_DynamicVolumeLines::setupGUIElements()
 	m_compLvlLUT = compLvl_colorBar->getLut();
 	connect(this, QOverload<QVector<double>>::of(&dlg_DynamicVolumeLines::compLevelRangeChanged),
 		compLvl_colorBar, &iALinearColorGradientBar::compLevelRangeChanged);
-	QVBoxLayout *compLvl_lutLayoutHB = new QVBoxLayout(this);
-	compLvl_lutLayoutHB->setContentsMargins(0, 0, 0, 0);
-	compLvl_lutLayoutHB->addWidget(compLvl_colorBar);
-	compLvl_lutLayoutHB->update();
-	m_ui->scalarBarWidget->setLayout(compLvl_lutLayoutHB);
+	m_ui->scalarBarWidget->setLayout(createLayout<QVBoxLayout>());
+	m_ui->scalarBarWidget->layout()->addWidget(compLvl_colorBar);
 
 	iALinearColorGradientBar *hist_colorBar = new iALinearColorGradientBar(this,
 		"Extended Black Body", true);
 	m_histLUT = hist_colorBar->getLut();
 	connect(hist_colorBar, &iALinearColorGradientBar::colorMapChanged,
 		this, &dlg_DynamicVolumeLines::updateHistColorMap);
-	QVBoxLayout *hist_lutLayoutHB = new QVBoxLayout(this);
-	hist_lutLayoutHB->setContentsMargins(0, 0, 0, 0);
-	hist_lutLayoutHB->addWidget(hist_colorBar);
-	hist_lutLayoutHB->update();
-	m_ui->histBarWidget->setLayout(hist_lutLayoutHB);
+	m_ui->histBarWidget->setLayout(createLayout<QVBoxLayout>());
+	m_ui->histBarWidget->layout()->addWidget(hist_colorBar);
 
 	m_orientationWidget = new iAOrientationWidget(this);
 	m_ui->orientationWidgetLayout->addWidget(m_orientationWidget);

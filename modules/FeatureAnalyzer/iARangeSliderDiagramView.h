@@ -52,7 +52,6 @@ private:
 	QWidget * m_comboBoxContainer;
 	QWidget * m_histoContainer;
 	QVBoxLayout * m_layoutVBMainContainer;
-	QHBoxLayout * m_layoutHBComboBoxes;
 	QVBoxLayout * m_layoutVBHistoContainer;
 	QComboBox * m_cbPorDev;
 	QComboBox * m_cbStatisticMeasurements;

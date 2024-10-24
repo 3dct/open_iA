@@ -8,6 +8,7 @@
 #include <qcustomplot.h>
 #include <iALUT.h>
 #include <iAQVTKWidget.h>
+#include <iAQWidgetHelper.h>
 
 #include <vtkColorTransferFunction.h>
 #include <vtkLookupTable.h>
@@ -23,14 +24,7 @@
 
 void SetWidgetSelectionStyle(QWidget * w, bool isSelected)
 {
-	if (isSelected)
-	{
-		w->setStyleSheet("background-color:black;");
-	}
-	else
-	{
-		w->setStyleSheet("background-color:white;");
-	}
+	w->setStyleSheet(QString("background-color:%1;").arg(isSelected ? "black" : "white"));
 }
 
 iAPDMView::iAPDMView(QWidget* parent) :
@@ -62,11 +56,8 @@ iAPDMView::iAPDMView(QWidget* parent) :
 	m_sbActor->SetTitle( "Deviation from reference porosity (%)" );
 	m_sbWidget->renderWindow()->AddRenderer( m_sbRen );
 	m_sbWidget->update();
-	QVBoxLayout *lutLayoutHB = new QVBoxLayout( this );
-	lutLayoutHB->setContentsMargins(0, 0, 0, 0);
-	lutLayoutHB->addWidget( m_sbWidget );
-	lutLayoutHB->update();
-	scalarBarWidget->setLayout( lutLayoutHB );
+	scalarBarWidget->setLayout(createLayout<QVBoxLayout>());
+	scalarBarWidget->layout()->addWidget( m_sbWidget );
 
 	tableWidget->verticalHeader()->setVisible( true );
 	tableWidget->horizontalHeader()->setVisible( true );

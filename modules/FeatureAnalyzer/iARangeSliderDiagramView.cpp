@@ -7,6 +7,7 @@
 
 #include <iAHistogramData.h>
 #include <iAMathUtility.h>
+#include <iAQWidgetHelper.h>
 
 #include <vtkIdTypeArray.h>
 
@@ -36,7 +37,6 @@ iARangeSliderDiagramView::iARangeSliderDiagramView(QWidget * parent, Qt::WindowF
 	m_comboBoxContainer(nullptr),
 	m_histoContainer(nullptr),
 	m_layoutVBMainContainer(nullptr),
-	m_layoutHBComboBoxes(nullptr),
 	m_layoutVBHistoContainer(nullptr),
 	m_cbPorDev(nullptr),
 	m_cbStatisticMeasurements(nullptr),
@@ -190,11 +190,9 @@ void iARangeSliderDiagramView::addComboBoxes()
 	m_layoutVBMainContainer->addWidget( m_input );
 
 	// ComboBoxes
-	m_comboBoxContainer = new QWidget();
+	m_comboBoxContainer = createLayoutWidget<QHBoxLayout>();
 	m_comboBoxContainer->setFixedHeight( 25 );
 	m_comboBoxContainer->setFixedWidth( 200 );
-	m_layoutHBComboBoxes = new QHBoxLayout(this);
-	m_layoutHBComboBoxes->setContentsMargins(0, 0, 0, 0);
 
 	m_cbPorDev = new QComboBox();
 	m_cbPorDev->addItem( m_rawTable->item( 0, m_rawTable->columnCount() - 4 )->text() ); // Porosity
@@ -205,16 +203,15 @@ void iARangeSliderDiagramView::addComboBoxes()
 	comboBoxSizePolicy.setHeightForWidth( m_cbPorDev->sizePolicy().hasHeightForWidth() );
 	connect(m_cbPorDev, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iARangeSliderDiagramView::updateDiagrams);
 	m_cbPorDev->setSizePolicy( comboBoxSizePolicy );
-	m_layoutHBComboBoxes->addWidget( m_cbPorDev );
+	m_comboBoxContainer->layout()->addWidget(m_cbPorDev);
 
 	m_cbStatisticMeasurements = new QComboBox();
 	m_cbStatisticMeasurements->addItem( "Median" );
 	m_cbStatisticMeasurements->addItem( "Mean" );
 	connect( m_cbStatisticMeasurements, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &iARangeSliderDiagramView::updateDiagrams);
 	m_cbStatisticMeasurements->setSizePolicy( comboBoxSizePolicy );
-	m_layoutHBComboBoxes->addWidget( m_cbStatisticMeasurements );
+	m_comboBoxContainer->layout()->addWidget( m_cbStatisticMeasurements );
 
-	m_comboBoxContainer->setLayout( m_layoutHBComboBoxes );
 	m_layoutVBMainContainer->addWidget( m_comboBoxContainer );
 	m_layoutVBMainContainer->addSpacing( 5 );
 }
@@ -266,7 +263,6 @@ void iARangeSliderDiagramView::deleteOutdated()
 	delete m_title; m_title = nullptr;
 	delete m_cbPorDev; m_cbPorDev = nullptr;
 	delete m_cbStatisticMeasurements; m_cbStatisticMeasurements = nullptr;
-	delete m_layoutHBComboBoxes; m_layoutHBComboBoxes = nullptr;
 	delete m_comboBoxContainer; m_comboBoxContainer = nullptr;
 	delete m_layoutVBHistoContainer; m_layoutVBHistoContainer = nullptr;
 	delete m_histoContainer; m_histoContainer = nullptr;
