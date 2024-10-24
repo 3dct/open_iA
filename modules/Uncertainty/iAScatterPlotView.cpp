@@ -5,6 +5,7 @@
 
 #include "iAUncertaintyColors.h"
 
+#include <iAQWidgetHelper.h>
 #include <iAScatterPlot.h>
 #include <iAScatterPlotWidget.h>
 #include <iASPLOMData.h>
@@ -28,15 +29,10 @@ iAScatterPlotView::iAScatterPlotView():
 	m_xAxisChooser(new QWidget()),
 	m_yAxisChooser(new QWidget()),
 	m_settings(new QWidget()),
-	m_scatterPlotContainer(new QWidget()),
+	m_scatterPlotContainer(createLayoutWidget<QHBoxLayout>(0)),
 	m_scatterPlotWidget(nullptr)
 {
-	setLayout(new QVBoxLayout());
-	layout()->setSpacing(0);
-	layout()->setContentsMargins(4, 4, 4, 4);
-	m_scatterPlotContainer->setLayout(new QHBoxLayout());
-	m_scatterPlotContainer->layout()->setSpacing(0);
-	m_scatterPlotContainer->layout()->setContentsMargins(0, 0, 0, 0);
+	setLayout(createLayout<QVBoxLayout>(0, 4));
 	m_scatterPlotContainer->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
 	layout()->addWidget(m_scatterPlotContainer);
 

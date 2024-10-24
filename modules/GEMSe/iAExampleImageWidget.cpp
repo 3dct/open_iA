@@ -10,6 +10,7 @@
 
 #include <iALog.h>
 #include <iAMathUtility.h>
+#include <iAQWidgetHelper.h>
 
 #include <QGridLayout>
 #include <QPainter>
@@ -45,7 +46,7 @@ protected:
 
 
 iAExampleImageWidget::iAExampleImageWidget(double aspectRatio, iAPreviewWidgetPool * previewPool, ClusterImageType nullImage):
-	m_layout(new QGridLayout()),
+	m_layout(createLayout<QGridLayout>(ExampleViewSpacing, ExampleViewSpacing)),
 	m_width(-1),
 	m_height(1),
 	m_aspectRatio(aspectRatio),
@@ -53,8 +54,6 @@ iAExampleImageWidget::iAExampleImageWidget(double aspectRatio, iAPreviewWidgetPo
 	m_gridWidget(new ExampleGrid),
 	m_nullImage(nullImage)
 {
-	m_layout->setSpacing(ExampleViewSpacing);
-	m_layout->setContentsMargins(ExampleViewSpacing, ExampleViewSpacing, ExampleViewSpacing, ExampleViewSpacing);
 	m_gridWidget->setLayout(m_layout);
 
 	QWidget* container = new QWidget();

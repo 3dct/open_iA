@@ -8,6 +8,7 @@
 
 #include <iAColorTheme.h>
 #include <iALog.h>
+#include <iAQWidgetHelper.h>
 
 #include <vtkImageData.h>
 #include <vtkCamera.h>
@@ -80,9 +81,7 @@ iACameraWidget::iACameraWidget(QWidget* parent, vtkSmartPointer<vtkImageData> or
 	m_sliceScrollBar = new QScrollBar(Qt::Vertical);
 
 	m_commonCamera = m_sliceViews[static_cast<int>(InitialSlicerMode)]->camera();
-	QHBoxLayout* mainLay = new QHBoxLayout;
-	mainLay->setSpacing(CameraSpacing);
-	mainLay->setContentsMargins(0,0,0,0);
+	auto mainLay = createLayout<QHBoxLayout>(CameraSpacing);
 	mainLay->addWidget(m_sliceScrollBar, 1);
 	mainLay->addWidget(miniSlicerContainer, 10);
 	setLayout(mainLay);

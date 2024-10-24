@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAQDockTitleWidget.h"
 
+#include <iAQWidgetHelper.h>
+
 #include <QDesktopServices>
 #include <QDockWidget>
 #include <QFrame>
@@ -63,10 +65,8 @@ QSize iAVerticalLabel::sizeHint() const
 iAQDockTitleWidget::iAQDockTitleWidget(QDockWidget* parent, QString infoLink) : QFrame(parent)
 {
 	setProperty("qssClass", "iAQDockTitleWidget");
-	setLayout(new QVBoxLayout());
 	int mw = parent->style()->pixelMetric(QStyle::PM_DockWidgetTitleMargin, nullptr, parent);
-	layout()->setContentsMargins(mw, mw, mw, mw);
-	layout()->setSpacing(2);
+	setLayout(createLayout<QVBoxLayout>(2, mw));
 	auto closeButton = new QToolButton();
 	closeButton->setProperty("qssClass", "dockwidget-close");
 	closeButton->setMinimumSize(0, 10);

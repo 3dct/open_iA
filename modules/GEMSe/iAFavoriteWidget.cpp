@@ -8,6 +8,7 @@
 #include "iAQtCaptionWidget.h"
 #include "iAGEMSeConstants.h"
 
+#include <iAQWidgetHelper.h>
 #include <iALog.h>
 
 #include <QVBoxLayout>
@@ -18,13 +19,9 @@ typedef QVBoxLayout LikeLayoutType;
 iAFavoriteWidget::iAFavoriteWidget(iAPreviewWidgetPool* previewPool) :
 	m_previewPool(previewPool)
 {
-	QWidget* favListWdgt = this;
-	QHBoxLayout* favListLayout = new QHBoxLayout();
-	favListLayout->setSpacing(0);
-	favListLayout->setContentsMargins(0, 0, 0, 0);
-	favListLayout->setAlignment(Qt::AlignTop | Qt::AlignCenter);
-	favListWdgt->setLayout(favListLayout);
-	favListWdgt->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	setLayout(createLayout<QHBoxLayout>(0));
+	layout()->setAlignment(Qt::AlignTop | Qt::AlignCenter);
 
 	QWidget* likes = new QWidget();
 	m_likeLayout =  new LikeLayoutType();
@@ -34,10 +31,7 @@ iAFavoriteWidget::iAFavoriteWidget(iAPreviewWidgetPool* previewPool) :
 	likes->setLayout(m_likeLayout);
 	likes->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	likes->setStyleSheet("background-color: #DFD;");
-
-	favListLayout->addWidget(likes);
-
-	setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	layout()->addWidget(likes);
 }
 
 

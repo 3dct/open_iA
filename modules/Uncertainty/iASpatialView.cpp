@@ -79,9 +79,7 @@ iASpatialView::iASpatialView(): QWidget(),
 	m_imageBar = new QWidget();
 	m_imageBar->setLayout(new iAQFlowLayout(0, 4, 4));
 
-	setLayout(new QVBoxLayout());
-	layout()->setSpacing(0);
-	layout()->setContentsMargins(4, 4, 4, 4);
+	setLayout(createLayout<QVBoxLayout>(0, 4));
 	layout()->addWidget(m_contentWidget);
 
 	m_settings = new QWidget();

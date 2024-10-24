@@ -66,10 +66,9 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 	m_sourceMdiChildClosed(false),
 	m_widgetList(parameters.size()),
 	m_parameters(parameters),
-	m_mainLayout(new QGridLayout())
+	m_mainLayout(createLayout<QGridLayout>(4, 4))
 {
-	auto formLayout = new QGridLayout();
-	formLayout->setContentsMargins(4, 4, 4, 4);
+	auto formLayout = createLayout<QVBoxLayout>();
 	m_buttonBox = new QDialogButtonBox();
 	m_buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
 	connect(m_buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
@@ -86,7 +85,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 
 	setLayout(m_mainLayout);
 	m_mainWidget = new QWidget();
-	m_mainLayout->addWidget(m_mainWidget);
+	layout()->addWidget(m_mainWidget);
 	if (!descr.isEmpty())
 	{
 		auto info = new QTextBrowser();
@@ -105,9 +104,8 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 		s->addWidget(w);
 		s->setCollapsible(0, true);
 		s->setCollapsible(1, false);
-		m_mainWidget->setLayout(new QHBoxLayout);
+		m_mainWidget->setLayout(createLayout<QHBoxLayout>());
 		layout()->addWidget(s);
-		layout()->setContentsMargins(4, 4, 4, 4);
 	}
 	else
 	{
@@ -267,8 +265,8 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 	pal.setColor(scrollArea->backgroundRole(), Qt::transparent);
 	scrollArea->setPalette(pal);
 
-	formLayout->addWidget(scrollArea, 1, 0);
-	formLayout->addWidget(m_buttonBox, 2, 0);
+	formLayout->addWidget(scrollArea);
+	formLayout->addWidget(m_buttonBox);
 }
 
 void iAParameterDlg::setValue(QString const& key, QVariant const& value)

@@ -10,6 +10,7 @@
 #include "ui_CsvInput.h"
 
 #include <iADefaultSettings.h>
+#include <iAQWidgetHelper.h>
 #include <iAThemeHelper.h>
 
 #include <iALog.h>
@@ -353,29 +354,21 @@ void iACsvInputDlg::switchObjectType(const QString & /*ObjectInputType*/)
 
 QString iACsvInputDlg::askForFormatName(bool forLocalSave)
 {
-	auto line = new QWidget;
 	auto label = new QLabel("Format name:");
 	auto edit = new QLineEdit(m_ui->cmbbox_Format->currentText());
 	edit->setValidator(new QRegularExpressionValidator(
 		QRegularExpression("[^/]{0,50}"), this));  // limit input to valid format names
-	line->setLayout(new QHBoxLayout);
-	line->layout()->setContentsMargins(4, 4, 4, 4);
-	line->layout()->setSpacing(4);
+	auto line = createLayoutWidget<QHBoxLayout>(4, 4);
 	line->layout()->addWidget(label);
 	line->layout()->addWidget(edit);
-	auto buttonBox = new QWidget;
-	buttonBox->setLayout(new QHBoxLayout);
-	buttonBox->layout()->setContentsMargins(4, 4, 4, 4);
-	buttonBox->layout()->setSpacing(4);
+	auto buttonBox = createLayoutWidget<QHBoxLayout>(4, 4);
 	auto okBtn = new QPushButton(tr("OK"));
 	auto cancelBtn = new QPushButton(tr("Cancel"));
 	buttonBox->layout()->addWidget(okBtn);
 	buttonBox->layout()->addWidget(cancelBtn);
 	QDialog dlg;
 	dlg.setMinimumWidth(400);
-	dlg.setLayout(new QVBoxLayout);
-	dlg.layout()->setContentsMargins(4, 4, 4, 4);
-	dlg.layout()->setSpacing(4);
+	dlg.setLayout(createLayout<QVBoxLayout>(4, 4));
 	dlg.layout()->addWidget(line);
 	dlg.layout()->addWidget(buttonBox);
 	connect(okBtn, &QAbstractButton::clicked, this,

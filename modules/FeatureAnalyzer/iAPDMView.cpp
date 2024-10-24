@@ -369,14 +369,8 @@ bool iAPDMView::eventFilter( QObject * obj, QEvent * event )
 
 void iAPDMView::addWidgetToTable( int r, int c, QWidget * plot )
 {
-	QVBoxLayout * plotLayout = new QVBoxLayout();
-	plotLayout->setContentsMargins(2, 2, 2, 2);
-	plotLayout->setSpacing(0);
-	plotLayout->addWidget( plot );
-	QWidget * plotWidget = new QWidget( this );
-	plot->setParent( plotWidget );
-	plotWidget->setLayout( plotLayout );
-
+	QWidget * plotWidget = createLayoutWidget<QVBoxLayout>(0, 2);
+	plotWidget->layout()->addWidget(plot);
 	tableWidget->setCellWidget( r, c, plotWidget );
 	m_indices[plot] = tableWidget->model()->index( r, c );
 	plot->installEventFilter( this );

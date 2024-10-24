@@ -90,24 +90,16 @@ iADetailView::iADetailView(iAImagePreviewWidget* prevWdgt, iAImagePreviewWidget*
 	QWidget* topSpacer = new QWidget();
 	topSpacer->setFixedHeight(18);
 
-	QVBoxLayout* lay = new QVBoxLayout();
-	lay->setSpacing(1);
-	lay->setContentsMargins(1, 1, 1, 1);
-	lay->addWidget(topSpacer);
-	lay->addWidget(prevWdgt);
-	lay->addWidget(buttonBar);
-
-	QWidget * imgStuffWidget = new QWidget();
-	imgStuffWidget->setLayout(lay);
+	auto imgStuffWidget = createLayoutWidget<QVBoxLayout>(1, 1);
+	imgStuffWidget->layout()->addWidget(topSpacer);
+	imgStuffWidget->layout()->addWidget(prevWdgt);
+	imgStuffWidget->layout()->addWidget(buttonBar);
 	imgStuffWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-	QWidget * detailWidget = new QWidget();
-	QVBoxLayout* detailWidgetLayout = new QVBoxLayout();
-	detailWidget->setLayout(detailWidgetLayout);
-
+	auto detailWidget = createLayoutWidget<QVBoxLayout>();
 	QSplitter * detailSplitter = new QSplitter();
 	detailSplitter->setOrientation(Qt::Vertical);
-	detailWidgetLayout->addWidget(detailSplitter);
+	detailWidget->layout()->addWidget(detailSplitter);
 
 	m_lvLegend->setModel(m_labelItemModel);
 	detailSplitter->addWidget(m_lvLegend);
@@ -147,22 +139,16 @@ iADetailView::iADetailView(iAImagePreviewWidget* prevWdgt, iAImagePreviewWidget*
 	tw->addTab(comparisonContainer, "Comparison");
 
 	QSplitter * horzSplitter = new QSplitter();
-
-	QHBoxLayout* mainLay = new QHBoxLayout();
-	mainLay->setSpacing(1);
-	mainLay->setContentsMargins(1, 1, 1, 1);
-	mainLay->addWidget(horzSplitter);
-
 	horzSplitter->addWidget(imgStuffWidget);
 	horzSplitter->addWidget(tw);
 	horzSplitter->setStretchFactor(0, 2);
 	horzSplitter->setStretchFactor(1, 1);
 
-	QWidget * mainWdgt(this);
-	mainWdgt->setLayout(mainLay);
+	setLayout(createLayout<QHBoxLayout>(1, 1));
+	layout()->addWidget(horzSplitter);
 	QRect geom(geometry());
 	geom.adjust(+1, +1, -1, -1);
-	mainWdgt->setGeometry(geom);
+	setGeometry(geom);
 
 	m_cmpDetailsWidget->layout()->addWidget(m_cmpDetailsLabel);
 	m_cmpDetailsLabel->setWordWrap(true);

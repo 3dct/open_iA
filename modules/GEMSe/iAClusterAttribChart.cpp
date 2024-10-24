@@ -5,8 +5,9 @@
 #include "iAFilterChart.h"
 #include "iAParamHistogramData.h"
 
-#include <iAPlotTypes.h>
 #include <iAMathUtility.h>
+#include <iAPlotTypes.h>
+#include <iAQWidgetHelper.h>
 
 #include <QCheckBox>
 #include <QLabel>
@@ -25,24 +26,19 @@ iAClusterAttribChart::iAClusterAttribChart(
 {
 	//double dr0= data->xBounds()[0];
 	//double dr1= data->xBounds()[1];
-
-	QVBoxLayout* mainLayout = new QVBoxLayout();
-	mainLayout->setContentsMargins(0, 0, 0, 0);
-	mainLayout->setSpacing(5);
+	setLayout(createLayout<QVBoxLayout>(5));
 
 	m_checkbox = new QCheckBox(caption);
 	QFont f(m_checkbox->font());
 	f.setPointSize(FontSize);
 	m_checkbox->setFont(f);
 	m_checkbox->setMinimumWidth(10);
-	mainLayout->addWidget(m_checkbox);
 	connect(m_checkbox, &QCheckBox::toggled, this, &iAClusterAttribChart::Toggled);
+	layout()->addWidget(m_checkbox);
 
 	m_charts = new iAFilterChart(this, caption, data, nameMapper);
 	m_charts->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-	mainLayout->addWidget(m_charts);
-
-	setLayout(mainLayout);
+	layout()->addWidget(m_charts);
 
 	connect(m_charts, &iAFilterChart::dblClicked, this, &iAClusterAttribChart::ChartDblClicked);
 	connect(m_charts, &iAFilterChart::selectionChanged, this, &iAClusterAttribChart::SelectionChanged);

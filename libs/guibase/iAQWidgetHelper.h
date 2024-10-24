@@ -5,18 +5,18 @@
 #include <QWidget>
 
 template <class LayoutType>
-LayoutType* createLayout(int spacing = 4)
+LayoutType* createLayout(int spacing = 4, int margin = 0)
 {
 	auto layout = new LayoutType();
-	layout->setContentsMargins(0, 0, 0, 0);
+	layout->setContentsMargins(margin, margin, margin, margin);
 	layout->setSpacing(spacing);
 	return layout;
 }
 
 template <class LayoutType>
-QWidget* createLayoutWidget(int spacing = 4)
+QWidget* createLayoutWidget(int spacing = 4, int margin = 0)
 {
 	auto w = new QWidget();
-	w->setLayout(createLayout<LayoutType>(spacing));
+	w->setLayout(createLayout<LayoutType>(spacing, margin));
 	return w;
 }

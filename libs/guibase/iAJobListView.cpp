@@ -78,13 +78,10 @@ iAJobListView* iAJobListView::get()
 }
 
 iAJobListView::iAJobListView():
-	m_insideLayout(new QVBoxLayout)
+	m_insideLayout(createLayout<QVBoxLayout>(4, 4))
 {
-
 	auto insideWidget = new QWidget();
 	insideWidget->setLayout(m_insideLayout);
-	m_insideLayout->setContentsMargins(4, 4, 4, 4);
-	m_insideLayout->setSpacing(4);
 	m_insideLayout->addItem(new QSpacerItem(40, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
 
 	auto scrollWidget = new QScrollArea();
@@ -154,13 +151,9 @@ QWidget* iAJobListView::addJobWidget(std::shared_ptr<iAJob> j)
 	abortButton->setProperty("qssClass", "tbAbort");
 	abortButton->setEnabled(j->abortListener);
 
-	auto jobWidget = new QWidget();
+	auto jobWidget = createLayoutWidget<QHBoxLayout>(4, 4);
 	jobWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 	jobWidget->setProperty("qssClass", "jobWidget");
-	auto jobVLayout = new QHBoxLayout();
-	jobWidget->setLayout(jobVLayout);
-	jobWidget->layout()->setContentsMargins(4, 4, 4, 4);
-	jobWidget->layout()->setSpacing(4);
 	jobWidget->layout()->addWidget(statusWidget);
 	jobWidget->layout()->addWidget(abortButton);
 
