@@ -5,6 +5,8 @@
 #include "iAPreviewSPLOM.h"
 #include "FeatureAnalyzerHelpers.h"
 
+#include <iAQWidgetHelper.h>
+
 #include <QPixmap>
 #include <QDir>
 
@@ -14,11 +16,8 @@ iAPreviewSPLOMView::iAPreviewSPLOMView(QWidget* parent) :
 	m_slicePxmp( new QPixmap ),
 	m_datasetsLoaded( false )
 {
-	QHBoxLayout *layout = new QHBoxLayout( this );
-	layout->setContentsMargins(0, 0, 0, 0);
-	layout->setSpacing( 0 );
-	layout->addWidget( m_preview );
-	sliceWidget->setLayout( layout );
+	sliceWidget->setLayout( createLayout<QHBoxLayout>(0) );
+	sliceWidget->layout()->addWidget(m_preview);
 
 	spinBoxSliceNumber->setMinimum( 0 );
 

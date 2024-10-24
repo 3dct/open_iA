@@ -8,6 +8,7 @@
 #include "iAPerformanceHelper.h"    // for formatDuration
 #include "iAProgress.h"
 #include "iAQCropLabel.h"
+#include "iAQWidgetHelper.h"
 
 #include <QEventLoop>
 #include <QPainter>
@@ -136,26 +137,18 @@ QWidget* iAJobListView::addJobWidget(std::shared_ptr<iAJob> j)
 	auto remainingLabel = new iAQCropLabel("Remaining: unknown");
 	remainingLabel->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
 
-	auto timesWidget = new QWidget();
-	auto timesLayout = new QHBoxLayout();
-	timesWidget->setLayout(timesLayout);
+	auto timesWidget = createLayoutWidget<QHBoxLayout>(2);
 	timesWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-	timesLayout->setContentsMargins(0, 0, 0, 0);
-	timesLayout->setSpacing(2);
-	timesLayout->addWidget(elapsedLabel);
-	timesLayout->addWidget(remainingLabel);
+	timesWidget->layout()->addWidget(elapsedLabel);
+	timesWidget->layout()->addWidget(remainingLabel);
 
-	auto statusWidget = new QWidget();
-	auto statusLayout = new QVBoxLayout();
-	statusWidget->setLayout(statusLayout);
+	auto statusWidget = createLayoutWidget<QVBoxLayout>(2);
 	statusWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
-	statusLayout->setContentsMargins(0, 0, 0, 0);
-	statusLayout->setSpacing(2);
-	statusLayout->addWidget(titleLabel);
-	statusLayout->addWidget(statusLabel);
+	statusWidget->layout()->addWidget(titleLabel);
+	statusWidget->layout()->addWidget(statusLabel);
 	statusLabel->setVisible(false);
-	statusLayout->addWidget(timesWidget);
-	statusLayout->addWidget(progressBar);
+	statusWidget->layout()->addWidget(timesWidget);
+	statusWidget->layout()->addWidget(progressBar);
 
 	auto abortButton = new QToolButton();
 	abortButton->setProperty("qssClass", "tbAbort");

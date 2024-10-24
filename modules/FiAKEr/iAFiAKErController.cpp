@@ -19,12 +19,13 @@
 #include <iAQSplom.h>
 #include <iASPLOMData.h>
 
-// core
+// guibase
 #include <iAMapperImpl.h>
 #include <iAModuleDispatcher.h>
 #include <iARenderer.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
+#include <iAQWidgetHelper.h>
 
 // objectvis
 #include "iACsvConfig.h"
@@ -428,15 +429,12 @@ void iAFiAKErController::setupSettingsView()
 		}
 	}
 
-	m_showReferenceWidget = new QWidget();
+	m_showReferenceWidget = createLayoutWidget<QHBoxLayout>(ControlSpacing);
 	m_chkboxShowReference = new QCheckBox("Show ");
 	m_spnboxReferenceCount = new QSpinBox();
 	m_spnboxReferenceCount->setValue(1);
 	m_spnboxReferenceCount->setMinimum(1);
 	m_spnboxReferenceCount->setMaximum(1);
-	m_showReferenceWidget->setLayout(new QHBoxLayout());
-	m_showReferenceWidget->layout()->setContentsMargins(0, 0, 0, 0);
-	m_showReferenceWidget->layout()->setSpacing(ControlSpacing);
 	m_chkboxShowLines = new QCheckBox("Connect");
 	connect(m_spnboxReferenceCount, QOverload<int>::of(&QSpinBox::valueChanged), this, &iAFiAKErController::showReferenceCountChanged);
 #if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
@@ -665,9 +663,7 @@ QWidget* iAFiAKErController::setupResultListView()
 	m_resultsListLayout->addWidget(m_stackedBarsHeaders, 0, m_stackedBarColumn);
 	if (m_showCharts)
 	{
-		auto histHeader = new QWidget();
-		histHeader->setLayout(new QHBoxLayout());
-		histHeader->layout()->setContentsMargins(0, 0, 0, 0);
+		auto histHeader = createLayoutWidget<QHBoxLayout>();
 		histHeader->layout()->addWidget(m_colorByDistribution);
 		histHeader->layout()->addWidget(m_distributionChoice);
 		m_resultsListLayout->addWidget(histHeader, 0, m_histogramColumn);
@@ -694,9 +690,7 @@ QWidget* iAFiAKErController::setupResultListView()
 		ui.nameActions = new iASignallingWidget();
 		ui.nameActions->setAutoFillBackground(true);
 		ui.nameActions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		ui.nameActions->setLayout(new QVBoxLayout());
-		ui.nameActions->layout()->setContentsMargins(0, 0, 0, 0);
-		ui.nameActions->layout()->setSpacing(5);
+		ui.nameActions->setLayout(createLayout<QVBoxLayout>(5));
 		ui.topFiller = new QWidget();
 		ui.topFiller->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 		ui.bottomFiller = new QWidget();
@@ -811,10 +805,7 @@ QWidget * iAFiAKErController::setupSelectionView()
 	m_selectionList = new QListView();
 	m_selectionList->setModel(m_selectionListModel);
 	connect(m_selectionList, &QListView::clicked, this, &iAFiAKErController::selectionFromListActivated);
-	auto selectionListWrapper = new QWidget();
-	selectionListWrapper->setLayout(new QVBoxLayout());
-	selectionListWrapper->layout()->setContentsMargins(0, 0, 0, 0);
-	selectionListWrapper->layout()->setSpacing(ControlSpacing);
+	auto selectionListWrapper = createLayoutWidget<QVBoxLayout>(ControlSpacing);
 	selectionListWrapper->layout()->addWidget(new QLabel("Selections:"));
 	selectionListWrapper->layout()->addWidget(m_selectionList);
 	m_selectionDetailModel = new QStandardItemModel();
@@ -822,10 +813,7 @@ QWidget * iAFiAKErController::setupSelectionView()
 	m_selectionDetailsTree->setHeaderHidden(true);
 	m_selectionDetailsTree->setModel(m_selectionDetailModel);
 	connect(m_selectionDetailsTree, &QTreeView::clicked, this, &iAFiAKErController::selectionDetailsItemClicked);
-	auto selectionDetailWrapper = new QWidget();
-	selectionDetailWrapper->setLayout(new QVBoxLayout());
-	selectionDetailWrapper->layout()->setContentsMargins(0, 0, 0, 0);
-	selectionDetailWrapper->layout()->setSpacing(ControlSpacing);
+	auto selectionDetailWrapper = createLayoutWidget<QVBoxLayout>(ControlSpacing);
 	selectionDetailWrapper->layout()->addWidget(new QLabel("Details:"));
 	selectionDetailWrapper->layout()->addWidget(m_selectionDetailsTree);
 	auto selectionView = new QWidget();

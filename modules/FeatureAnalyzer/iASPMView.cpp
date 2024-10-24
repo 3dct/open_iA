@@ -6,6 +6,7 @@
 #include "iASelection.h"
 
 #include <iAQVTKWidget.h>
+#include <iAQWidgetHelper.h>
 
 #include <iASPLOMData.h>
 #include <iALookupTable.h>
@@ -33,11 +34,8 @@ iASPMView::iASPMView(iAMainWindow* mWnd, QWidget* parent):
 	m_sbRen( vtkSmartPointer<vtkRenderer>::New() ),
 	m_sbActor(vtkSmartPointer<vtkScalarBarActor>::New())
 {
-	QHBoxLayout *layoutHB2 = new QHBoxLayout( this );
-	layoutHB2->setContentsMargins(0, 0, 0, 0);
-	layoutHB2->setSpacing( 0 );
-	layoutHB2->addWidget( m_splom );
-	SPLOMWidget->setLayout( layoutHB2 );
+	SPLOMWidget->setLayout(createLayout<QHBoxLayout>(0));
+	SPLOMWidget->layout()->addWidget(m_splom);
 
 	initScalarBar();
 
@@ -68,11 +66,8 @@ void iASPMView::initScalarBar()
 	m_sbActor->VisibilityOff();
 	m_SBQVTKWidget->renderWindow()->AddRenderer( m_sbRen );
 	m_SBQVTKWidget->update();
-	QVBoxLayout *lutLayoutHB = new QVBoxLayout( this );
-	lutLayoutHB->setContentsMargins(0, 0, 0, 0);
-	lutLayoutHB->addWidget( m_SBQVTKWidget );
-	lutLayoutHB->update();
-	scalarBarWidget->setLayout( lutLayoutHB );
+	scalarBarWidget->setLayout( createLayout<QVBoxLayout>() );
+	scalarBarWidget->layout()->addWidget(m_SBQVTKWidget);
 }
 
 iASPMView::~iASPMView()

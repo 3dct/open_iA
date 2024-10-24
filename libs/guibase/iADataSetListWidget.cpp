@@ -3,6 +3,7 @@
 #include "iADataSetListWidget.h"
 
 #include "iADataSet.h"
+#include <iAQWidgetHelper.h>
 
 #include <QHeaderView>
 #include <QBoxLayout>
@@ -31,15 +32,6 @@ namespace
 		{   // auto-adjust width of column if necessary:
 			tw->setColumnWidth(col, minWidth);
 		}
-	}
-
-	QWidget* actionWidget()
-	{
-		auto w = new QWidget();
-		w->setLayout(new QHBoxLayout);
-		w->layout()->setContentsMargins(0, 0, 0, 0);
-		w->layout()->setSpacing(1);
-		return w;
 	}
 }
 
@@ -78,10 +70,10 @@ void iADataSetListWidget::addDataSet(iADataSet const* dataset, size_t dataSetIdx
 	int row = m_dataList->rowCount();
 	m_dataList->insertRow(row);
 	m_dataList->setItem(row, NameColumn, nameItem);
-	auto viewWidget = actionWidget();
+	auto viewWidget = createLayoutWidget<QHBoxLayout>(1);
 	viewWidget->layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Expanding, QSizePolicy::Fixed));
 	m_dataList->setCellWidget(row, ViewColumn, viewWidget);
-	m_dataList->setCellWidget(row, EditColumn, actionWidget());
+	m_dataList->setCellWidget(row, EditColumn, createLayoutWidget<QHBoxLayout>(1));
 	m_dataList->resizeColumnsToContents();
 }
 

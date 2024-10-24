@@ -7,6 +7,7 @@
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QLineEdit>
+#include <iAQWidgetHelper.h>
 #include <QToolButton>
 #include <QWidget>
 
@@ -32,10 +33,7 @@ public:
 	{
 		m_browseButton->setText("...");
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		setLayout(new QHBoxLayout);
-		layout()->setSpacing(0);
-		setContentsMargins(0, 0, 0, 0);
-		layout()->setContentsMargins(0, 0, 0, 0);
+		setLayout(createLayout<QHBoxLayout>(0));
 		layout()->setAlignment(Qt::AlignCenter);
 		layout()->addWidget(m_textEdit);
 		layout()->addWidget(m_browseButton);

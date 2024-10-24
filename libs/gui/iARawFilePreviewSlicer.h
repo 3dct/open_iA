@@ -10,15 +10,6 @@
 class vtkImageData;
 class vtkScalarsToColors;
 
-template <typename LayoutType>
-LayoutType* createLayout()
-{
-	auto layout = new LayoutType();
-	layout->setContentsMargins(0, 0, 0, 0);
-	layout->setSpacing(4);
-	return layout;
-}
-
 struct iARawFilePreviewSlicerImpl;
 
 class QVBoxLayout;

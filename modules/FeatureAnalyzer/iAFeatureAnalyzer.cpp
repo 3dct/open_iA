@@ -16,6 +16,7 @@
 #include <iADockWidgetWrapper.h>
 #include <iALog.h>
 #include <iACSVToQTableWidgetConverter.h>
+#include <iAQWidgetHelper.h>
 #include <iAITKIO.h>
 
 #include <iAProjectFileIO.h>
@@ -52,11 +53,8 @@ iAFeatureAnalyzer::iAFeatureAnalyzer(iAMainWindow* mWnd, const QString& resDir, 
 	m_visanMW->setTabPosition( Qt::AllDockWidgetAreas, QTabWidget::North );
 	m_visanMW->setParent( mainArea );
 
-	QVBoxLayout * visanLayout = new QVBoxLayout();
-	visanLayout->setContentsMargins(0, 0, 0, 0);
-	visanLayout->setSpacing( 0 );
-	visanLayout->addWidget( m_visanMW );
-	mainArea->setLayout( visanLayout );
+	mainArea->setLayout(createLayout<QVBoxLayout>(0));
+	mainArea->layout()->addWidget(m_visanMW);
 
 	selectionsExplorer->hide();
 
@@ -332,12 +330,9 @@ void iAFeatureAnalyzer::ShowSelections( bool checked )
 		m_treeView->hide();
 
 		m_selView->setParent( selectionsExplorer );
-		QVBoxLayout * layout = new QVBoxLayout();
-		layout->setContentsMargins(0, 0, 0, 0);
-		layout->setSpacing( 0 );
-		layout->addWidget( m_selView );
 		delete selectionsExplorer->layout();
-		selectionsExplorer->setLayout( layout );
+		selectionsExplorer->setLayout( createLayout<QVBoxLayout>(0) );
+		selectionsExplorer->layout()->addWidget(m_selView);
 		m_selView->show();
 		selectionsExplorer->show();
 	}
@@ -356,12 +351,9 @@ void iAFeatureAnalyzer::ShowTreeView( bool checked )
 		m_selView->hide();
 
 		m_treeView->setParent( selectionsExplorer );
-		QVBoxLayout * layout = new QVBoxLayout();
-		layout->setContentsMargins(0, 0, 0, 0);
-		layout->setSpacing( 0 );
-		layout->addWidget( m_treeView );
 		delete selectionsExplorer->layout();
-		selectionsExplorer->setLayout( layout );
+		selectionsExplorer->setLayout( createLayout<QVBoxLayout>(0) );
+		selectionsExplorer->layout()->addWidget(m_treeView);
 		m_treeView->show();
 		selectionsExplorer->show();
 	}

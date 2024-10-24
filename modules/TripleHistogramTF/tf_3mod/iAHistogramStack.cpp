@@ -10,6 +10,7 @@
 
 #include <iATransferFunction.h>
 #include <iAChartWithFunctionsWidget.h>
+#include <iAQWidgetHelper.h>
 
 #include <QComboBox>
 #include <QHBoxLayout>
@@ -61,12 +62,9 @@ void iAHistogramStack::initialize(std::array<QString, 3> const names)
 
 	m_grid = new iAHistogramStackGrid(this, histograms, slicers, m_labels);
 
-	QWidget *leftWidget = new QWidget();
-	QVBoxLayout *leftWidgetLayout = new QVBoxLayout(leftWidget);
-	leftWidgetLayout->setSpacing(1);
-	leftWidgetLayout->setContentsMargins(0, 0, 0, 0);
-	leftWidgetLayout->addWidget(optionsContainer);
-	leftWidgetLayout->addWidget(m_grid);
+	QWidget *leftWidget = createLayoutWidget<QVBoxLayout>(1);
+	leftWidget->layout()->addWidget(optionsContainer);
+	leftWidget->layout()->addWidget(m_grid);
 
 	m_splitter = new QSplitter(Qt::Horizontal);
 	m_splitter->addWidget(leftWidget);

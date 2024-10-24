@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#include "iAValueType.h"
+#include <iAQWidgetHelper.h>
+
+#include <iAValueType.h>
 
 #include <QApplication>
 #include <QColorDialog>
@@ -25,10 +27,8 @@ public:
 		m_colorIndicator(new QLabel(this)),
 		m_colorDialogButton(new QToolButton(this))
 	{
-		setLayout(new QHBoxLayout);
+		setLayout(createLayout<QHBoxLayout>());
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		layout()->setContentsMargins(0, 0, 0, 0);
-		layout()->setSpacing(4);
 		layout()->addWidget(m_lineEdit);
 		m_colorIndicator->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		m_colorIndicator->setAutoFillBackground(true);

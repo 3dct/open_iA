@@ -19,6 +19,7 @@
 #include <iALUT.h>
 #include <iATransferFunction.h>
 #include <iANameMapper.h>
+#include <iAQWidgetHelper.h>
 #include <iAVtkDraw.h>
 #include <iAToolsITK.h>
 #include <iAToolsVTK.h>
@@ -77,15 +78,10 @@ iADetailView::iADetailView(iAImagePreviewWidget* prevWdgt, iAImagePreviewWidget*
 
 	m_pbGoto->setStyleSheet("qproperty-icon: url(:/images/GEMSe_goto.png); background-color: "+DefaultColors::BackgroundColorText+"; border:none;");
 
-	QHBoxLayout* buttonLay = new QHBoxLayout();
-	buttonLay->setSpacing(0);
-	buttonLay->setContentsMargins(0, 0, 0, 0);
-	buttonLay->addWidget(m_pbLike);
-	buttonLay->addWidget(m_pbHate);
-	buttonLay->addWidget(m_pbGoto);
-
-	QWidget * buttonBar = new QWidget();
-	buttonBar->setLayout(buttonLay);
+	QWidget * buttonBar = createLayoutWidget<QHBoxLayout>(0);
+	buttonBar->layout()->addWidget(m_pbLike);
+	buttonBar->layout()->addWidget(m_pbHate);
+	buttonBar->layout()->addWidget(m_pbGoto);
 	buttonBar->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 	buttonBar->setFixedHeight(25);
 
@@ -141,14 +137,9 @@ iADetailView::iADetailView(iAImagePreviewWidget* prevWdgt, iAImagePreviewWidget*
 	QWidget* buttonBarStandin = new QWidget();
 	buttonBarStandin->setFixedHeight(25);
 
-	QVBoxLayout* comparisonLayout = new QVBoxLayout();
-	comparisonLayout->setSpacing(0);
-	comparisonLayout->setContentsMargins(0, 0, 0, 0);
-	comparisonLayout->addWidget(m_compareWidget);
-	comparisonLayout->addWidget(buttonBarStandin);
-
-	QWidget *comparisonContainer = new QWidget();
-	comparisonContainer->setLayout(comparisonLayout);
+	QWidget *comparisonContainer = createLayoutWidget<QVBoxLayout>(0);
+	comparisonContainer->layout()->addWidget(m_compareWidget);
+	comparisonContainer->layout()->addWidget(buttonBarStandin);
 
 	QTabWidget * tw = new QTabWidget();
 	tw->setContentsMargins(0, 0, 0, 0);

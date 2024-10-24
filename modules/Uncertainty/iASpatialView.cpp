@@ -7,6 +7,7 @@
 
 #include <iAChannelData.h>
 #include <iALog.h>
+#include <iAQWidgetHelper.h>
 #include <iASlicer.h>
 #include <iASlicerMode.h>
 #include <iATransferFunction.h>
@@ -72,11 +73,8 @@ iASpatialView::iASpatialView(): QWidget(),
 	m_sliceBar->layout()->addWidget(sliceButtonBar);
 	m_sliceBar->layout()->addWidget(m_sliceControl);
 
-	m_contentWidget = new QWidget();
-	m_contentWidget->setLayout(new QHBoxLayout());
+	m_contentWidget = createLayoutWidget<QHBoxLayout>(4);
 	m_contentWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Expanding);
-	m_contentWidget->layout()->setSpacing(4);
-	m_contentWidget->layout()->setContentsMargins(0, 0, 0, 0);
 
 	m_imageBar = new QWidget();
 	m_imageBar->setLayout(new iAQFlowLayout(0, 4, 4));
@@ -163,11 +161,6 @@ void iASpatialView::AddImageDisplay(int idx)
 		return;
 	}
 	ImageGUIElements gui;
-	gui.container = new QWidget();
-	gui.container->setLayout(new QVBoxLayout());
-	gui.container->layout()->setSpacing(4);
-	gui.container->layout()->setContentsMargins(0, 0, 0, 0);
-
 	vtkScalarsToColors* colors = m_labelImgLut;
 	if (m_images[idx].caption.contains("Uncertainty"))
 	{
@@ -177,6 +170,7 @@ void iASpatialView::AddImageDisplay(int idx)
 	auto label = new QLabel(m_images[idx].caption);
 	label->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Fixed);
 	label->setAlignment(Qt::AlignHCenter);
+	gui.container = createLayoutWidget<QVBoxLayout>(4);
 	gui.container->layout()->addWidget(label);
 	gui.container->layout()->addWidget(gui.imageWidget);
 	m_contentWidget->layout()->addWidget(gui.container);

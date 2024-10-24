@@ -4,6 +4,7 @@
 
 #include "iaguibase_export.h"
 
+#include "iAQWidgetHelper.h"
 #include "iAValueType.h"
 #include "iAValueTypeVectorHelpers.h"
 
@@ -24,10 +25,8 @@ public:
 	iAVectorInput(QWidget* parent, iAValueType valueType, int vecLength, QVariant const& values) :
 		QWidget(parent), m_inputs(vecLength), m_valueType(valueType)
 	{
-		setLayout(new QHBoxLayout);
+		setLayout(createLayout<QHBoxLayout>(4));
 		setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-		layout()->setContentsMargins(0, 0, 0, 0);
-		layout()->setSpacing(4);
 		for (int i = 0; i < vecLength; ++i)
 		{
 			layout()->addWidget(new QLabel(ComponentNames[i]));

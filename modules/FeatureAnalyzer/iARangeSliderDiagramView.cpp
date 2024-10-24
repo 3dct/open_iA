@@ -195,7 +195,6 @@ void iARangeSliderDiagramView::addComboBoxes()
 	m_comboBoxContainer->setFixedWidth( 200 );
 	m_layoutHBComboBoxes = new QHBoxLayout(this);
 	m_layoutHBComboBoxes->setContentsMargins(0, 0, 0, 0);
-	m_layoutHBComboBoxes->setContentsMargins( 0, 0, 0, 0 );
 
 	m_cbPorDev = new QComboBox();
 	m_cbPorDev->addItem( m_rawTable->item( 0, m_rawTable->columnCount() - 4 )->text() ); // Porosity

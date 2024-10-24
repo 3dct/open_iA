@@ -3,8 +3,9 @@
 #include "iARawFilePreviewSlicer.h"
 
 #include <iALog.h>
-#include <iAQVTKWidget.h>
 #include <iAProgress.h>
+#include <iAQVTKWidget.h>
+#include <iAQWidgetHelper.h>
 #include <iARunAsync.h>
 #include <iASlicerMode.h>
 #include <iATypedCallHelper.h>

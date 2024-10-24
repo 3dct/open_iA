@@ -10,6 +10,7 @@
 #include <iACPUID.h>
 #include <iACSVToQTableWidgetConverter.h>
 #include <iAMainWindow.h>
+#include <iAQWidgetHelper.h>
 
 #include <QAction>
 #include <QDebug>
@@ -137,16 +138,13 @@ void iAFeatureAnalyzerComputationModuleInterface::computeParameterSpace()
 	groupBoxFilters->setLayout( gbFiltersLayout );
 
 	// Pipeline box
-	QGroupBox *m_groupBoxPipeline = new QGroupBox( tr( "Pipeline" ), uiComputeSegm.dragWidget );
-	m_groupBoxPipeline->setObjectName( "groupBoxPipeline" );
-	m_groupBoxPipeline->setStyleSheet( "QGroupBox::title{ color: gray }" );
-	m_groupBoxPipeline->setFixedHeight( 530 );
-	m_groupBoxPipeline->setFixedWidth( m_pipelineSlotIconSize.width() * m_pipelineSlotsCount + 30 );
+	auto groupBoxPipeline = new QGroupBox( tr( "Pipeline" ), uiComputeSegm.dragWidget );
+	groupBoxPipeline->setObjectName( "groupBoxPipeline" );
+	groupBoxPipeline->setStyleSheet( "QGroupBox::title{ color: gray }" );
+	groupBoxPipeline->setFixedHeight( 530 );
+	groupBoxPipeline->setFixedWidth( m_pipelineSlotIconSize.width() * m_pipelineSlotsCount + 30 );
 
-	QWidget *dropHintContainer = new QWidget( m_groupBoxPipeline );
-	QHBoxLayout *hLayoutDropHintContainer = new QHBoxLayout;
-	hLayoutDropHintContainer->setContentsMargins(0, 0, 0, 0);
-	hLayoutDropHintContainer->setSpacing( 0 );
+	QWidget *dropHintContainer = createLayoutWidget<QHBoxLayout>(0);
 	QTextEdit *lHint = new QTextEdit( dropHintContainer );
 	lHint->setFrameStyle( QFrame::StyledPanel | QFrame::Sunken );
 	lHint->setStyleSheet( "QTextEdit { background-color : #ffffe1; color : black; border: 1px solid black; }" );
@@ -158,13 +156,10 @@ void iAFeatureAnalyzerComputationModuleInterface::computeParameterSpace()
 	lHint->setReadOnly( true );
 	//lHint->setVerticalScrollBarPolicy( Qt::ScrollBarAlwaysOff );
 	lHint->setFixedHeight( 100 );
-	hLayoutDropHintContainer->addWidget( lHint );
-	dropHintContainer->setLayout( hLayoutDropHintContainer );
+	dropHintContainer->layout()->addWidget(lHint);
 
-	QWidget *dropModPipelineButtonsContainer = new QWidget( m_groupBoxPipeline );
-	QHBoxLayout *hLayoutDropModPipelineButtonsContainer = new QHBoxLayout;
-	hLayoutDropModPipelineButtonsContainer->setAlignment( Qt::AlignLeft );
-	hLayoutDropModPipelineButtonsContainer->setContentsMargins(0, 0, 0, 0);
+	auto dropModPipelineButtonsContainer = createLayoutWidget<QHBoxLayout>();
+	dropModPipelineButtonsContainer->layout()->setAlignment( Qt::AlignLeft );
 	QToolButton *btIncPipeline = new QToolButton( dropModPipelineButtonsContainer );
 	btIncPipeline->setObjectName( "incPipelineButton" );
 	QPixmap incImage( ":/images/add_pipe_slot.png" );
@@ -172,7 +167,7 @@ void iAFeatureAnalyzerComputationModuleInterface::computeParameterSpace()
 	btIncPipeline->setIconSize( QSize( 23, 23 ) );
 	btIncPipeline->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 1px solid black; }" );
 	btIncPipeline->setToolTip( "Adds a new slot to the pipeline." );
-	hLayoutDropModPipelineButtonsContainer->addWidget( btIncPipeline );
+	dropModPipelineButtonsContainer->layout()->addWidget(btIncPipeline);
 	QToolButton *btDecPipeline = new QToolButton( dropModPipelineButtonsContainer );
 	btDecPipeline->setObjectName( "decPipelineButton" );
 	QPixmap decImage( ":/images/rem_pipe_slot.png" );
@@ -180,41 +175,33 @@ void iAFeatureAnalyzerComputationModuleInterface::computeParameterSpace()
 	btDecPipeline->setIconSize( QSize( 23, 23 ) );
 	btDecPipeline->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 1px solid black; }" );
 	btDecPipeline->setToolTip( "Removes a slot from the pipeline." );
-	hLayoutDropModPipelineButtonsContainer->addWidget( btDecPipeline );
-	dropModPipelineButtonsContainer->setLayout( hLayoutDropModPipelineButtonsContainer );
+	dropModPipelineButtonsContainer->layout()->addWidget( btDecPipeline );
 
-	QWidget *m_dropPipelineContainer = new QWidget( m_groupBoxPipeline );
-	m_dropPipelineContainer->setObjectName( "dropPipelineContainer" );
-	m_dropPipelineContainer->setFixedWidth( m_pipelineSlotIconSize.width() * m_pipelineSlotsCount );
-	QHBoxLayout *m_hLayoutDropPipelineContainer = new QHBoxLayout;
-	iADropPipelineWidget* m_dropPipelineWidget = new iADropPipelineWidget( m_pipelineSlotIconSize.width() * m_pipelineSlotsCount,
-																		   m_pipelineSlotsCount, m_datasetsFolder, m_dropPipelineContainer );
-	m_dropPipelineWidget->setObjectName( "dropPipelineWidget" );
-	m_hLayoutDropPipelineContainer->addWidget( m_dropPipelineWidget );
-	m_hLayoutDropPipelineContainer->setContentsMargins(0, 0, 0, 0);
-	m_hLayoutDropPipelineContainer->setSpacing( 0 );
-	m_dropPipelineContainer->setLayout( m_hLayoutDropPipelineContainer );
+	auto dropPipelineContainer = createLayoutWidget<QHBoxLayout>(0);
+	dropPipelineContainer->setObjectName( "dropPipelineContainer" );
+	dropPipelineContainer->setFixedWidth( m_pipelineSlotIconSize.width() * m_pipelineSlotsCount );
+	auto dropPipelineWidget = new iADropPipelineWidget( m_pipelineSlotIconSize.width() * m_pipelineSlotsCount,
+			m_pipelineSlotsCount, m_datasetsFolder, dropPipelineContainer );
+	dropPipelineWidget->setObjectName( "dropPipelineWidget" );
+	dropPipelineContainer->layout()->addWidget(dropPipelineWidget);
 	btIncPipeline->setIcon( QIcon( incImage ) );
 	btIncPipeline->setIconSize( QSize( 23, 23 ) );
-	QWidget *dropAcceptPipelineButtonsContainer = new QWidget( m_groupBoxPipeline );
-	QHBoxLayout *hLayoutDropAcceptPipelineButtonsContainer = new QHBoxLayout;
-	hLayoutDropAcceptPipelineButtonsContainer->setAlignment( Qt::AlignRight );
-	hLayoutDropAcceptPipelineButtonsContainer->setContentsMargins(0, 0, 0, 0);
-	QToolButton *btClearPipeline = new QToolButton( dropAcceptPipelineButtonsContainer );
+	auto dropAcceptPipelineButtonsContainer = createLayoutWidget<QHBoxLayout>();
+	dropAcceptPipelineButtonsContainer->layout()->setAlignment( Qt::AlignRight );
+	auto btClearPipeline = new QToolButton( dropAcceptPipelineButtonsContainer );
 	QPixmap remImage( ":/images/rem_pipe.png" );
 	btClearPipeline->setIcon( QIcon( remImage ) );
 	btClearPipeline->setIconSize( QSize( 23, 23 ) );
 	btClearPipeline->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 1px solid black; }" );
 	btClearPipeline->setToolTip( "Deletes the entire pipeline." );
-	hLayoutDropAcceptPipelineButtonsContainer->addWidget( btClearPipeline );
-	QToolButton *btAddPipeline = new QToolButton( dropAcceptPipelineButtonsContainer );
+	dropAcceptPipelineButtonsContainer->layout()->addWidget( btClearPipeline );
+	auto btAddPipeline = new QToolButton( dropAcceptPipelineButtonsContainer );
 	QPixmap accImage( ":/images/acc_pipe.png" );
 	btAddPipeline->setIcon( QIcon( accImage ) );
 	btAddPipeline->setIconSize( QSize( 23, 23 ) );
 	btAddPipeline->setStyleSheet( "QToolTip { color: black; background-color: #ffffe1; border: 1px solid black; }" );
 	btAddPipeline->setToolTip( "Adds the pipeline to the table below." );
-	hLayoutDropAcceptPipelineButtonsContainer->addWidget( btAddPipeline );
-	dropAcceptPipelineButtonsContainer->setLayout( hLayoutDropAcceptPipelineButtonsContainer );
+	dropAcceptPipelineButtonsContainer->layout()->addWidget( btAddPipeline );
 
 	QWidget* vSpacer1 = new QWidget();
 	vSpacer1->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Fixed );
@@ -225,14 +212,14 @@ void iAFeatureAnalyzerComputationModuleInterface::computeParameterSpace()
 	gbPipelineLayout->addWidget( dropHintContainer );
 	gbPipelineLayout->addWidget( vSpacer1 );
 	gbPipelineLayout->addWidget( dropModPipelineButtonsContainer );
-	gbPipelineLayout->addWidget( m_dropPipelineContainer );
+	gbPipelineLayout->addWidget( dropPipelineContainer );
 	gbPipelineLayout->addWidget( dropAcceptPipelineButtonsContainer );
 	gbPipelineLayout->addWidget( vSpacer2 );
-	m_groupBoxPipeline->setLayout( gbPipelineLayout );
+	groupBoxPipeline->setLayout( gbPipelineLayout );
 
 	uiComputeSegm.dragWidget->layout()->addWidget( groupBoxDatasets );
 	uiComputeSegm.dragWidget->layout()->addWidget( groupBoxFilters );
-	uiComputeSegm.dragWidget->layout()->addWidget( m_groupBoxPipeline );
+	uiComputeSegm.dragWidget->layout()->addWidget( groupBoxPipeline );
 
 	connect(btClearPipeline, &QPushButton::clicked, this, &iAFeatureAnalyzerComputationModuleInterface::clearPipeline);
 	connect(btAddPipeline, &QPushButton::clicked, this,   &iAFeatureAnalyzerComputationModuleInterface::addPipeline);
