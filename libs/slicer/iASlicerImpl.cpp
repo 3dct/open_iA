@@ -843,12 +843,14 @@ void iASlicerImpl::setSlicerRange(uint channelID)
 		int axis1 = mapSliceToGlobalAxis(m_mode, axis);   //< global index of "current" axis in slicer; should be set to middle slice
 		int axis2 = mapSliceToGlobalAxis(m_mode, 1-axis); //< global index of "other" axis in slicer; varies from min to max
 		pt[axis] = (ext[axis1 * 2] + (ext[axis1 * 2 + 1] - ext[axis1 * 2]) / 2.0) * spc[axis1];
-		pt[1 - axis] = ext[axis2 * 2] * spc[axis2];
+		// -1 / +1 to make lines go a little beyond the edges of the dataset; even to reach the edges one would have to use 0.5 already:
+		pt[1 - axis] = (ext[axis2 * 2] - 1) * spc[axis2];
 		m_otherSliceAxes[axis].source->SetPoint1(pt);
-		pt[1 - axis] = ext[axis2 * 2 + 1] * spc[axis2];
+		pt[1 - axis] = (ext[axis2 * 2 + 1] + 1) * spc[axis2];
 		m_otherSliceAxes[axis].source->SetPoint2(pt);
-		auto c = slicerColor(static_cast<iASlicerMode>(axis1));
+		auto c = axisColor(axis1);
 		m_otherSliceAxes[axis].actor->GetProperty()->SetColor(c.redF(), c.greenF(), c.blueF());
+		//m_otherSliceAxes[axis].actor->GetProperty()->SetLineWidth(10);
 		m_otherSliceAxes[axis].mapper->Update();
 	}
 	emit sliceRangeChanged(minIdx, maxIdx, m_sliceNumber);
