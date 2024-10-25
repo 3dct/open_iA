@@ -769,9 +769,11 @@ void MainWindow::prefs()
 	addAttr(params, "Looks", iAValueType::Categorical, looks);
 	addAttr(params, "Font size", iAValueType::Discrete, QString::number(p.FontSize), 4, 120);
 	addAttr(params, "Size limit for automatic 3D rendering (MB)", iAValueType::Discrete, p.LimitForAuto3DRender, 0);
-	auto axisColorThemes = QStringList() << "Default (X=red, Y=green, Z=blue)" << "Colorblind safe (Brewer 3-class Dark2)";
-	axisColorThemes[axisColorMode()] = "!" + axisColorThemes[axisColorMode()];
-	addAttr(params, "Axis colors", iAValueType::Categorical, axisColorThemes);
+	const auto AxisColorThemes = QStringList() << "Default (X=red, Y=green, Z=blue)" << "Colorblind safe (Brewer 3-class Dark2)";
+	auto axisColorThemeSel(AxisColorThemes);
+	axisColorThemeSel[axisColorMode()] = "!" + axisColorThemeSel[axisColorMode()];
+	const QString AxisColors("Axis colors");
+	addAttr(params, AxisColors, iAValueType::Categorical, axisColorThemeSel);
 	iAParameterDlg dlg(this, PrefNiceName, params, descr);
 	if (dlg.exec() != QDialog::Accepted)
 	{
@@ -803,7 +805,7 @@ void MainWindow::prefs()
 	{
 		activeMDI()->applyPreferences(m_defaultPreferences);
 	}
-	axisColorMode() = axisColorThemes.indexOf(values["Axis colors"].toString());
+	axisColorMode() = AxisColorThemes.indexOf(values[AxisColors].toString());
 	iALogWidget::get()->setLogToFile(logToFile, logFileName, true);
 }
 
