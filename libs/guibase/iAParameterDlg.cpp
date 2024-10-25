@@ -71,6 +71,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 	auto formLayout = createLayout<QVBoxLayout>();
 	m_buttonBox = new QDialogButtonBox();
 	m_buttonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
+	m_buttonBox->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 	connect(m_buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
 	connect(m_buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 	if (title.isEmpty())
@@ -94,8 +95,6 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 		info->setDocument(doc);
 		info->setReadOnly(true);
 		info->setOpenExternalLinks(true);
-		// make sure that description can be easily resized; parameters have scroll bar
-		scrollArea->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
 		auto s = new QSplitter(Qt::Vertical);
 		s->addWidget(info);
