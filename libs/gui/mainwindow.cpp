@@ -217,6 +217,7 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	m_moduleDispatcher( new iAModuleDispatcher( this ) ),
 	m_gitVersion(version),
 	m_buildInformation(buildInformation),
+	m_openFileGroup(new QActionGroup(this)),
 	m_ui(std::make_shared<Ui_MainWindow>()),
 	m_dwJobs(new iADockWidgetWrapper(iAJobListView::get(), "Job List", "Jobs")),
 	m_openJobListOnNewJob(false)
@@ -1067,9 +1068,6 @@ void MainWindow::updateMagicLens2DCheckState(bool enabled)
 void MainWindow::updateWindowMenu()
 {
 	auto windows = mdiChildList();
-	static QActionGroup* group = nullptr;
-	delete group;
-	group = new QActionGroup(this);
 	m_ui->menuOpenWindows->clear();
 	for (int i = 0; i < windows.size(); ++i)
 	{
@@ -1079,7 +1077,7 @@ void MainWindow::updateWindowMenu()
 		QAction* action = m_ui->menuOpenWindows->addAction(text);
 		action->setCheckable(true);
 		action->setChecked(child == activeMdiChild());
-		group->addAction(action);
+		m_openFileGroup->addAction(action);
 		connect(action, &QAction::triggered, [this, child]
 		{
 			setActiveSubWindow(qobject_cast<QWidget*>(child->parent()) );
