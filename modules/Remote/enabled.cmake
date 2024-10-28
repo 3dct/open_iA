@@ -54,7 +54,7 @@ if (CUDAToolkit_FOUND)
 endif()
 
 if (openiA_TESTING_ENABLED)
-	add_openfile_test(NAME "ArbitrarySlicePlane" FILENAME "ArbitrarySlicePlane.iaproj")
+	add_openfile_test(NAME "FreeSlicePlane" FILENAME "FreeSlicePlane.iaproj")
 	add_openfile_test(NAME "Remote-Unity" FILENAME "Remote-Unity.iaproj")
 	add_openfile_test(NAME "Remote-RemoteRender" FILENAME "Remote-RemoteRender.iaproj")
 endif()

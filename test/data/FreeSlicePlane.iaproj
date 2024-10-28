@@ -41,7 +41,7 @@ Specular%20power=10
 TransferFunction="<settings><functions><transfer><node blue=\"0\" green=\"0\" opacity=\"0.256522\" red=\"0\" value=\"0.0014223\"/><node blue=\"0\" green=\"0.666667\" opacity=\"0.252174\" red=\"0\" value=\"0.997489\"/></transfer></functions></settings>"
 Volumetric%20Scattering%20Blending=-1
 
-[Arbitrary%20Slice%20Plane]
+[Free%20Slice%20Plane]
 SnapshotCount=3
 Snapshot0="1;0.015, 0.015, 0.015;0, 0, 1"
 Snapshot1="2;0.015, 0.015, 0.015;0, -1, 0"
