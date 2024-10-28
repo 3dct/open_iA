@@ -305,7 +305,7 @@ private:
 	{
 		std::array<float, N> values{};
 		readArray(rcvStream, values);
-		LOG(lvlDebug, QString("    values=%1; broadcasting!").arg(arrayToString(values)));
+		//LOG(lvlDebug, QString("    values=%1; broadcasting!").arg(arrayToString(values)));
 		broadcastMsg(msgObjectCommand(objID, objCmdType, values), clientID);
 
 		if (objID == 0)  // if info about object
@@ -451,9 +451,9 @@ private:
 			{
 				// TODO: TEST / Check whether used!
 				assert(N == 3);
-				LOG(lvlInfo, QString("  Received pos = (%1)").arg(arrayToString(dblVal)));
+				//LOG(lvlInfo, QString("  Received pos = (%1)").arg(arrayToString(dblVal)));
 				unitToObjectPos(dblVal);
-				LOG(lvlInfo, QString("  Setting pos = (%1)").arg(arrayToString(dblVal)));
+				//LOG(lvlInfo, QString("  Setting pos = (%1)").arg(arrayToString(dblVal)));
 				//cam->SetPosition(dblVal.data());
 				iAVec3d pos(dblVal.data());
 				vis->update(pos, vis->dir(), vis->up());
@@ -1055,7 +1055,7 @@ private:
 				ObjectCommandType objCommand;
 				rcvStream >> objCommand;
 				auto objID = readVal<quint64>(rcvStream);
-				LOG(lvlDebug, QString("  Object subcommand %1 for object ID %2").arg(static_cast<int>(objCommand)).arg(objID));
+				//LOG(lvlDebug, QString("  Object subcommand %1 for object ID %2").arg(static_cast<int>(objCommand)).arg(objID));
 				switch (objCommand)
 				{
 				case ObjectCommandType::SetMatrix:
@@ -1214,8 +1214,7 @@ private:
 		}
 		else
 		{
-			LOG(lvlInfo, QString("Client advertised supported protocol version %1, sending ACK...")
-				.arg(clientProtocolVersion));
+			//LOG(lvlDebug, QString("Client advertised supported protocol version %1, sending ACK...").arg(clientProtocolVersion));
 			sendMessage(clientID, MessageType::ACK);
 			sendClientID(clientID);
 			sendSnapshots(clientID);
