@@ -58,6 +58,21 @@ public:
 	vtkTypeMacro(iAvtkPlaneWidget, vtkPlaneWidget);
 	static iAvtkPlaneWidget* New();
 
+	void SetEnabled(int enabling) override
+	{
+		vtkPlaneWidget::SetEnabled(enabling);
+		vtkNew<vtkProperty> propRed;
+		propRed->SetColor(1, 0, 0);
+		Handle[0]->SetProperty(propRed);     //  -> Origin
+		vtkNew<vtkProperty> propGreen;
+		propGreen->SetColor(0, 1, 0);
+		Handle[1]->SetProperty(propGreen);   //  -> Pt1
+		vtkNew<vtkProperty> propBlue;
+		propBlue->SetColor(0, 0, 1);
+		Handle[2]->SetProperty(propBlue);    //  -> Pt2
+		// 3 would be -> Far Corner
+	}
+
 	//! The "automatic" handle size from vtkPlaneWidget somehow doesn't work at all for us - it produces far too small handles for large planes.
 	//! Also, it completely ignores the user-settable "HandleSize" and only uses the (internal) HandleSizeFactor for resizing
 	//! Workaround: specify a fixed handle size in relation to the dataset size.
