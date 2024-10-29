@@ -20,7 +20,6 @@
 #include <iALog.h>
 #include <iAStringHelper.h>
 
-#include <vtkAbstractTransform.h>
 #include <vtkCallbackCommand.h>
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
@@ -43,11 +42,11 @@
 #include <QHeaderView>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QSettings>
 #include <QTableWidget>
 #include <QToolButton>
 
+// for iAQHideableSection:
 #include <QParallelAnimationGroup>
 #include <QPropertyAnimation>
 #include <QScrollArea>
@@ -505,8 +504,6 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 
 	m_planeWidget->SetInteractor(child->renderer()->interactor());
 	//m_planeWidget->SetRepresentationToSurface();
-	m_planeWidget->On();
-	m_planeWidget->SizeHandles();
 
 	m_reslicer->SetInputData(child->firstImageData());
 	m_reslicer->SetSliceFacesCamera(true);
@@ -563,6 +560,8 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 
 	// set to middle of object in z direction (i.e. xy slice default position)
 	resetPlaneParameters(iAAxisIndex::Z, true);
+	m_planeWidget->On();
+	m_planeWidget->SizeHandles();
 }
 
 iAPlaneSliceTool::~iAPlaneSliceTool()
@@ -742,27 +741,29 @@ void iAPlaneSliceTool::resetPlaneParameters(iAAxisIndex axis, bool posSign)
 void iAPlaneSliceTool::setAxisAligned(iAAxisIndex axis, bool posSign, double slicePos)
 {
 	m_lastSceneBounds = m_child->renderer()->sceneBounds();
+	auto sxi = mapSliceToGlobalAxis(axis, iAAxisIndex::X);
+	auto syi = mapSliceToGlobalAxis(axis, iAAxisIndex::Y);
+	auto minC = m_lastSceneBounds.minCorner();
+	auto maxC = m_lastSceneBounds.maxCorner();
 	// slicePos is local to volume dataset (without origin), but slicer expects it to be global coords -> add origin:
-	slicePos += m_lastSceneBounds.minCorner()[axis];
+	slicePos += minC[axis];
 
-	auto p2i = mapSliceToGlobalAxis(static_cast<iASlicerMode>(axis), iAAxisIndex::X);
-	auto p1i = mapSliceToGlobalAxis(static_cast<iASlicerMode>(axis), iAAxisIndex::Y);
-
-	auto corner1 = m_lastSceneBounds.minCorner();
-	auto corner2 = m_lastSceneBounds.maxCorner();
-
-	iAVec3d origin;
-	origin[p1i] = posSign ? corner1[p1i] : corner2[p1i];
-	origin[p2i] = corner2[p2i];
+	// normal of plane is aligned such that what local x and y axis of slicer map to are aligned horizontally / vertically;
+	// this means that for slices along the y axis, the direction is "reversed" in comparison to the two other slice modes
+	// (that is, for the Y axis, for +Y, the viewing direction of the user is along the axis "plus" direction;
+	// while for X and Z, the viewing direction is opposite to the axis "plus" direction)
+	iAVec3d origin;             // to reverse normal for Y axis, use commented code below; but then the x axis of the Y slices is "flipped"
+	origin[sxi] = maxC[sxi];    // (axis == iAAxisIndex::Y) ? minC[sxi] : maxC[sxi]
+	origin[syi] = posSign ? minC[syi] : maxC[syi];
 	origin[axis] = slicePos;
 	m_planeWidget->SetOrigin(origin.data());
 
 	auto pt1 = origin;
-	pt1[p1i] = posSign ? corner2[p1i] : corner1[p1i];
+	pt1[syi] = posSign ? maxC[syi] : minC[syi];
 	m_planeWidget->SetPoint1(pt1.data());
 
 	auto pt2 = origin;
-	pt2[p2i] = corner1[p2i];
+	pt2[sxi] = minC[sxi];       // (axis == iAAxisIndex::Y) ? maxC[sxi] : minC[sxi]
 	m_planeWidget->SetPoint2(pt2.data());
 
 	m_child->updateRenderer();
