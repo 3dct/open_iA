@@ -136,13 +136,6 @@ void iAChannelSlicerData::updateResliceAxesDirectionCosines(int mode)
 	}
 }
 
-/*
-bool iAChannelSlicerData::isInitialized() const
-{
-	return m_isInitialized;
-}
-*/
-
 vtkScalarsToColors* iAChannelSlicerData::colorTF()
 {
 	return m_cTF;
@@ -161,8 +154,6 @@ void iAChannelSlicerData::updateMapper()
 void iAChannelSlicerData::setTransform(vtkAbstractTransform* transform)
 {
 	m_reslicer->SetResliceTransform(transform);
-	//if (input())
-	//	m_reslicer->UpdateWholeExtent(); // TODO: check if we need this here
 }
 
 void iAChannelSlicerData::updateReslicer()
@@ -263,7 +254,9 @@ void iAChannelSlicerData::setContours(int numberOfContours, double const* contou
 {
 	m_contourFilter->SetNumberOfContours(numberOfContours);
 	for (int i = 0; i < numberOfContours; ++i)
+	{
 		m_contourFilter->SetValue(i, contourValues[i]);
+	}
 	m_contourFilter->Update();
 }
 
@@ -276,7 +269,9 @@ void iAChannelSlicerData::setContourLineParams(double lineWidth, bool dashed)
 {
 	m_contourActor->GetProperty()->SetLineWidth(lineWidth);
 	if (dashed)
+	{
 		m_contourActor->GetProperty()->SetLineStipplePattern(0xff00);
+	}
 }
 
 void iAChannelSlicerData::setContoursColor(double* rgb)
