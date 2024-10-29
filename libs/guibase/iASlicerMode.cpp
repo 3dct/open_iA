@@ -45,16 +45,18 @@ namespace
 	};
 }
 
-int mapSliceToGlobalAxis(int mode, int index)
+int mapSliceToGlobalAxis(int mode, int localAxis)
 {
 	assert(0 <= mode && mode < iASlicerMode::SlicerCount);
-	assert(0 <= index && index < iAAxisIndex::AxisCount);
-	return SliceToGlobalAxisMapping[index][mode];
+	assert(0 <= localAxis && localAxis < iAAxisIndex::AxisCount);
+	return SliceToGlobalAxisMapping[localAxis][mode];
 }
 
-int mapGlobalToSliceAxis(int mode, int index)
+int mapGlobalToSliceAxis(int mode, int globalAxis)
 {
-	return GlobalToSliceAxisMapping[index][mode];
+	assert(0 <= mode && mode < iASlicerMode::SlicerCount);
+	assert(0 <= globalAxis && globalAxis < iAAxisIndex::AxisCount);
+	return GlobalToSliceAxisMapping[globalAxis][mode];
 }
 
 int& axisColorMode()
