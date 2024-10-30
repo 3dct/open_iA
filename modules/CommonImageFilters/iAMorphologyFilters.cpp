@@ -43,12 +43,16 @@ IAFILTER_DEFAULT_CLASS(iAVesselEnhancement);
 
 namespace
 {
-	QStringList structuringElementNames()
-	{
-		return QStringList() << "Ball" << "Box" << "Cross" << "Polygon";
-	}
-
-	const QString StructuringElementParamName = "Structuring Element";
+	const QString ParStructElemBall{ "Ball" };
+	const QString ParStructElemBox{ "Box" };
+	const QString ParStructElemCross{ "Cross" };
+	const QString ParStructElemPoly{ "Polygon" };
+	const QStringList ParStructElemNames{ ParStructElemBall, ParStructElemBox, ParStructElemCross, ParStructElemPoly};
+	const QString ParRadius{ "Radius" };
+	const QString ParStructuringElement{ "Structuring Element" };
+	const QString ParFullyConnected{ "Fully Connected" };
+	const QString ParForegroundValue{ "Foreground Value" };
+	const QString ParSigma{ "Sigma" };
 
 	template<class T> using InputImage = itk::Image<T, DIM>;
 	template<class T> using BallElement = itk::BinaryBallStructuringElement<typename InputImage<T>::PixelType, DIM>;
@@ -59,23 +63,23 @@ namespace
 
 template<class MorphOp, class T> void morphOp(iAFilter* filter, QVariantMap const & params)
 {
-	QString strElemName = params[StructuringElementParamName].toString();
+	QString strElemName = params[ParStructuringElement].toString();
 	FlatElement<T> structuringElement;
 	typename FlatElement<T>::RadiusType elementRadius;
-	elementRadius.Fill(params["Radius"].toUInt());
-	if (strElemName == "Box")
+	elementRadius.Fill(params[ParRadius].toUInt());
+	if (strElemName == ParStructElemBox)
 	{
 		structuringElement = FlatElement<T>::Box(elementRadius);
 	}
-	else if (strElemName == "Cross")
+	else if (strElemName == ParStructElemCross)
 	{
 		structuringElement = FlatElement<T>::Cross(elementRadius);
 	}
-	else if (strElemName == "Ball")
+	else if (strElemName == ParStructElemBall)
 	{
 		structuringElement = FlatElement<T>::Ball(elementRadius);
 	}
-	else // Polygon
+	else // ParStructElemPoly
 	{
 		structuringElement = FlatElement<T>::Polygon(elementRadius, PolyLines);
 	}
@@ -114,8 +118,8 @@ iADilation::iADilation() :
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", iAValueType::Discrete, 1, 1);
-	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
+	addParameter(ParRadius, iAValueType::Discrete, 1, 1);
+	addParameter(ParStructuringElement, iAValueType::Categorical, ParStructElemNames);
 }
 
 
@@ -145,8 +149,8 @@ iAErosion::iAErosion() :
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", iAValueType::Discrete, 1, 1);
-	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
+	addParameter(ParRadius, iAValueType::Discrete, 1, 1);
+	addParameter(ParStructuringElement, iAValueType::Categorical, ParStructElemNames);
 }
 
 
@@ -176,8 +180,8 @@ iAMorphOpening::iAMorphOpening():
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", iAValueType::Discrete, 1, 1);
-	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
+	addParameter(ParRadius, iAValueType::Discrete, 1, 1);
+	addParameter(ParStructuringElement, iAValueType::Categorical, ParStructElemNames);
 }
 
 
@@ -207,8 +211,8 @@ iAMorphClosing::iAMorphClosing() :
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", iAValueType::Discrete, 1, 1);
-	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
+	addParameter(ParRadius, iAValueType::Discrete, 1, 1);
+	addParameter(ParStructuringElement, iAValueType::Categorical, ParStructElemNames);
 }
 
 
@@ -244,8 +248,8 @@ iAOpeningByReconstruction::iAOpeningByReconstruction() :
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", iAValueType::Discrete, 1, 1);
-	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
+	addParameter(ParRadius, iAValueType::Discrete, 1, 1);
+	addParameter(ParStructuringElement, iAValueType::Categorical, ParStructElemNames);
 }
 
 
@@ -280,8 +284,8 @@ iAClosingByReconstruction::iAClosingByReconstruction() :
 		"FlatStructuringElement (Box, Cross and Polygon)</a> "
 		"in the ITK documentation.")
 {
-	addParameter("Radius", iAValueType::Discrete, 1, 1);
-	addParameter(StructuringElementParamName, iAValueType::Categorical, structuringElementNames());
+	addParameter(ParRadius, iAValueType::Discrete, 1, 1);
+	addParameter(ParStructuringElement, iAValueType::Categorical, ParStructElemNames);
 }
 
 
@@ -324,8 +328,8 @@ template<class T> void binaryFillHole(iAFilter* filter, QVariantMap const & para
 	typedef itk::BinaryFillholeImageFilter<InputImage<T>> FillHoleImageFilterType;
 	auto fillHoleFilter = FillHoleImageFilterType::New();
 	fillHoleFilter->SetInput(dynamic_cast<InputImage<T> *>(filter->imageInput(0)->itkImage()));
-	fillHoleFilter->SetFullyConnected(params["Fully Connected"].toBool());
-	fillHoleFilter->SetForegroundValue(params["Foreground Value"].toDouble());
+	fillHoleFilter->SetFullyConnected(params[ParFullyConnected].toBool());
+	fillHoleFilter->SetForegroundValue(params[ParForegroundValue].toDouble());
 	filter->progress()->observe(fillHoleFilter);
 	fillHoleFilter->Update();
 	filter->addOutput(std::make_shared<iAImageData>(fillHoleFilter->GetOutput()));
@@ -343,8 +347,8 @@ iABinaryFillHole::iABinaryFillHole() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1BinaryFillholeImageFilter.html\">"
 		"binary fill hole image filter</a> in the ITK documentation")
 {
-	addParameter("Fully Connected", iAValueType::Boolean, false);
-	addParameter("Foreground Value", iAValueType::Continuous, 1);
+	addParameter(ParFullyConnected, iAValueType::Boolean, false);
+	addParameter(ParForegroundValue, iAValueType::Continuous, 1);
 }
 
 
@@ -355,7 +359,7 @@ void grayscaleFillHole(iAFilter* filter, QVariantMap const& params)
 	typedef itk::GrayscaleFillholeImageFilter<InputImage<T>, InputImage<T>> FillHoleImageFilterType;
 	auto fillHoleFilter = FillHoleImageFilterType::New();
 	fillHoleFilter->SetInput(dynamic_cast<InputImage<T>*>(filter->imageInput(0)->itkImage()));
-	fillHoleFilter->SetFullyConnected(params["Fully Connected"].toBool());
+	fillHoleFilter->SetFullyConnected(params[ParFullyConnected].toBool());
 	filter->progress()->observe(fillHoleFilter);
 	fillHoleFilter->Update();
 	filter->addOutput(std::make_shared<iAImageData>(fillHoleFilter->GetOutput()));
@@ -369,14 +373,14 @@ void iAGrayscaleFillHole::performWork(QVariantMap const& parameters)
 iAGrayscaleFillHole::iAGrayscaleFillHole() :
 	iAFilter("Fill Hole (grayscale)", "Morphology",
 		"Remove local minima not connected to the boundary of the image.<br/>"
-		"GrayscaleFillholeImageFilter fills holes in a grayscale image. "
+		"Fills holes in a grayscale image. "
 		"Holes are local minima in the grayscale topography that are not connected "
 		"to boundaries of the image. Gray level values adjacent to a hole are extrapolated across the hole.<br/>"
 		"For more information, see the "
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1GrayscaleFillholeImageFilter.html\">"
 		"GrayscaleFillholeImageFilter</a>")
 {
-	addParameter("Fully Connected", iAValueType::Boolean, false);
+	addParameter(ParFullyConnected, iAValueType::Boolean, false);
 }
 
 
@@ -388,7 +392,7 @@ template<class T> void vesselEnhancement(iAFilter* filter, QVariantMap const & p
 
 	auto hessfilter = HRGIFType::New();
 	hessfilter->SetInput(dynamic_cast<InputImage<T> *>(filter->imageInput(0)->itkImage()));
-	hessfilter->SetSigma(params["Sigma"].toDouble());
+	hessfilter->SetSigma(params[ParSigma].toDouble());
 	hessfilter->Update();
 	auto vesselness = EnhancementFilter::New();
 	vesselness->SetInput(hessfilter->GetOutput());
@@ -412,5 +416,5 @@ iAVesselEnhancement::iAVesselEnhancement() :
 		"<a href=\"https://itk.org/Doxygen/html/classitk_1_1Hessian3DToVesselnessMeasureImageFilter.html\">"
 		"Hessian 3D to Vesselness Measure Filter</a> in the ITK documentation.")
 {
-	addParameter("Sigma", iAValueType::Continuous, 0);
+	addParameter(ParSigma, iAValueType::Continuous, 0);
 }
