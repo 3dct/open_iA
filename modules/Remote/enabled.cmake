@@ -21,11 +21,15 @@ if (Qt6HttpServer_FOUND)
 			"${HTTP_SRC_DIR}/*.json"
 			"${HTTP_SRC_DIR}/*.scss"
 			"${HTTP_SRC_DIR}/*.ts")
-		add_custom_command(OUTPUT ${HTTP_INSTALL_SRC_DIR}/index.html
+		add_custom_command(OUTPUT ${HTTP_BIN_DIR}/README.md
+			COMMENT "Copying files from ${HTTP_SRC_DIR} to ${HTTP_BIN_DIR}"
 			# re-run on a change of any of the web client source files:
 			DEPENDS ${WEB_CLIENT_SRC_FILES}
 			# first, copy required files to binary folder...
-			COMMAND ${CMAKE_COMMAND} -E copy_directory ${HTTP_SRC_DIR} ${HTTP_BIN_DIR}
+			COMMAND ${CMAKE_COMMAND} -E copy_directory ${HTTP_SRC_DIR} ${HTTP_BIN_DIR})
+		add_custom_command(OUTPUT ${HTTP_INSTALL_SRC_DIR}/index.html
+			COMMENT "Running npm installbuild on ${HTTP_INSTALL_SRC_DIR}"
+			DEPENDS ${HTTP_BIN_DIR}/README.md
 			# ... then use npm/webpack to build everything libraries (this also internally calls angular build somehow):
 			COMMAND ${MULTI_RUNNER} ${NPM_PROGRAM} run installbuild
 			WORKING_DIRECTORY ${HTTP_INSTALL_SRC_DIR}
