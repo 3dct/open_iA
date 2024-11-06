@@ -806,7 +806,7 @@ void MainWindow::prefs()
 	{
 		activeMDI()->applyPreferences(m_defaultPreferences);
 	}
-	axisColorMode() = AxisColorThemes.indexOf(values[AxisColors].toString());
+	axisColorMode() = static_cast<int>(AxisColorThemes.indexOf(values[AxisColors].toString()));
 	iALogWidget::get()->setLogToFile(logToFile, logFileName, true);
 }
 

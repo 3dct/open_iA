@@ -67,9 +67,9 @@ int& axisColorMode()
 
 QColor axisColor(int mode)
 {   // see e.g. https://stackoverflow.com/questions/15810171 for why a "flat" list is initialized here:
-	static std::array<std::array<QColor, 3>, 2> colors{
+	static std::array<std::array<QColor, 3>, 2> colors{ {
 		 QColor(255, 0 , 0), QColor(0, 255, 0), QColor(0, 0, 255) ,
 		 QColor(217, 95, 2), QColor(27, 158, 119), QColor(117, 112, 179)
-	};
+	} };
 	return colors[axisColorMode()][mode];
 }
