@@ -49,7 +49,7 @@ static typename TImageType::PointType image_center(TImageType * image)
 
 	for (int k = 0; k < DIM; k++)
 	{
-		center[k] += (spacing[k] * size[k]) / 2.0;
+		center[k] += (spacing[k] * (size[k]-1)) / 2.0;
 	}
 	return center;
 }
