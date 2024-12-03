@@ -1,48 +1,52 @@
 cff-version: 1.2.0
-message: "If you use this software, please cite as below."
+title: open_iA
+message: 'If you use this software, please cite as below.'
+type: software
 authors:
-- family-names: "Fröhler"
-  given-names: "Bernhard"
-  orcid: "https://orcid.org/0000-0003-1271-0838"
-- family-names: "Weinberger"
-  given-names: "Patrick"
-  orcid: "https://orcid.org/0000-0002-7274-5365"
-- family-names: "Heim"
-  given-names: "Anja"
-  orcid: "https://orcid.org/0000-0002-3670-5403"
-- family-names: "Gall"
-  given-names: "Alexander"
-  orcid: "https://orcid.org/0000-0002-3649-7368"
-- family-names: "Heinzl"
-  given-names: "Christoph"
-  orcid: "https://orcid.org/0000-0002-3173-8871"
-title: "open_iA"
-version: 2021.08
-doi: 10.5281/zenodo.5227268
-date-released: 2021-08-20
+  - family-names: Fröhler
+    given-names: Bernhard
+    orcid: 'https://orcid.org/0000-0003-1271-0838'
+  - family-names: Weinberger
+    given-names: Patrick
+    orcid: 'https://orcid.org/0000-0002-7274-5365'
+  - family-names: Heim
+    given-names: Anja
+    orcid: 'https://orcid.org/0000-0002-3670-5403'
+  - family-names: Gall
+    given-names: Alexander
+    orcid: 'https://orcid.org/0000-0002-3649-7368'
+  - family-names: Heinzl
+    given-names: Christoph
+    orcid: 'https://orcid.org/0000-0002-3173-8871'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.2591998
+repository-code: 'https://github.com/3dct/open_iA'
+url: 'https://3dct.github.io/open_iA/'
 license: GPL-3.0-or-later
-url: "https://github.com/3dct/open_iA"
 preferred-citation:
   type: article
   authors:
-  - family-names: "Fröhler"
-    given-names: "Bernhard"
-    orcid: "https://orcid.org/0000-0003-1271-0838"
-  - family-names: "Weissenböck"
-    given-names: "Johannes"
-    orcid: https://orcid.org/0000-0001-8062-4590
-  - family-names: "Schiwarth"
-    given-names: "Marcel"
-    orcid: "https://orcid.org/0000-0003-2339-1879"
-  - family-names: "Kastner"
-    given-names: "Johann"
-    orcid: "https://orcid.org/0000-0002-3163-0916"
-  - family-names: "Heinzl"
-    given-names: "Christoph"
-    orcid: "https://orcid.org/0000-0002-3173-8871"
-  doi: "10.21105/joss.01185"
-  journal: "Journal of Open Source Software"
-  title: "open_iA: A tool for processing and visual analysis of industrial computed tomography datasets"
+    - family-names: Fröhler
+      given-names: Bernhard
+      orcid: 'https://orcid.org/0000-0003-1271-0838'
+    - family-names: Weissenböck
+      given-names: Johannes
+      orcid: 'https://orcid.org/0000-0001-8062-4590'
+    - family-names: Schiwarth
+      given-names: Marcel
+      orcid: 'https://orcid.org/0000-0003-2339-1879'
+    - family-names: Kastner
+      given-names: Johann
+      orcid: 'https://orcid.org/0000-0002-3163-0916'
+    - family-names: Heinzl
+      given-names: Christoph
+      orcid: 'https://orcid.org/0000-0002-3173-8871'
+  doi: 10.21105/joss.01185
+  journal: Journal of Open Source Software
+  title: >-
+    open_iA: A tool for processing and visual analysis of industrial computed
+    tomography datasets
   issue: 35
   volume: 4
   year: 2019
