@@ -1060,10 +1060,6 @@ namespace
 
 void iASlicerImpl::saveAsImage()
 {
-	if (!hasChannel(0))
-	{
-		return;
-	}
 	iAImageStackFileIO io;
 	QString fileName = QFileDialog::getSaveFileName(this, tr("Save Image"),
 		"", // TODO: get directory of file?
@@ -1110,7 +1106,7 @@ void iASlicerImpl::saveAsImage()
 	auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
 	if (saveNative)
 	{
-		int selectedChannelID = 0;
+		int selectedChannelID = m_channels.firstKey();
 		if (moreThanOneChannel)
 		{
 			QString selectedChannelName = values[Channel].toString();
