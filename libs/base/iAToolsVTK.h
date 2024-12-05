@@ -84,7 +84,8 @@ iAbase_API vtkSmartPointer<vtkImageData> readImage(QString const& filename);
 //! @param filename the name of the file to write to; this is expected to have an extension of tif, png, jpg or bmp;
 //!        the type of the file written will be chosen according to this extension
 //! @param img the image to write; this already needs to be a 2D image (i.e., size in Z dimension = 1)
-iAbase_API void writeSingleSliceImage(QString const & filename, vtkImageData* img);
+//! @param compressionLevel if output is in .png format, the compression level (0.. no compression, 9.. highest compression)
+iAbase_API void writeSingleSliceImage(QString const & filename, vtkImageData* img, int compressionLevel = 5);
 
 //! Check whether the given image holds integer numbers.
 //! @param img a VTK image

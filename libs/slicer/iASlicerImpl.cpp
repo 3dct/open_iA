@@ -1056,6 +1056,7 @@ namespace
 {
 	QString const SaveNative("Save native image");
 	QString const Output16Bit("16 bit native output");
+	QString const CompressionLevel("Compression level");
 }
 
 void iASlicerImpl::saveAsImage()
@@ -1082,10 +1083,14 @@ void iASlicerImpl::saveAsImage()
 		}
 		addAttr(params, Channel, iAValueType::Categorical, currentChannels);
 	}
-	if ((QString::compare(fi.suffix(), "TIF", Qt::CaseInsensitive) == 0) ||
-		(QString::compare(fi.suffix(), "TIFF", Qt::CaseInsensitive) == 0))
+	if ((QString::compare(fi.suffix(), "tif", Qt::CaseInsensitive) == 0) ||
+		(QString::compare(fi.suffix(), "tiff", Qt::CaseInsensitive) == 0))
 	{
 		addAttr(params, Output16Bit, iAValueType::Boolean, false);
+	}
+	if ((QString::compare(fi.suffix(), "png", Qt::CaseInsensitive) == 0))
+	{
+		addAttr(params, CompressionLevel, iAValueType::Discrete, 5, 0, 9);
 	}
 
 	iAParameterDlg dlg(this, "Save options", params, "<em>" + SaveNative + "</em> means that the image to be written will be taken directly from the slicer, "
@@ -1093,7 +1098,9 @@ void iASlicerImpl::saveAsImage()
 		"If disabled, a screen shot of this slicer will be stored (including scale bar, color scale, ...) "
 		"<em>" + Channel + "</em> determines which image channel will be considered for native output (only affects native output) "
 		"<em>" + Output16Bit + "</em> if enabled (and if native output chosen above), native output will be 16 bit. "
-		"Note that this option is only available for .tif[f] output files (other image file formats do not support 16 bit depth).");
+		"Note that this option is only available for .tif[f] output files (other image file formats do not support 16 bit depth). "
+		"<em>" + CompressionLevel + "</em> specifies the zlib compression level for .png images; 0..no compression; 9..best compression/smallest file size. (default=5)."
+	);
 	if (dlg.exec() != QDialog::Accepted)
 	{
 		return;
@@ -1101,6 +1108,7 @@ void iASlicerImpl::saveAsImage()
 	auto values = dlg.parameterValues();
 	bool saveNative = values[SaveNative].toBool();
 	bool output16Bit = values.contains(Output16Bit)	? values[Output16Bit].toBool() : false;
+	int compressionLevel = values.contains(CompressionLevel) ? values[CompressionLevel].toInt() : 5;
 	iAConnector con;
 	vtkSmartPointer<vtkImageData> img;
 	auto windowToImage = vtkSmartPointer<vtkWindowToImageFilter>::New();
@@ -1138,7 +1146,7 @@ void iASlicerImpl::saveAsImage()
 		windowToImage->Update();
 		img = windowToImage->GetOutput();
 	}
-	writeSingleSliceImage(fileName, img);
+	writeSingleSliceImage(fileName, img, compressionLevel);
 }
 
 void iASlicerImpl::saveImageStack()

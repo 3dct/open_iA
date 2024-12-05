@@ -208,7 +208,7 @@ vtkSmartPointer<vtkImageData> readImage(QString const& filename)
 	return result;
 }
 
-void writeSingleSliceImage(QString const & filename, vtkImageData* img)
+void writeSingleSliceImage(QString const & filename, vtkImageData* img, int compressionLevel)
 {
 	QFileInfo fi(filename);
 	vtkSmartPointer<vtkImageWriter> writer;
@@ -218,7 +218,9 @@ void writeSingleSliceImage(QString const & filename, vtkImageData* img)
 	}
 	else if (QString::compare(fi.suffix(), "PNG", Qt::CaseInsensitive) == 0)
 	{
-		writer = vtkSmartPointer<vtkPNGWriter>::New();
+		auto pngWriter = vtkSmartPointer<vtkPNGWriter>::New();
+		pngWriter->SetCompressionLevel(compressionLevel);
+		writer = pngWriter;
 	}
 	else if ((QString::compare(fi.suffix(), "JPG", Qt::CaseInsensitive) == 0) || (QString::compare(fi.suffix(), "JPEG", Qt::CaseInsensitive) == 0))
 	{
