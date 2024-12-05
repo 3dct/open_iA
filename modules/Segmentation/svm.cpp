@@ -1318,6 +1318,12 @@ public:
 			QD[i] = (this->*kernel_function)(i,i);
 	}
 
+#if (defined(_MSC_VER))
+// disable bogus warning on Visual Studio, see
+// https://developercommunity.visualstudio.com/t/Incorrect-C4101-OpenMP-compiler-warning/10517287
+#pragma warning( push )
+#pragma warning( disable : 4101)
+#endif
 	Qfloat *get_Q(int i, int len) const override
 	{
 		Qfloat *data;
@@ -1330,6 +1336,9 @@ public:
 		}
 		return data;
 	}
+#if (defined(_MSC_VER))
+#pragma warning( pop )
+#endif
 
 	double *get_QD() const override
 	{
@@ -1434,6 +1443,12 @@ public:
 		std::swap(QD[i],QD[j]);
 	}
 
+#if (defined(_MSC_VER))
+// disable bogus warning on Visual Studio, see
+// https://developercommunity.visualstudio.com/t/Incorrect-C4101-OpenMP-compiler-warning/10517287
+#pragma warning( push )
+#pragma warning( disable : 4101)
+#endif
 	Qfloat *get_Q(int i, int len) const override
 	{
 		Qfloat *data;
@@ -1453,6 +1468,9 @@ public:
 			buf[j] = (Qfloat) si * (Qfloat) sign[j] * data[index[j]];
 		return buf;
 	}
+#if (defined(_MSC_VER))
+#pragma warning( pop )
+#endif
 
 	double *get_QD() const override
 	{
@@ -2635,6 +2653,12 @@ double svm_get_svr_probability(const svm_model *model)
 	}
 }
 
+#if (defined(_MSC_VER))
+// disable bogus warning on Visual Studio, see
+// https://developercommunity.visualstudio.com/t/Incorrect-C4101-OpenMP-compiler-warning/10517287
+#pragma warning( push )
+#pragma warning( disable : 4101)
+#endif
 double svm_predict_values(const svm_model *model, const svm_node *x, double* dec_values)
 {
 	int i;
@@ -2712,6 +2736,9 @@ double svm_predict_values(const svm_model *model, const svm_node *x, double* dec
 		return model->label[vote_max_idx];
 	}
 }
+#if (defined(_MSC_VER))
+#pragma warning( pop )
+#endif
 
 double svm_predict(const svm_model *model, const svm_node *x)
 {
