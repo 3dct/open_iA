@@ -61,6 +61,8 @@ public:
 	void SetEnabled(int enabling) override
 	{
 		vtkPlaneWidget::SetEnabled(enabling);
+		/*
+		// color the 3 handle spheres (origin, pt1, pt2)
 		vtkNew<vtkProperty> propRed;
 		propRed->SetColor(1, 0, 0);
 		Handle[0]->SetProperty(propRed);     //  -> Origin
@@ -71,6 +73,7 @@ public:
 		propBlue->SetColor(0, 0, 1);
 		Handle[2]->SetProperty(propBlue);    //  -> Pt2
 		// 3 would be -> Far Corner
+		*/
 	}
 
 	//! The "automatic" handle size from vtkPlaneWidget somehow doesn't work at all for us - it produces far too small handles for large planes.
