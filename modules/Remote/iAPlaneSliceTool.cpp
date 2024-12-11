@@ -471,6 +471,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 		}
 		auto axisStr = dlg.parameterValues()["Axis"].toString();
 		resetPlaneParameters(nameToAxis(axisStr.right(1)), axisStr[0] == '+');
+		m_child->updateRenderer();
 		updateSliceFromUser();
 	});
 	mainWnd->addActionIcon(resetAction, "slice-planes-gray");
