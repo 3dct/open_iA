@@ -463,7 +463,7 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	QObject::connect(resetAction, &QAction::triggered, child, [this]()
 	{
 		iAAttributes params;
-		addAttr(params, "Axis", iAValueType::Categorical, QStringList() << "+X" << "-X" << "+Y" << "-Y" << "+Z" << "-Z");
+		addAttr(params, "Axis", iAValueType::Categorical, QStringList() << "+X" << "-X" << "+Y" << "-Y" << "!+Z" << "-Z");
 		iAParameterDlg dlg(m_sliceWidget, "Reset slice position", params);
 		if (dlg.exec() != QDialog::Accepted)
 		{
