@@ -425,7 +425,10 @@ iAPlaneSliceTool::iAPlaneSliceTool(iAMainWindow* mainWnd, iAMdiChild* child) :
 	cutAction->setCheckable(true);
 	QObject::connect(cutAction, &QAction::triggered, m_snapshotTable, [this, cutAction]()
 		{
-			m_planeWidget->GetPlane(m_cutPlane.Get());
+			m_planeWidget->GetPlane(m_cutPlane);
+			iAVec3d normal;
+			m_planeWidget->GetNormal(normal.data());
+			m_cutPlane->SetNormal((normal * -1).data());
 			for (auto ds : m_child->dataSetMap())
 			{
 				auto viewer = m_child->dataSetViewer(ds.first);
@@ -721,9 +724,10 @@ void iAPlaneSliceTool::updateSlice()
 void iAPlaneSliceTool::updatePlaneParamDisplay()
 {
 	std::array<double, 3> center, normal, origin, pt1, pt2;
-	m_planeWidget->GetPlane(m_cutPlane.Get());
+	m_planeWidget->GetPlane(m_cutPlane);
 	m_planeWidget->GetCenter(center.data());
 	m_planeWidget->GetNormal(normal.data());
+	m_cutPlane->SetNormal((iAVec3d(normal.data()) * -1).data());
 	m_planeWidget->GetOrigin(origin.data());
 	m_planeWidget->GetPoint1(pt1.data());
 	m_planeWidget->GetPoint2(pt2.data());
