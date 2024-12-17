@@ -1031,6 +1031,10 @@ void MainWindow::updateMenus()  // (and toolbars)
 	QSignalBlocker blockSliceProfile(m_ui->actionRawProfile);
 	m_ui->actionRawProfile->setChecked(child && child->isSliceProfileEnabled());
 	updateMagicLens2DCheckState(child && child->isMagicLens2DEnabled());
+	QSignalBlocker blockShowSlicerTitle(m_ui->actionSlicerShowTitle);
+	m_ui->actionSlicerShowTitle->setChecked(child && child->isSlicerTitleShown());
+	QSignalBlocker blockShowRendererTitle(m_ui->action3DShowTitle);
+	m_ui->action3DShowTitle->setChecked(child && child->isRendererTitleShown());
 	// renderer submenu / toolbar
 	QSignalBlocker renderInteractBlock(m_ui->actionToggleRendererInteraction);
 	m_ui->actionToggleRendererInteraction->setChecked(activeMDI() && activeMDI()->isRendererInteractionEnabled());
@@ -1165,6 +1169,12 @@ void MainWindow::connectSignalsToSlots(QString const& appName)
 	connect(m_ui->actionLinkSliceViews, &QAction::triggered, this, &MainWindow::linkViews);
 	connect(m_ui->actionLinkMdis, &QAction::triggered, this, &MainWindow::linkMDIs);
 	connect(m_ui->actionToggleSlicerInteraction, &QAction::triggered, this, &MainWindow::toggleSlicerInteraction);
+	connect(m_ui->actionSlicerShowTitle, &QAction::triggered, this, [this, childCall] {
+		childCall(&MdiChild::showSlicerTitle, m_ui->actionSlicerShowTitle->isChecked());
+		});
+	connect(m_ui->action3DShowTitle, &QAction::triggered, this, [this, childCall] {
+		childCall(&MdiChild::showRendererTitle, m_ui->action3DShowTitle->isChecked());
+	});
 	connect(m_ui->actionToggleRendererInteraction, &QAction::triggered, this, [this, childCall] {
 		childCall(&MdiChild::enableRendererInteraction, m_ui->actionToggleRendererInteraction->isChecked());
 	});

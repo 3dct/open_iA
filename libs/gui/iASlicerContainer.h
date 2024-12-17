@@ -18,6 +18,8 @@ Q_OBJECT
 public:
 	iASlicerContainer(iASlicerImpl* slicer);
 	void showBorder(bool show);
+	void showTitle(bool show);
+	bool isTitleShown() const;
 private slots:
 	void setSliceSpinBox(int s);
 	void setSliceScrollBar(int s);
@@ -28,4 +30,5 @@ private slots:
 private:
 	static const int BorderWidth;
 	iASlicerImpl* m_slicer;
+	bool m_titleVisible;
 };

@@ -7,7 +7,8 @@
 const int iASlicerContainer::BorderWidth = 3;
 
 iASlicerContainer::iASlicerContainer(iASlicerImpl* slicer):
-	m_slicer(slicer)
+	m_slicer(slicer),
+	m_titleVisible(true)
 {
 	setupUi(this);
 	QString slicePlaneName = slicerModeString(slicer->mode());
@@ -55,6 +56,17 @@ void iASlicerContainer::showBorder(bool show)
 {
 	int borderWidth = show ? BorderWidth : 0;
 	sliceContainerLayout->setContentsMargins(borderWidth, borderWidth, borderWidth, borderWidth);
+}
+
+void iASlicerContainer::showTitle(bool show)
+{
+	m_titleVisible = show;
+	slicerControls->setVisible(show);
+}
+
+bool iASlicerContainer::isTitleShown() const
+{
+	return m_titleVisible; // workaround for slicerControls apparently not initialized yet when this is called first // slicerControls->isVisible();
 }
 
 void iASlicerContainer::setSliceSpinBox(int s)

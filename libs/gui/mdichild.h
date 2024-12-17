@@ -185,6 +185,14 @@ public:
 	void maximizeSlicer(int mode);
 	//! whether profile handles are currently shown (i.e. "Edit profile points" mode is enabled)
 	bool profileHandlesEnabled() const;
+	
+	//! @{
+	//! Show / Check visibility of slicer/renderer title bars
+	void showSlicerTitle(bool show);
+	bool isSlicerTitleShown() const;
+	void showRendererTitle(bool show);
+	bool isRendererTitleShown() const;
+	//! @}
 
 	void set3DControlVisibility(bool visible) override;
 

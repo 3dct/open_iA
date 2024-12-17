@@ -81,6 +81,12 @@ public:
 	{
 		setupUi(this);
 	}
+	void showTitle(bool show) {
+		rendererControls->setVisible(show);
+	}
+	bool isTitleShown() const {
+		return rendererControls->isVisible();
+	}
 };
 
 MdiChild::MdiChild(MainWindow* mainWnd, iAPreferences const& prefs, bool unsavedChanges) :
@@ -1114,6 +1120,35 @@ void MdiChild::toggleProfileHandles(bool isChecked)
 bool MdiChild::profileHandlesEnabled() const
 {
 	return m_profileHandlesEnabled;
+}
+
+void MdiChild::showSlicerTitle(bool show)
+{
+	for (int s = 0; s < 3; ++s)
+	{
+		m_slicerContainer[s]->showTitle(show);
+	}
+}
+
+bool MdiChild::isSlicerTitleShown() const
+{
+	for (int s = 0; s < 3; ++s)
+	{
+		if (m_slicerContainer[s]->isTitleShown()) {
+			return true;
+		}
+	}
+	return false;
+}
+
+void MdiChild::showRendererTitle(bool show)
+{
+	m_rendererContainer->showTitle(show);
+}
+
+bool MdiChild::isRendererTitleShown() const
+{
+	return m_rendererContainer->isTitleShown();
 }
 
 int MdiChild::sliceNumber(int mode) const

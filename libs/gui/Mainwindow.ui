@@ -163,6 +163,7 @@
      <addaction name="actionMagicLens3D"/>
      <addaction name="actionToggleRendererInteraction"/>
      <addaction name="actionSyncCamera"/>
+     <addaction name="action3DShowTitle"/>
      <addaction name="separator"/>
      <addaction name="actionViewXDirectionInRaycaster"/>
      <addaction name="actionViewmXDirectionInRaycaster"/>
@@ -180,6 +181,7 @@
      <addaction name="actionToggleSlicerInteraction"/>
      <addaction name="actionRawProfile"/>
      <addaction name="actionLinkSliceViews"/>
+     <addaction name="actionSlicerShowTitle"/>
     </widget>
     <addaction name="menuDockWidgets"/>
     <addaction name="menuFocus"/>
@@ -870,6 +872,34 @@
    </property>
    <property name="toolTip">
     <string>Save the currently loaded volume datasets as a stack of sequentially numbered files</string>
+   </property>
+  </action>
+  <action name="actionSlicerShowTitle">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Title Bar</string>
+   </property>
+   <property name="toolTip">
+    <string>Whether title bar and controls are displayed</string>
+   </property>
+  </action>
+  <action name="action3DShowTitle">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Show Title Bar</string>
+   </property>
+   <property name="toolTip">
+    <string>Whether title bar and controls are displayed in 3D view</string>
    </property>
   </action>
  </widget>
