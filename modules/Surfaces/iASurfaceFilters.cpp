@@ -290,7 +290,7 @@ iASmoothMeshLaplacian::iASmoothMeshLaplacian() :
 	iAFilter("Laplacian", "Surfaces/Smoothing",
 		"Adjust point positions using Laplacian smoothing.<br/>"
 		"For more information, see the <a href=\"https://vtk.org/doc/nightly/html/classvtkSmoothPolyDataFilter.html#details\">"
-		"vtkSmoothPolyDataFilter</a> in the VTK documentation.")
+		"vtkSmoothPolyDataFilter</a> in the VTK documentation.", 0)
 {
 	setRequiredMeshInputs(1);
 	addParameter("Number of iterations", iAValueType::Discrete, 20, 0, std::numeric_limits<int>::max());
@@ -418,7 +418,7 @@ iAMeshComputeNormals::iAMeshComputeNormals() :
 	iAFilter("Compute Normals", "Surfaces",
 		"Compute (point and/or cell) normals for polygonal mesh.<br/>"
 		"For more information, see the <a href=\"https://vtk.org/doc/nightly/html/classvtkPolyDataNormals.html#details\">"
-		"vtkPolyDataNormals</a> in the VTK documentation.")
+		"vtkPolyDataNormals</a> in the VTK documentation.", 0)
 {
 	setRequiredMeshInputs(1);
 	addParameter("Feature angle", iAValueType::Continuous, 30.0, 0, 180);
