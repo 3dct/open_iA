@@ -23,6 +23,7 @@
 #include <vtkSmoothPolyDataFilter.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
+#include <vtkTriangleFilter.h>
 #include <vtkWindowedSincPolyDataFilter.h>
 
 IAFILTER_DEFAULT_CLASS(iACleanPolyData);
@@ -35,6 +36,7 @@ IAFILTER_DEFAULT_CLASS(iASimplifyMeshQuadricDecimation);
 IAFILTER_DEFAULT_CLASS(iASmoothMeshWindowedSinc);
 IAFILTER_DEFAULT_CLASS(iASmoothMeshLaplacian);
 IAFILTER_DEFAULT_CLASS(iATransformPolyData);
+IAFILTER_DEFAULT_CLASS(iAMeshTriangle);
 
 namespace
 {
@@ -129,14 +131,15 @@ filter->Update();*/
 iASimplifyMeshDecimatePro::iASimplifyMeshDecimatePro() :
 	iAFilter("Decimate Pro", "Surfaces/Simplify",
 		"Simplify mesh using the Decimate Pro algorithm.<br/>"
+		"<em>Target reduction</em> is the fraction of triangles in the mesh to remove (between 0 and 1, higher values mean more reduction)"
 		"For more information, see the <a href=\"https://vtk.org/doc/nightly/html/classvtkDecimatePro.html\">"
 		"Decimate Pro Filter</a> in the VTK documentation.", 0)
 {
 	setRequiredMeshInputs(1);
+	addParameter("Target reduction", iAValueType::Continuous, 0.9, 0.0, 1.0);
 	addParameter("Preserve topology", iAValueType::Boolean, true);
 	addParameter("Splitting", iAValueType::Boolean, true);
 	addParameter("Boundary vertex deletion", iAValueType::Boolean, true);
-	addParameter("Decimation target", iAValueType::Continuous, 0.9);
 	addParameter("Split angle", iAValueType::Continuous, 10);
 }
 
@@ -147,7 +150,7 @@ void iASimplifyMeshDecimatePro::performWork(QVariantMap const& parameters)
 	vtkFilter->SetPreserveTopology(parameters["Preserve topology"].toBool());
 	vtkFilter->SetSplitting(parameters["Splitting"].toBool());
 	vtkFilter->SetBoundaryVertexDeletion(parameters["Boundary vertex deletion"].toBool());
-	vtkFilter->SetTargetReduction(parameters["Decimation target"].toDouble());
+	vtkFilter->SetTargetReduction(parameters["Target reduction"].toDouble());
 	vtkFilter->SetSplitAngle(parameters["Split angle"].toDouble());
 	vtkFilter->SetInputData( dynamic_cast<iAPolyData*>(input(0).get())->poly() );
 	vtkFilter->Update();
@@ -201,7 +204,8 @@ void iASimplifyMeshQuadricClustering::performWork(QVariantMap const& parameters)
 iASimplifyMeshQuadricDecimation::iASimplifyMeshQuadricDecimation() :
 	iAFilter("Quadric Decimation", "Surfaces/Simplify",
 		"Simplify mesh using quadric decimation.<br/>"
-		"<em>Target reduction</em> is the target size factor (range 0..1)"
+		"From our experiments, this filter delivers the best results out of the mesh simplification algorithms implemented here."
+		"<em>Target reduction</em> is the fraction of triangles in the mesh to remove (between 0 and 1, higher values mean more reduction)"
 		"For more information, see the <a href=\"https://vtk.org/doc/nightly/html/classvtkQuadricDecimation.html\">"
 		"Quadric Decimation Filter</a> in the VTK documentation.", 0)
 {
@@ -235,7 +239,7 @@ void iASimplifyMeshQuadricDecimation::performWork(QVariantMap const& parameters)
 
 
 iASmoothMeshWindowedSinc::iASmoothMeshWindowedSinc() :
-	iAFilter("Mesh Smoothing (Windowed Sinc)", "Surfaces",
+	iAFilter("Windowed Sinc", "Surfaces/Smoothing",
 		"Adjust point positions using a windowed sinc function interpolation kernel.<br/>"
 		"For more information, see the <a href=\"https://vtk.org/doc/nightly/html/classvtkWindowedSincPolyDataFilter.html\">"
 		"windowed sinc poly filter</a> in the VTK documentation.", 0)
@@ -278,19 +282,19 @@ void iASmoothMeshWindowedSinc::performWork(QVariantMap const& parameters)
 
 
 iASmoothMeshLaplacian::iASmoothMeshLaplacian() :
-	iAFilter("Polydata smoothing", "Surfaces",
+	iAFilter("Laplacian", "Surfaces/Smoothing",
 		"Adjust point positions using Laplacian smoothing.<br/>"
 		"For more information, see the <a href=\"https://vtk.org/doc/nightly/html/classvtkSmoothPolyDataFilter.html#details\">"
 		"vtkSmoothPolyDataFilter</a> in the VTK documentation.")
 {
 	setRequiredMeshInputs(1);
+	addParameter("Number of iterations", iAValueType::Discrete, 20, 0, std::numeric_limits<int>::max());
 	addParameter("Feature edge smoothing", iAValueType::Boolean, false);
 	addParameter("Boundary smoothing", iAValueType::Boolean, true);
 	addParameter("Convergence", iAValueType::Continuous, 0.001, 0, 1);
 	addParameter("Feature angle", iAValueType::Continuous, 45.0, 0, 180);
 	addParameter("Edge angle", iAValueType::Continuous, 15.0, 0, 180);
 	addParameter("Relaxation factor", iAValueType::Continuous, 0.01);
-	addParameter("Number of iterations", iAValueType::Discrete, 20, 0, std::numeric_limits<int>::max());
 }
 
 void iASmoothMeshLaplacian::performWork(QVariantMap const& parameters)
@@ -329,7 +333,7 @@ void iASmoothMeshLaplacian::performWork(QVariantMap const& parameters)
 iAPolyFillHoles::iAPolyFillHoles() :
 	iAFilter("Fill Holes", "Surfaces",
 		"Fill holes in a mesh.<br/>"
-		"Hole size is specified as a radius to the bounding circumsphere containing the hole (approximate)."
+		"<em>Hole size</em> is specified as a radius to the bounding circumsphere containing the hole (approximate).<br/>"
 		"For more information, see the <a href=\"https://vtk.org/doc/nightly/html/classvtkFillHolesFilter.html\">"
 		"Fill Hole filter</a> in the VTK documentation.", 0)
 {
@@ -390,7 +394,7 @@ void iADelauny3D::performWork(QVariantMap const& parameters)
 
 iATransformPolyData::iATransformPolyData() :
 	iAFilter("Transform polydata", "Surfaces",
-		"Apply transform to polydata"
+		"Apply a geometric transform (translate/rotate/scale) to polydata.<br/>"
 		"See the <a href=\"https://vtk.org/doc/nightly/html/classvtkTransformPolyDataFilter.html\">"
 		"Transform PolyData filter</a> in the VTK documentation.", 0)
 {
@@ -423,7 +427,7 @@ void iATransformPolyData::performWork(QVariantMap const& parameters)
 
 iACleanPolyData::iACleanPolyData() :
 	iAFilter("Clean polydata", "Surfaces",
-		"Merge duplicate points, and/or remove unused points and/or remove degenerate cells from polydata"
+		"Merge duplicate points, and/or remove unused points and/or remove degenerate cells from polydata.<br/>"
 		"See the <a href=\"https://vtk.org/doc/nightly/html/classvtkCleanPolyData.html\">"
 		"Clean PolyData filter</a> in the VTK documentation.", 0)
 {
@@ -453,4 +457,29 @@ void iACleanPolyData::performWork(QVariantMap const& parameters)
 	cleaner->SetOutputPointsPrecision(precStrTovtkInt(parameters["Output precision"].toString()));
 	cleaner->Update();
 	addOutput(std::make_shared<iAPolyData>(cleaner->GetOutput()));
+}
+
+
+iAMeshTriangle::iAMeshTriangle() :
+	iAFilter("Convert to triangles", "Surfaces",
+		"Convert input polygons and strips to triangles.<br/>"
+		"See the <a href=\"https://vtk.org/doc/nightly/html/classvtkTriangleFilter.html#details\">"
+		"triangle filter</a> in the VTK documentation.", 0)
+{
+	//addParameter("Preserve polys", iAValueType::Boolean, false);  // available in VTK >= 9.4, not sure for what purpose
+	addParameter("Pass vertices through filter", iAValueType::Boolean, true);
+	addParameter("Pass lines through filter", iAValueType::Boolean, true);
+	addParameter("Tolerance", iAValueType::Continuous, -1.0);
+}
+
+void iAMeshTriangle::performWork(QVariantMap const& parameters)
+{
+	vtkNew<vtkTriangleFilter> triangles;
+	triangles->SetInputData(dynamic_cast<iAPolyData*>(input(0).get())->poly());
+	//triangles->PreservePolys(parameters["Absolute Tolerance"].toDouble());
+	triangles->SetPassVerts(parameters["Pass vertices through filter"].toBool());
+	triangles->SetPassLines(parameters["Pass lines through filter"].toBool());
+	triangles->SetTolerance(parameters["Tolerance"].toDouble());
+	triangles->Update();
+	addOutput(std::make_shared<iAPolyData>(triangles->GetOutput()));
 }
