@@ -278,6 +278,22 @@ iASlicerImpl::iASlicerImpl(QWidget* parent, const iASlicerMode mode,
 	m_actionLinearInterpolation->setCheckable(true);
 	m_actionShowTooltip = m_contextMenu->addAction(tr("Show Tooltip"), this, &iASlicerImpl::toggleShowTooltip);
 	m_actionShowTooltip->setCheckable(true);
+	auto actionShowRuler = new QAction(tr("Show Ruler"), m_contextMenu);
+	actionShowRuler->setCheckable(true);
+	actionShowRuler->setChecked(true);
+	m_contextMenu->addAction(actionShowRuler);
+	connect(actionShowRuler, &QAction::triggered, this, [this, actionShowRuler] {
+		m_rulerWidget->SetEnabled(actionShowRuler->isChecked());
+		update();
+	});
+	auto actionShowColorBar = new QAction(tr("Show Color Bar"), m_contextMenu);
+	actionShowColorBar->setCheckable(true);
+	actionShowColorBar->setChecked(true);
+	m_contextMenu->addAction(actionShowColorBar);
+	connect(actionShowColorBar, &QAction::triggered, this, [this, actionShowColorBar] {
+		m_scalarBarWidget->SetEnabled(actionShowColorBar->isChecked());
+		update();
+	});
 
 	m_contextMenu->addSeparator();
 	m_actionToggleNormalInteraction = new QAction(tr("Click+Drag: disabled"), m_contextMenu);
@@ -2367,6 +2383,7 @@ void iASlicerImpl::menuOffsetMagicLens()
 void iASlicerImpl::toggleLinearInterpolation()
 {
 	setLinearInterpolation(m_actionLinearInterpolation->isChecked());
+	update();
 }
 
 void iASlicerImpl::toggleInteractionMode(QAction * )
