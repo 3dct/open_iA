@@ -27,6 +27,7 @@
 #include <vtkWindowedSincPolyDataFilter.h>
 
 IAFILTER_DEFAULT_CLASS(iACleanPolyData);
+IAFILTER_DEFAULT_CLASS(iAMeshComputeNormals);
 IAFILTER_DEFAULT_CLASS(iADelauny3D);
 IAFILTER_DEFAULT_CLASS(iAExtractSurface);
 IAFILTER_DEFAULT_CLASS(iAPolyFillHoles);
@@ -49,6 +50,10 @@ namespace
 		} else {
 			return vtkAlgorithm::DEFAULT_PRECISION;
 		}
+	}
+	QStringList precisionOptions()
+	{
+		return QStringList() << "Same as input" << "Single" << "Double";
 	}
 
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 4, 0)
@@ -309,23 +314,7 @@ void iASmoothMeshLaplacian::performWork(QVariantMap const& parameters)
 	smoothFilter->SetFeatureAngle(parameters["Feature angle"].toDouble());
 	smoothFilter->SetEdgeAngle(parameters["Edge angle"].toDouble());
 	smoothFilter->Update();
-
-	if (parameters["Recompute Normals"].toBool())
-	{
-		// Update normals on newly smoothed polydata
-		auto normalGenerator = vtkSmartPointer<vtkPolyDataNormals>::New();
-		normalGenerator->SetInputConnection(smoothFilter->GetOutputPort());
-		normalGenerator->ComputePointNormalsOn();
-		normalGenerator->ComputeCellNormalsOn();
-		normalGenerator->SetFeatureAngle(30);
-		normalGenerator->SplittingOn();
-		normalGenerator->FlipNormalsOn();
-		normalGenerator->Update();
-		addOutput(std::make_shared<iAPolyData>(normalGenerator->GetOutput()));
-	}
-	else {
-		addOutput(std::make_shared<iAPolyData>(smoothFilter->GetOutput()));
-	}
+	addOutput(std::make_shared<iAPolyData>(smoothFilter->GetOutput()));
 }
 
 
@@ -425,6 +414,43 @@ void iATransformPolyData::performWork(QVariantMap const& parameters)
 
 
 
+iAMeshComputeNormals::iAMeshComputeNormals() :
+	iAFilter("Compute Normals", "Surfaces",
+		"Compute (point and/or cell) normals for polygonal mesh.<br/>"
+		"For more information, see the <a href=\"https://vtk.org/doc/nightly/html/classvtkPolyDataNormals.html#details\">"
+		"vtkPolyDataNormals</a> in the VTK documentation.")
+{
+	setRequiredMeshInputs(1);
+	addParameter("Feature angle", iAValueType::Continuous, 30.0, 0, 180);
+	addParameter("Splitting", iAValueType::Boolean, true);
+	addParameter("Consistency", iAValueType::Boolean, true);
+	addParameter("Flip normals", iAValueType::Boolean, false);
+	addParameter("Compute point normals", iAValueType::Boolean, true);
+	addParameter("Compute cell normals", iAValueType::Boolean, false);
+	addParameter("Non-manifold traversal", iAValueType::Boolean, true);
+	addParameter("Auto-orient normals", iAValueType::Boolean, false);
+	addParameter("Output precision", iAValueType::Categorical, precisionOptions());
+}
+
+void iAMeshComputeNormals::performWork(QVariantMap const& parameters)
+{
+	vtkNew<vtkPolyDataNormals> normalGenerator;
+	normalGenerator->SetInputData(dynamic_cast<iAPolyData*>(input(0).get())->poly());
+	normalGenerator->SetFeatureAngle(parameters["Feature angle"].toDouble());
+	normalGenerator->SetSplitting(parameters["Splitting"].toBool());
+	normalGenerator->SetConsistency(parameters["Consistency"].toBool());
+	normalGenerator->SetFlipNormals(parameters["Flip normals"].toBool());
+	normalGenerator->SetComputePointNormals(parameters["Compute point normals"].toBool());
+	normalGenerator->SetComputeCellNormals(parameters["Compute cell normals"].toBool());
+	normalGenerator->SetNonManifoldTraversal(parameters["Non-manifold traversal"].toBool());
+	normalGenerator->SetAutoOrientNormals(parameters["Auto-orient normals"].toBool());
+	normalGenerator->SetOutputPointsPrecision(precStrTovtkInt(parameters["Output precision"].toString()));
+	normalGenerator->Update();
+	addOutput(std::make_shared<iAPolyData>(normalGenerator->GetOutput()));
+}
+
+
+
 iACleanPolyData::iACleanPolyData() :
 	iAFilter("Clean polydata", "Surfaces",
 		"Merge duplicate points, and/or remove unused points and/or remove degenerate cells from polydata.<br/>"
@@ -439,8 +465,7 @@ iACleanPolyData::iACleanPolyData() :
 	addParameter("Tolerance is absolute", iAValueType::Boolean, false);
 	addParameter("Tolerance", iAValueType::Continuous, 0.0);
 	addParameter("Absolute tolerance", iAValueType::Continuous, 1.0);
-	auto precision = QStringList() << "Same as input" << "Single" << "Double";
-	addParameter("Output precision", iAValueType::Categorical, precision);
+	addParameter("Output precision", iAValueType::Categorical, precisionOptions());
 }
 
 void iACleanPolyData::performWork(QVariantMap const& parameters)
