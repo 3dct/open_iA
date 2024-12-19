@@ -23,7 +23,7 @@
 IAFILTER_DEFAULT_CLASS(iABatchFilter)
 
 iABatchFilter::iABatchFilter():
-	iAFilter("Batch...", "",
+	iAFilter("Batch", "",
 		QString(
 		"Runs a filter on a selected set of images.<br/>"
 		"Specify an <em>Image folder</em> which contains the images to be processed. "
