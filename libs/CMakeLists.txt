@@ -18,7 +18,7 @@ foreach(libdir ${children})
 
 		set(libname "iA${libdir}")
 		# Generate core dll file / shared object:
-		add_library(${libname} ${LIB_TYPE} ${lib_SRCS} ${lib_QRC})
+		qt_add_library(${libname} ${LIB_TYPE} ${lib_SRCS} ${lib_QRC})
 		add_library(iA::${libdir} ALIAS ${libname})	# alias
 
 		if (APPLE)  # suppress duplicate libraries warning on Apple Clang:

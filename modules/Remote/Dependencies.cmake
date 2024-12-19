@@ -10,7 +10,7 @@ find_package(Qt6HttpServer)
 set(DEPENDENCIES_LIBRARIES
 	iA::guibase
 	iA::slicer
-	Qt::WebSockets
+	Qt6::WebSockets
 )
 
 set(DEPENDENCIES_MODULES
@@ -18,7 +18,7 @@ set(DEPENDENCIES_MODULES
 )
 
 if (Qt6HttpServer_FOUND)
-	list(APPEND DEPENDENCIES_LIBRARIES Qt::HttpServer)
+	list(APPEND DEPENDENCIES_LIBRARIES Qt6::HttpServer)
 	set(Qt6HttpServer_FOUND 1 PARENT_SCOPE) # required to have it available in enabled.cmake!
 endif()
 

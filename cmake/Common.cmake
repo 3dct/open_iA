@@ -351,10 +351,7 @@ unset(FPHSA_NAME_MISMATCHED)
 
 
 # Qt (>= 6)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTORCC ON)
-set(QT_USE_QTXML TRUE)
 if (QT_DIR AND NOT Qt6_DIR)
 	set(Qt6_DIR "{QT_DIR}" CACHE PATH "" FORCE)
 endif()
@@ -371,11 +368,9 @@ endif()
 #	set(Qt${QT_VERSION_MAJOR}WidgetsTools_DIR ${QT_DIR}WidgetsTools CACHE PATH "" FORCE)
 #endif
 find_package(Qt6 COMPONENTS Concurrent Gui OpenGL Svg Widgets Xml REQUIRED)
+qt_standard_project_setup()
 message(STATUS "Qt: ${Qt6_VERSION} in ${Qt6_DIR}")
 set(BUILD_INFO "${BUILD_INFO}    \"Qt	${Qt6_VERSION}\\n\"\n")
-#if (Qt6_VERSION VERSION_LESS "6.0.0")
-#	message(FATAL_ERROR "Your Qt version is too old. Please use Qt >= 6.0.0")
-#endif()
 
 string(REPLACE "/lib/cmake/Qt6" "" Qt_BASEDIR ${Qt6_DIR})
 string(REPLACE "/cmake/Qt6" "" Qt_BASEDIR ${Qt_BASEDIR})	# on linux, lib is omitted if installed from package repos

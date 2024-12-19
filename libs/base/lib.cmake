@@ -1,8 +1,8 @@
 target_link_libraries(${libname} PUBLIC
 	${ITK_LIBRARIES}
-	Qt::Core Qt::Xml
+	Qt6::Xml
 	# ToDo: Get rid of GUI stuff here, move down to core/...
-	Qt::Gui
+	Qt6::Gui
 	# ::Widgets # seems to be pulled in by vtk's GUISupportQt automatically
 )
 if (CUDAToolkit_FOUND)

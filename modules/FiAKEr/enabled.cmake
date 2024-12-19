@@ -1,8 +1,7 @@
 if (openiA_TESTING_ENABLED)
 	get_filename_component(CoreSrcDir "../libs/base" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 	get_filename_component(CoreBinDir "../libs" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
-	add_executable(MDSTest FiAKEr/iAMultiDimensionalScalingTest.cpp FiAKEr/iAMultidimensionalScaling.cpp)
-	target_link_libraries(MDSTest PRIVATE Qt::Core)
+	qt_add_executable(MDSTest FiAKEr/iAMultiDimensionalScalingTest.cpp FiAKEr/iAMultidimensionalScaling.cpp)
 	target_include_directories(MDSTest PRIVATE
 		${CoreSrcDir}                         # for iAStringHelper, required by MDS
 		${CoreBinDir}                         # for iAbase_export.h

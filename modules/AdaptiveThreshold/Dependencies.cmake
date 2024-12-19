@@ -4,7 +4,7 @@ endif()
 find_package(Qt6Charts REQUIRED)
 
 set(DEPENDENCIES_LIBRARIES
-	Qt::Charts
+	Qt6::Charts
 	iA::charts
 	iA::guibase
 )
