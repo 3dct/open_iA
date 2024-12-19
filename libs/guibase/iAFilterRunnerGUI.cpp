@@ -186,9 +186,8 @@ bool iAFilterRunnerGUI::askForParameters(std::shared_ptr<iAFilter> filter, QVari
 		QMessageBox::warning(mainWnd, filter->name(), msg);
 		return false;
 	}
-	// if at least one dataset loaded
-	if ( sourceMdi->dataSetMap().size() == 1 && (filter->requiredImages() == 1 || filter->requiredMeshes() == 1) && dlgParams.empty())
-	{
+	if ( sourceMdi->dataSetMap().size() == 1 && ((filter->requiredImages() + filter->requiredMeshes()) <= 1) && dlgParams.empty())
+	{	// if only at most one dataset and no parameters are required, there's nothing to check:
 		return true;
 	}
 	QVector<iAMdiChild*> otherMdis;
