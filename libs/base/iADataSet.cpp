@@ -18,6 +18,20 @@ QString boundsStr(double const* bds)
 		.arg(bds[4]).arg(bds[5]);
 }
 
+QString datasetTypeString(iADataSetType type)
+{
+	switch (type)
+	{
+	case iADataSetType::Volume:	return "Volume";
+	case iADataSetType::Mesh: return "Mesh";
+	case iADataSetType::Graph: return "Graph";
+	case iADataSetType::GeometricObject: return "Geometric Object";
+	case iADataSetType::Collection:	return "Collection";
+	case iADataSetType::Objects: return "List of objects";
+	default: return "Unknown";
+	}
+}
+
 iADataSet::iADataSet(iADataSetType type) :
 	m_type(type)
 {}

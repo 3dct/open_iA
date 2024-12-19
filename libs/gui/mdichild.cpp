@@ -879,7 +879,8 @@ void MdiChild::updateDataSetInfo()
 			lines.prepend(iADataSet::FileNameKey + ": " + dataSet.second->metaData(iADataSet::FileNameKey).toString());
 		}
 		std::for_each(lines.begin(), lines.end(), [](QString& s) { s = "    " + s; });
-		m_dataSetInfo->addItem(dataSet.second->name() + "\n" + lines.join("\n"));
+		m_dataSetInfo->addItem(dataSet.second->name() +
+			" (" + datasetTypeString(dataSet.second->type()) + ")\n" + lines.join("\n"));
 	}
 }
 

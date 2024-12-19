@@ -74,3 +74,6 @@ private:
 };
 
 iAbase_API QString boundsStr(double const* bds);
+
+//! string representation of a given dataset type (for displaying to the user)
+iAbase_API QString datasetTypeString(iADataSetType type);
