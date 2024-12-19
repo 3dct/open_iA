@@ -457,14 +457,15 @@ iACleanPolyData::iACleanPolyData() :
 		"See the <a href=\"https://vtk.org/doc/nightly/html/classvtkCleanPolyData.html\">"
 		"Clean PolyData filter</a> in the VTK documentation.", 0)
 {
-	addParameter("Point merging", iAValueType::Boolean, true);
+	setRequiredMeshInputs(1);
+	addParameter("Tolerance is absolute", iAValueType::Boolean, false);
+	addParameter("Tolerance", iAValueType::Continuous, 0.0, 0.0, 1.0);
+	addParameter("Absolute tolerance", iAValueType::Continuous, 1.0, 0.0);
 	addParameter("Convert lines to points", iAValueType::Boolean, true);
 	addParameter("Convert polys to lines", iAValueType::Boolean, true);
 	addParameter("Convert strips to polys", iAValueType::Boolean, true);
+	addParameter("Point merging", iAValueType::Boolean, true);
 	//addParameter("Piece invariant", iAValueType::Boolean, );  // only relevant for streaming?
-	addParameter("Tolerance is absolute", iAValueType::Boolean, false);
-	addParameter("Tolerance", iAValueType::Continuous, 0.0);
-	addParameter("Absolute tolerance", iAValueType::Continuous, 1.0);
 	addParameter("Output precision", iAValueType::Categorical, precisionOptions());
 }
 
@@ -472,9 +473,9 @@ void iACleanPolyData::performWork(QVariantMap const& parameters)
 {
 	vtkNew<vtkCleanPolyData> cleaner;
 	cleaner->SetInputData(dynamic_cast<iAPolyData*>(input(0).get())->poly());
-	cleaner->SetAbsoluteTolerance(parameters["Absolute Tolerance"].toDouble());
 	cleaner->SetToleranceIsAbsolute(parameters["Tolerance is absolute"].toBool());
 	cleaner->SetTolerance(parameters["Tolerance"].toDouble());
+	cleaner->SetAbsoluteTolerance(parameters["Absolute Tolerance"].toDouble());
 	cleaner->SetConvertLinesToPoints(parameters["Convert lines to points"].toBool());
 	cleaner->SetConvertPolysToLines(parameters["Convert polys to lines"].toBool());
 	cleaner->SetConvertStripsToPolys(parameters["Convert strips to polys"].toBool());
@@ -491,6 +492,7 @@ iAMeshTriangle::iAMeshTriangle() :
 		"See the <a href=\"https://vtk.org/doc/nightly/html/classvtkTriangleFilter.html#details\">"
 		"triangle filter</a> in the VTK documentation.", 0)
 {
+	setRequiredMeshInputs(1);
 	//addParameter("Preserve polys", iAValueType::Boolean, false);  // available in VTK >= 9.4, not sure for what purpose
 	addParameter("Pass vertices through filter", iAValueType::Boolean, true);
 	addParameter("Pass lines through filter", iAValueType::Boolean, true);
