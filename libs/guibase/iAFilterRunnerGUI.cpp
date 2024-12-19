@@ -158,7 +158,6 @@ void iAFilterRunnerGUI::storeParameters(std::shared_ptr<iAFilter> filter, QVaria
 bool iAFilterRunnerGUI::askForParameters(std::shared_ptr<iAFilter> filter, QVariantMap & paramValues,
 	iAMdiChild* sourceMdi, iAMainWindow* mainWnd, bool askForAdditionalInput)
 {
-
 	auto dlgParams = combineAttributesWithValues(filter->parameters(), paramValues);
 	bool showROI = false;	// TODO: find better way to check this?
 	for (auto filterParam : filter->parameters())
@@ -168,7 +167,27 @@ bool iAFilterRunnerGUI::askForParameters(std::shared_ptr<iAFilter> filter, QVari
 			showROI = true;
 		}
 	}
-	if ( filter->requiredImages() == 1 && dlgParams.empty())
+	// check whether we have the required dataset type(s) available:
+	if (filter->requiredImages() >= 1 &&
+		(sourceMdi->dataSetMap().size() == 0 || sourceMdi->dataSetMap().begin()->second->type() != iADataSetType::Volume))
+	{
+		auto msg = "This filter requires a volume dataset! There either is no dataset loaded, or the first dataset "
+			"is not a volume (filters are always applied on the first dataset).";
+		LOG(lvlInfo, msg);
+		QMessageBox::warning(mainWnd, filter->name(), msg);
+		return false;
+	}
+	if (filter->requiredMeshes() >= 1 &&
+		(sourceMdi->dataSetMap().size() == 0 || sourceMdi->dataSetMap().begin()->second->type() != iADataSetType::Mesh))
+	{
+		auto msg = "This filter requires a surface mesh dataset! There either is no dataset loaded, or the first dataset "
+			"is not a surface mesh (filters are always applied on the first dataset).";
+		LOG(lvlInfo, msg);
+		QMessageBox::warning(mainWnd, filter->name(), msg);
+		return false;
+	}
+	// if at least one dataset loaded
+	if ( sourceMdi->dataSetMap().size() == 1 && (filter->requiredImages() == 1 || filter->requiredMeshes() == 1) && dlgParams.empty())
 	{
 		return true;
 	}

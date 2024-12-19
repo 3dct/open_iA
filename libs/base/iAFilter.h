@@ -129,7 +129,8 @@ public:
 	//! get output with the given index.
 	//! @see outputCount for the number of available inputs
 	std::shared_ptr<iADataSet> output(size_t idx) const;
-	//! convenience function returning output datasets converted to image data (with error checks)
+	//! convenience function returning output datasets converted to image data
+	//! if given idx does not point to an image dataset, an error is logged
 	iAImageData* imageOutput(size_t idx) const;
 	//! Get the number of available outputs.
 	//! Only set after the filter has run and the outputs are actually produced!
