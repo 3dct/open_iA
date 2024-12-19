@@ -1059,7 +1059,6 @@ void MainWindow::updateMenus()  // (and toolbars)
 	m_ui->actionPrevWindow->setEnabled(hasMdiChild);
 
 	updateRecentFileActions();
-	updateWindowMenu();
 	setModuleActionsEnabled(hasMdiChild);
 }
 
@@ -1077,7 +1076,7 @@ void MainWindow::updateWindowMenu()
 	{
 		iAMdiChild *child = windows.at(i);
 		QString text = QString("%1%2 %3").arg(i < 9 ? "&" : "").arg(i + 1)
-				.arg(child->fileInfo().fileName());
+				.arg(child->windowTitle().chopped(3)); // chop off last 3 characters - the modification indicator placholder [*]
 		QAction* action = m_ui->menuOpenWindows->addAction(text);
 		action->setCheckable(true);
 		action->setChecked(child == activeMdiChild());
@@ -1092,6 +1091,7 @@ void MainWindow::updateWindowMenu()
 iAMdiChild* MainWindow::createMdiChild(bool unsavedChanges)
 {
 	MdiChild *child = new MdiChild(this, m_defaultPreferences, unsavedChanges);
+	connect(child, &QWidget::windowTitleChanged, this, &MainWindow::updateWindowMenu);
 	QMdiSubWindow* subWin = m_ui->mdiArea->addSubWindow(child);
 	subWin->setOption(QMdiSubWindow::RubberBandResize);
 	subWin->setOption(QMdiSubWindow::RubberBandMove);
@@ -1406,7 +1406,6 @@ void MainWindow::addRecentFile(const QString &fileName)
 	}
 	settings.setValue("recentFileList", files);
 	updateRecentFileActions();
-	updateWindowMenu();
 }
 
 void MainWindow::setPath(QString const & p)
