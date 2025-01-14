@@ -61,8 +61,8 @@ namespace
 //! GUI data for an annotation
 struct iAVtkAnnotationData
 {
-	std::array<vtkSmartPointer<vtkCaptionActor2D>, iASlicerMode::SlicerCount> m_txtActor;
-	vtkSmartPointer<vtkCaptionWidget> m_caption3D;
+	std::array<vtkSmartPointer<vtkCaptionActor2D>, iASlicerMode::SlicerCount> m_txtActor; //! annotation in slicer
+	vtkSmartPointer<vtkCaptionWidget> m_caption3D;                                        //! annotation in 3D view
 };
 
 class iAAnnotationToolUI
@@ -209,31 +209,50 @@ size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 	return newID;
 }
 
-void setupCaptionActor(vtkCaptionActor2D* actor, QString const & txt, QColor const & c)
+namespace
 {
-	actor->SetCaption(txt.toStdString().c_str());
-	auto prop = actor->GetProperty();
-	prop->SetColor(c.redF(), c.greenF(), c.blueF());
+	void setupCaptionActor(vtkCaptionActor2D* actor, QString const & txt, QColor const & c)
+	{
+		actor->SetCaption(txt.toStdString().c_str());
+		auto prop = actor->GetProperty();
+		prop->SetColor(c.redF(), c.greenF(), c.blueF());
 
-	actor->BorderOff();      // disable border, as its color cannot be changed (use frame instead, see below)
-	actor->PickableOn();
-	actor->DragableOn();
-	actor->GetTextActor()->SetTextScaleModeToNone();
-	//actor->SetPadding(10); // does not seem to have any effect (on distance text <-> frame; probably only on distance text <-> border);
+		actor->BorderOff();      // disable border, as its color cannot be changed (use frame instead, see below)
+		actor->PickableOn();
+		actor->DragableOn();
+		actor->GetTextActor()->SetTextScaleModeToNone();
+		//actor->SetPadding(10); // does not seem to have any effect (on distance text <-> frame; probably only on distance text <-> border);
 
-	auto txtProp = actor->GetCaptionTextProperty();
-	txtProp->SetFontFamily(VTK_ARIAL);
-	//txtProp->BoldOff();
-	txtProp->ItalicOff();
-	txtProp->ShadowOff();
-	txtProp->SetBackgroundColor(0.0, 0.0, 0.0);
-	txtProp->SetBackgroundOpacity(CaptionBackgroundOpacity);
-	txtProp->SetColor(c.redF(), c.greenF(), c.blueF());
-	txtProp->SetFontSize(16);
-	txtProp->SetFrameWidth(CaptionFrameWidth);
-	txtProp->SetFrameColor(c.redF(), c.greenF(), c.blueF());
-	txtProp->FrameOn();
-	txtProp->UseTightBoundingBoxOn();  // if not enabled, unevenly distributed distance to frame if text with no descenders
+		auto txtProp = actor->GetCaptionTextProperty();
+		txtProp->SetFontFamily(VTK_ARIAL);
+		//txtProp->BoldOff();
+		txtProp->ItalicOff();
+		txtProp->ShadowOff();
+		txtProp->SetBackgroundColor(0.0, 0.0, 0.0);
+		txtProp->SetBackgroundOpacity(CaptionBackgroundOpacity);
+		txtProp->SetColor(c.redF(), c.greenF(), c.blueF());
+		txtProp->SetFontSize(16);
+		txtProp->SetFrameWidth(CaptionFrameWidth);
+		txtProp->SetFrameColor(c.redF(), c.greenF(), c.blueF());
+		txtProp->FrameOn();
+		txtProp->UseTightBoundingBoxOn();  // if not enabled, unevenly distributed distance to frame if text with no descenders
+	}
+}
+
+vtkSmartPointer<vtkCaptionWidget> create3DWidget(vtkRenderWindowInteractor* interactor, iAAnnotation& a)
+{
+	auto result = vtkSmartPointer<vtkCaptionWidget>::New();
+	vtkNew<vtkCaptionRepresentation> captionRep;
+	captionRep->SetAnchorPosition(a.m_coord.data());
+	captionRep->GetCaptionActor2D()->SetAttachmentPoint(a.m_coord.data());
+	captionRep->SetFontFactor(0.6);  // necessary for the font size not to be too large (in comparison to slicers)
+	result->SetInteractor(interactor);
+	result->SetRepresentation(captionRep);
+	result->GetBorderRepresentation()->EnforceNormalizedViewportBoundsOn();
+	captionRep->SetPosition(0.8, 0.8);  // upper right cornder
+	//captionRep->SetPosition2(0.2, 0.2);  // should set size of annotation, but does not seem to have any affect (maybe it would with BorderOn?)
+	setupCaptionActor(captionRep->GetCaptionActor2D(), a.m_name, a.m_color);
+	return result;
 }
 
 void iAAnnotationTool::addAnnotation(iAAnnotation a)
@@ -286,18 +305,7 @@ void iAAnnotationTool::addAnnotation(iAAnnotation a)
 		setupCaptionActor(actor, a.m_name, a.m_color);
 		vtkAnnot.m_txtActor[i] = actor;
 	}
-	vtkAnnot.m_caption3D = vtkSmartPointer<vtkCaptionWidget>::New();
-	vtkNew<vtkCaptionRepresentation> captionRep;
-	captionRep->SetAnchorPosition(a.m_coord.data());
-	captionRep->GetCaptionActor2D()->SetAttachmentPoint(a.m_coord.data());
-	captionRep->SetFontFactor(0.6);      // necessary for the font size not to be too large (in comparison to slicers)
-	vtkAnnot.m_caption3D->SetInteractor(m_child->renderer()->renderWindow()->GetInteractor());
-	vtkAnnot.m_caption3D->SetRepresentation(captionRep);
-	vtkAnnot.m_caption3D->GetBorderRepresentation()->EnforceNormalizedViewportBoundsOn();
-	captionRep->SetPosition(0.8, 0.8);   // upper right cornder
-	//captionRep->SetPosition2(0.2, 0.2);  // should set size of annotation, but does not seem to have any affect (maybe it would with BorderOn?)
-	setupCaptionActor(captionRep->GetCaptionActor2D(), a.m_name, a.m_color);
-	// automatic scaling still done, see https://discourse.vtk.org/t/vtkcaptionwidget-and-text-scaling/13726
+	vtkAnnot.m_caption3D = create3DWidget(m_child->renderer()->renderWindow()->GetInteractor(), a);
 	m_ui->m_vtkAnnotateData[a.m_id] = vtkAnnot;
 	if (a.m_show)
 	{

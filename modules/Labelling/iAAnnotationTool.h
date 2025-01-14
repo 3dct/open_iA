@@ -7,6 +7,8 @@
 #include <iATool.h>
 #include <iAVec3.h>
 
+#include <vtkSmartPointer.h>
+
 #include <QColor>
 #include <QObject>
 #include <QString>
@@ -17,6 +19,9 @@ class iAAnnotationToolUI;
 
 class iAMainWindow;
 class iAMdiChild;
+
+class vtkCaptionWidget;
+class vtkRenderWindowInteractor;
 
 struct iAAnnotation
 {
@@ -61,3 +66,6 @@ private:
 	void adjustTableItemShown(int row, bool show);
 	std::shared_ptr<iAAnnotationToolUI> m_ui;
 };
+
+//! create a 3D widget for a given render window interactor and a given annotation
+Labelling_API vtkSmartPointer<vtkCaptionWidget> create3DWidget(vtkRenderWindowInteractor* interactor, iAAnnotation& a);
