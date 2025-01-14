@@ -497,6 +497,7 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 		return false;
 	}
 	m_vrEnv = std::make_shared<iAVREnvironment>(backend);
+	emit vrStarted();
 	return true;
 }
 
@@ -528,6 +529,7 @@ void iAImNDTModuleInterface::checkStopVR()
 	if (m_vrRenderers.empty() && !m_imNDT && m_vrEnv)    // check m_vrEnv because VR might already be finished due to errors (e.g. headset currently not available)
 	{
 		m_vrEnv->stop();  // no more VR renderers and no objects analysis -> stop VR environment
+		emit vrStopped();
 	}
 }
 

@@ -46,10 +46,15 @@ public:
 	std::vector<size_t> selection();
 
 signals:
-	//! fires whenever the selection of the associated 3D object visualization is changed
+	//! emitted whenever the selection of the associated 3D object visualization is changed
 	void selectionChanged();
-	//! fires after the ImNDT analysis is stopped
+	//! emitted after the ImNDT analysis is stopped
 	void analysisStopped();
+
+	//! emitted when the VR environment is started
+	void vrStarted();
+	//! emitted when the VR environment is stopped
+	void vrStopped();
 
 private:
 	//! start VR environment
