@@ -3,9 +3,6 @@
 #pragma once
 #include <iAGUIModuleInterface.h>
 
-#include <memory>
-
-class iAFeatureScoutTool;
 class iAFrustumActor;
 
 class QAction;

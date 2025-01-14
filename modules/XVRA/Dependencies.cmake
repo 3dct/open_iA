@@ -3,7 +3,7 @@ set(DEPENDENCIES_LIBRARIES
 	iA::objectvis
 )
 set(DEPENDENCIES_MODULES
-	FeatureScout           
+	FeatureScout
 	ImNDT
 )
 
