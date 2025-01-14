@@ -181,6 +181,7 @@ iAModuleInterface* iAModuleDispatcher::loadModuleAndInterface(QFileInfo fi, QStr
 		errorMessages << QString("Could not locate the GetModuleInterface function in '%1'").arg(fi.absoluteFilePath());
 		return nullptr;
 	}
+	// TODO: check what happens if LoadModule works, but Initialize fails?
 	initializeModuleInterface(m);
 	m_loadedModules.push_back(iALoadedModule(fi.completeBaseName(), handle, m));
 	return m;
