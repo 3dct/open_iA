@@ -26,14 +26,17 @@ void iAFeatureScoutToolbar::addForChild(iAMainWindow* mainWnd, iAMdiChild* child
 	{       // for all FeatureScout instances after the first:
 		tlbFeatureScout->setEnabled(true);
 	}
-	connect(child, &iAMdiChild::closed, tlbFeatureScout, &iAFeatureScoutToolbar::childClosed);
-	connect(child, &iAMdiChild::toolRemoved, [] (QString const& key)
+	connect(child, &iAMdiChild::closed, tlbFeatureScout, [child]
+	{
+		iAFeatureScoutToolbar::tlbFeatureScout->childClosed(child);
+	});
+	connect(child, &iAMdiChild::toolRemoved, tlbFeatureScout, [](QString const& key)
+	{
+		if (key == iAFeatureScoutTool::ID)
 		{
-			if (key == iAFeatureScoutTool::ID)
-			{
-				iAFeatureScoutToolbar::tlbFeatureScout->childClosed(nullptr);
-			}
-		});
+			iAFeatureScoutToolbar::tlbFeatureScout->childClosed(nullptr);
+		}
+	});
 }
 
 iAFeatureScoutToolbar::iAFeatureScoutToolbar(iAMainWindow* mainWnd) :
