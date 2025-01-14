@@ -237,22 +237,22 @@ namespace
 		txtProp->FrameOn();
 		txtProp->UseTightBoundingBoxOn();  // if not enabled, unevenly distributed distance to frame if text with no descenders
 	}
-}
 
-vtkSmartPointer<vtkCaptionWidget> create3DWidget(vtkRenderWindowInteractor* interactor, iAAnnotation& a)
-{
-	auto result = vtkSmartPointer<vtkCaptionWidget>::New();
-	vtkNew<vtkCaptionRepresentation> captionRep;
-	captionRep->SetAnchorPosition(a.m_coord.data());
-	captionRep->GetCaptionActor2D()->SetAttachmentPoint(a.m_coord.data());
-	captionRep->SetFontFactor(0.6);  // necessary for the font size not to be too large (in comparison to slicers)
-	result->SetInteractor(interactor);
-	result->SetRepresentation(captionRep);
-	result->GetBorderRepresentation()->EnforceNormalizedViewportBoundsOn();
-	captionRep->SetPosition(0.8, 0.8);  // upper right cornder
-	//captionRep->SetPosition2(0.2, 0.2);  // should set size of annotation, but does not seem to have any affect (maybe it would with BorderOn?)
-	setupCaptionActor(captionRep->GetCaptionActor2D(), a.m_name, a.m_color);
-	return result;
+	vtkSmartPointer<vtkCaptionWidget> create3DWidget(vtkRenderWindowInteractor* interactor, iAAnnotation& a)
+	{
+		auto result = vtkSmartPointer<vtkCaptionWidget>::New();
+		vtkNew<vtkCaptionRepresentation> captionRep;
+		captionRep->SetAnchorPosition(a.m_coord.data());
+		captionRep->GetCaptionActor2D()->SetAttachmentPoint(a.m_coord.data());
+		captionRep->SetFontFactor(0.6);  // necessary for the font size not to be too large (in comparison to slicers)
+		result->SetInteractor(interactor);
+		result->SetRepresentation(captionRep);
+		result->GetBorderRepresentation()->EnforceNormalizedViewportBoundsOn();
+		captionRep->SetPosition(0.8, 0.8);  // upper right cornder
+		//captionRep->SetPosition2(0.2, 0.2);  // should set size of annotation, but does not seem to have any affect (maybe it would with BorderOn?)
+		setupCaptionActor(captionRep->GetCaptionActor2D(), a.m_name, a.m_color);
+		return result;
+	}
 }
 
 void iAAnnotationTool::addAnnotation(iAAnnotation a)
