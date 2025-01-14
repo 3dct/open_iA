@@ -1594,6 +1594,7 @@ bool MdiChild::doSaveProject(QString const & projectFileName)
 void MdiChild::addTool(QString const& key, std::shared_ptr<iATool> tool)
 {
 	m_tools.insert(key, tool);
+	emit toolAdded(key);
 }
 
 void MdiChild::removeTool(QString const& key)

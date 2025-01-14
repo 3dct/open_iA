@@ -249,6 +249,8 @@ signals:
 	void dataSetRemoved(size_t dataSetIdx);
 	// }
 
+	//! emitted when a tool is added to this child
+	void toolAdded(QString const& id);
 	//! emitted when a tool is removed from this child
 	void toolRemoved(QString const& id);
 
