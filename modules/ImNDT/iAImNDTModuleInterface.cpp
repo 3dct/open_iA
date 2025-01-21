@@ -497,7 +497,7 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 		return false;
 	}
 	m_vrEnv = std::make_shared<iAVREnvironment>(backend);
-	emit vrStarted();
+	connect(m_vrEnv.get(), &iAVREnvironment::started, this, &iAImNDTModuleInterface::vrStarted);
 	return true;
 }
 

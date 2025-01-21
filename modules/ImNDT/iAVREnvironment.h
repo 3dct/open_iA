@@ -65,5 +65,6 @@ private:
 		std::string const& ext, int const& key);
 
 signals:
+	void started();
 	void finished();
 };

@@ -10,6 +10,7 @@ iAVRMainThread::iAVRMainThread(iAvtkVRRenderWindow* renderWindow, iAvtkVRRenderW
 
 void iAVRMainThread::run()
 {
+	emit started();
 	iAvtkVR::setActionManifest(m_interactor, m_backend);
 	m_renderWindow->Initialize();
 	//if (!vr::VRInput())

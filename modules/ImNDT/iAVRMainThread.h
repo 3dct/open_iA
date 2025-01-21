@@ -21,6 +21,8 @@ public:
 	QString message() const;
 	//! queue a task to be executed within the main VR thread
 	void queueTask(std::function<void()> task);
+signals:
+	void started();
 private:
 	iAvtkVRRenderWindow* m_renderWindow;
 	iAvtkVRRenderWindowInteractor* m_interactor;

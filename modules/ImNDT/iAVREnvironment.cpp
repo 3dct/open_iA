@@ -82,6 +82,7 @@ void iAVREnvironment::start()
 	m_interactor->GetPickingManager()->EnabledOn();
 
 	m_vrMainThread = new iAVRMainThread(m_renderWindow, m_interactor, m_backend);
+	connect(m_vrMainThread, &iAVRMainThread::started, this, &iAVREnvironment::started);
 	connect(m_vrMainThread, &QThread::finished, this, &iAVREnvironment::vrDone);
 	m_vrMainThread->setObjectName("VRMainThread");
 	m_vrMainThread->start();
