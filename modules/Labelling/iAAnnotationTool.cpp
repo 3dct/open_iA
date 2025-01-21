@@ -244,7 +244,8 @@ namespace
 		vtkNew<vtkCaptionRepresentation> captionRep;
 		captionRep->SetAnchorPosition(a.m_coord.data());
 		captionRep->GetCaptionActor2D()->SetAttachmentPoint(a.m_coord.data());
-		captionRep->SetFontFactor(0.6);  // necessary for the font size not to be too large (in comparison to slicers)
+		captionRep->SetFontFactor(1);  // necessary for the font size not to be too large (in comparison to slicers)
+					// TBD -> probably dataset size / spacing specific?
 		result->SetInteractor(interactor);
 		result->SetRepresentation(captionRep);
 		result->GetBorderRepresentation()->EnforceNormalizedViewportBoundsOn();
