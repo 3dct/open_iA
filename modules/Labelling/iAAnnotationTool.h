@@ -65,4 +65,5 @@ private:
 	void showActors(size_t id, bool show);
 	void adjustTableItemShown(int row, bool show);
 	std::shared_ptr<iAAnnotationToolUI> m_ui;
+	size_t m_nextID;
 };

@@ -169,7 +169,8 @@ public:
 
 iAAnnotationTool::iAAnnotationTool(iAMainWindow* mainWnd, iAMdiChild* child):
 	iATool(mainWnd,child),
-	m_ui(std::make_shared<iAAnnotationToolUI>(this))
+	m_ui(std::make_shared<iAAnnotationToolUI>(this)),
+	m_nextID(0)
 {
 	child->splitDockWidget(child->renderDockWidget(), m_ui->m_dockWidget, Qt::Vertical);
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
@@ -198,9 +199,8 @@ iAAnnotationTool::iAAnnotationTool(iAMainWindow* mainWnd, iAMdiChild* child):
 
 size_t iAAnnotationTool::addAnnotation(iAVec3d const& coord)
 {
-	static size_t id = 0;
-	auto newID = id;
-	++id;
+	auto newID = m_nextID;
+	++m_nextID;
 	auto name = QString("Annotation %1").arg(newID);
 	QColor col = iAColorThemeManager::theme("Brewer Dark2 (max. 8)")->color(newID);
 	addAnnotation(iAAnnotation(newID, coord, name, col));
@@ -497,6 +497,7 @@ void iAAnnotationTool::loadState(QSettings& projectFile, QString const& fileName
 			addAnnotation(a);
 			++annIdx;
 		}
+		m_nextID = annIdx;
 	}
 	catch (std::exception& e)
 	{
