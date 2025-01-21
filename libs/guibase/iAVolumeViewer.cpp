@@ -178,7 +178,7 @@ void iAVolumeViewer::prepare(iAProgress* p)
 	auto tfSpec = m_dataSet->hasMetaData(TransferFunction) ? m_dataSet->metaData(TransferFunction).toString(): "";
 	if (!tfSpec.isEmpty())
 	{
-		// tfSpec could be either a full transfer function specification or a absolute or relative file name (old)
+		// tfSpec could be either a full transfer function specification, or a absolute or relative file name (old)
 		iAXmlSettings s;
 		if (s.fromString(tfSpec))
 		{

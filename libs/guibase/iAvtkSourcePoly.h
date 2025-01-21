@@ -4,6 +4,8 @@
 
 #include "iaguibase_export.h"
 
+#include <iALog.h>
+
 #include <vtkActor.h>
 #include <vtkPolyDataMapper.h>
 #include <vtkSmartPointer.h>
@@ -41,9 +43,13 @@ void iAvtkSourcePoly<PolySourceClass>::setPoint(int idx, double x, double y, dou
 	{
 		source->SetPoint1(x, y, z);
 	}
-	else
+	else if (idx == 1)
 	{
 		source->SetPoint2(x, y, z);
+	}
+	else
+	{
+		LOG(lvlError, QString("setPoint called with idx=%1, only 0 or 1 are currently supported!").arg(idx));
 	}
 }
 
