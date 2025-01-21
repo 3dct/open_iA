@@ -2,9 +2,13 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #include "iAVRAnnotationsModuleInterface.h"
 
+// base
+#include <iAAABB.h>
 #include <iALog.h>
 
 // guibase
+#include <iADataSetRenderer.h>
+#include <iADataSetViewer.h>
 #include <iAMainWindow.h>
 #include <iAMdiChild.h>
 #include <iAModuleDispatcher.h>
@@ -23,9 +27,9 @@
 #include <QTimer>
 
 //! vtkCaptionWidget but for VR - place text on a 3D position as well (there is no "screen" to stick to...)
-//! required updates:
-//      - keep source marker in sync with object transform (position/rotation)
-//      - keep text rotated towards user -> should be automatically done by vtkBillboardTextActor3D
+//! TODO:
+//!     - adapt font size (to dataset size?)
+//!     - transform marker, caption and line along with dataset when it rotates/moves/scales
 struct iAVRCaption {
 	iAVRCaption(QString const & text, QColor const & textColor, iAVec3d const & markedPos, iAVec3d const & captionPos, vtkRenderer* ren)
 	{
@@ -34,14 +38,6 @@ struct iAVRCaption {
 		m_textSrc = vtkSmartPointer<vtkVectorText>::New();
 		auto cp = captionPos.data();
 		m_textSrc->SetText(text.toLatin1());  // no text property and no utf-8 text for that one
-		//m_textSrc->SetInput(text.toUtf8());
-		//m_textSrc->GetTextProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
-		//m_textSrc->GetTextProperty()->SetOpacity(textColor.alphaF());
-		//m_textSrc->GetTextProperty()->SetBackgroundColor(bgColor.redF(), bgColor.greenF(), bgColor.blueF());
-		//m_textSrc->GetTextProperty()->SetBackgroundOpacity(bgColor.alphaF());
-		// set large font size but scale down to match dataset boundaries:
-		//m_textSrc->GetTextProperty()->SetFontSize(20);
-		//m_textSrc->SetScale(0.1);                                           // TBD: make scene/screen size specific? make such that it has a (corrected, DPI-considering )pixel size of ~10-20
 		m_textMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 		m_textMapper->SetInputConnection(m_textSrc->GetOutputPort());
 		m_follower = vtkSmartPointer<vtkVRFollower>::New();
@@ -56,9 +52,10 @@ struct iAVRCaption {
 		m_marker.source->SetCenter(mp[0], mp[1], mp[2]);
 		m_marker.source->SetRadius(0.1);                                 // TBD: make dataset size specific! a few voxels?
 		m_marker.actor->GetProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
+		m_marker.actor->GetProperty()->SetOpacity(0.5);  // see-through, to be able see real data
 		ren->AddActor(m_marker.actor);
 
-		m_line.setPoint(1, cp[0], cp[1], cp[2]);
+		m_line.setPoint(0, cp[0], cp[1], cp[2]);
 		m_line.setPoint(1, mp[0], mp[1], mp[2]);
 		m_line.actor->GetProperty()->SetColor(textColor.redF(), textColor.greenF(), textColor.blueF());
 		ren->AddActor(m_line.actor);
@@ -164,9 +161,17 @@ void iAVRAnnotationsModuleInterface::recreateVRAnnotations()
 		m_textActors.clear();  //< remove existing annotations
 		for (auto childAnnots : m_annotations)
 		{
+			// assumption: we annotate the first dataset in the child...
+			auto child = childAnnots.first;
+			auto viewer = child->dataSetViewer(child->firstImageDataSetIdx());
+			auto b = viewer->renderer()->bounds();
+			auto center = (b.minCorner() + b.maxCorner()) / 2;
+			auto lenFromCenter = /*diagonal=*/ (b.maxCorner() - b.minCorner()).length() * 0.8;
 			for (auto a : childAnnots.second)
 			{
-				iAVec3d captionPos;
+				iAVec3d direction = (a.m_coord - center).normalized();
+				iAVec3d captionPos = center + (direction * lenFromCenter);
+				LOG(lvlDebug, QString("center: %1; captionPos: %2").arg(center.toString()).arg(captionPos.toString()));
 				m_textActors.push_back(std::make_shared<iAVRCaption>(
 					a.m_name, a.m_color, a.m_coord, captionPos, ren));
 			}
