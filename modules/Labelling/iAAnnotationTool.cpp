@@ -248,10 +248,11 @@ namespace
 					// TBD -> probably dataset size / spacing specific?
 		result->SetInteractor(interactor);
 		result->SetRepresentation(captionRep);
+		//result->GetRepresentation() ?
 		result->GetBorderRepresentation()->EnforceNormalizedViewportBoundsOn();
-		captionRep->SetPosition(0.8, 0.8);  // upper right cornder
-		//captionRep->SetPosition2(0.2, 0.2);  // should set size of annotation, but does not seem to have any affect (maybe it would with BorderOn?)
+		captionRep->SetPosition(0.8, 0.9 - (a.m_id * 0.1));  // starting from upper right corner
 		setupCaptionActor(captionRep->GetCaptionActor2D(), a.m_name, a.m_color);
+		//result->GetCaptionActor2D()->GetTextActor()->SetTextScaleModeToNone(); no effect?
 		return result;
 	}
 }
