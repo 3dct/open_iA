@@ -16,19 +16,18 @@ env:
   VTK_BIN_DIR: ${{github.workspace}}/vtk-bin
   ITK_BIN_DIR: ${{github.workspace}}/itk-bin
   OPENIA_BIN_DIR: ${{github.workspace}}/bin
-  VTK_CMAKE_OPTIONS: -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_SHARED_LIBS=ON -DVTK_BUILD_EXAMPLES=OFF -DVTK_BUILD_TESTING=OFF -DVTK_LEGACY_REMOVE:BOOL=ON >
+  VTK_CMAKE_OPTIONS: -DBUILD_SHARED_LIBS=ON -DVTK_BUILD_EXAMPLES=OFF -DVTK_BUILD_TESTING=OFF -DVTK_LEGACY_REMOVE:BOOL=ON >
     -DVTK_MODULE_ENABLE_VTK_GUISupportQt:STRING=YES -DVTK_MODULE_ENABLE_VTK_GUISupportQtSQL:STRING=NO >
     -DVTK_MODULE_ENABLE_VTK_RenderingQt:STRING=YES -DVTK_MODULE_ENABLE_VTK_ViewsQt:STRING=YES >
     -DVTK_MODULE_ENABLE_VTK_RenderingContextOpenGL2:STRING=YES
     # optional: -DVTK_SMP_IMPLEMENTATION_TYPE:STRING=${VTK_SMP_TYPE}
 		# Qt: -DQt6_DIR:PATH=${Qt6_DIR} -DQt6WidgetsTools_DIR:PATH=${Qt6_DIR}WidgetsTools -DQt6CoreTools_DIR:PATH=${Qt6_DIR}CoreTools -DQt6GuiTools_DIR:PATH=${Qt6_DIR}GuiTools
 	  # Compiler: -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
-  ITK_CMAKE_OPTIONS: -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING:BOOL=OFF >
+  ITK_CMAKE_OPTIONS: -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING:BOOL=OFF >
     -DITK_USE_GPU:BOOL=OFF -DITK_USE_64BITS_IDS:BOOL=ON >
     -DModule_ITKReview:BOOL=ON >-DModule_HigherOrderAccurateGradient:BOOL=ON -DModule_SplitComponents:BOOL=ON >
-    -DModule_ITKVtkGlue:BOOL=On -DVTK_DIR:PATH=${{env.VTK_BIN_DIR}}
-  OPENIA_CMAKE_OPTIONS: -DITK_DIR=${{github.workspace}}/itk-bin >
-    -DModule_CommonImageFilters:BOOL=ON -DModule_FeatureCharacteristics:BOOL=ON -DModule_MetaFilters:BOOL=ON >
+    -DModule_ITKVtkGlue:BOOL=On
+  OPENIA_CMAKE_OPTIONS: -DModule_CommonImageFilters:BOOL=ON -DModule_FeatureCharacteristics:BOOL=ON -DModule_MetaFilters:BOOL=ON >
     -DModule_Metrics:BOOL=ON -DModule_Segmentation:BOOL=ON -DModule_Surfaces:BOOL=ON >
     -DModule_4DCT:BOOL=ON -DModule_BoneThickness:BOOL=ON -DModule_CompVis:BOOL=ON -DModule_DynamicVolumeLines:BOOL=ON -DModule_ElastixRegistration:BOOL=ON >
     -DModule_FeatureAnalyzer:BOOL=ON -DModule_FeatureAnalyzerComputation:BOOL=ON -DModule_FeatureScout:BOOL=ON -DModule_FiAKEr:BOOL=ON >
@@ -94,7 +93,7 @@ jobs:
 
     - name: VTK cmake configure
       #  -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/vtkinst
-      run: cmake -B ${{env.VTK_BIN_DIR}} ${{env.VTK_CMAKE_OPTIONS}} vtk-src/VTK-9.4.1
+      run: cmake -B ${{env.VTK_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.VTK_CMAKE_OPTIONS}} vtk-src/VTK-9.4.1
 
     - name: VTK build
       run: cmake --build ${{env.VTK_BIN_DIR}} --config ${{env.BUILD_TYPE}}
@@ -118,7 +117,7 @@ jobs:
           tar -xvzf InsightToolkit-5.4.0.tar.gz
 
     - name: ITK cmake configure
-      run: cmake -B ${{env.ITK_BIN_DIR}} ${{env.ITK_CMAKE_OPTIONS}} itk-src/InsightToolkit-5.4.0
+      run: cmake -B ${{env.ITK_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{env.VTK_BIN_DIR}} itk-src/InsightToolkit-5.4.0
 
     - name: ITK build
       run: cmake --build ${{env.ITK_BIN_DIR}} --config ${{env.BUILD_TYPE}}
@@ -140,7 +139,7 @@ jobs:
     - if: matrix.build-mode == 'manual'
       shell: bash
       run: |
-        cmake -B ${{env.OPENIA_BIN_DIR}} ${{env.OPENIA_CMAKE_OPTIONS}} .
+        cmake -B ${{env.OPENIA_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{env.ITK_BIN_DIR}} .
         cmake --build ${{env.OPENIA_BIN_DIR}} --config ${{env.BUILD_TYPE}}
         #exit 1
 
