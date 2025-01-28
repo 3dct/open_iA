@@ -1,9 +1,11 @@
 name: "Build doxygen API doc"
 
 on:
-  release:
+  # manual triggering allowed:
+  workflow_dispatch:
+  # or on a new release:
+  release:                
     types: [published]
-  workflow_dispatch
 
 jobs:
   builddoc:
