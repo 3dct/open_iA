@@ -39,7 +39,9 @@ jobs:
     - if: matrix.build-mode == 'manual'
       shell: bash
       run: |
-        ls -al ..
+        ls -al .
+        mkdir bin
+        cd bin
         cmake ..
         cmake --build ..
         exit 1
