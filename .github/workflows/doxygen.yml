@@ -19,3 +19,12 @@ jobs:
       with:
         # working-directory: '.'
         doxyfile-path: 'Doxyfile'
+    - name: Create zip archive
+      uses: actions/upload-artifact@v4
+      # see https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/storing-and-sharing-data-from-a-workflow
+      # and https://github.com/actions/upload-artifact for details
+      with:
+        name: open_iA-main-doxygen.zip
+        path: doxygen
+        if-no-files-found: error
+        overwrite: true
