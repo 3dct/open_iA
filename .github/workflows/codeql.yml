@@ -39,10 +39,10 @@ jobs:
     - if: matrix.build-mode == 'manual'
       shell: bash
       run: |
-        echo '  pwd'
-        echo '  cmake --version'
-        echo '  cmake'
-        echo '  cmake --build'
+        pwd
+        cmake --version
+        cmake
+        cmake --build
         exit 1
 
     - name: Perform CodeQL Analysis
