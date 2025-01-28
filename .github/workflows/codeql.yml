@@ -10,9 +10,6 @@ on:
   #  branches: [ "main" ]
   #schedule:
   #  - cron: '45 15 * * 5'
-  # or on a new release:
-  release:                
-    types: [published]
 
 env:
   BUILD_TYPE: Release
@@ -50,70 +47,11 @@ jobs:
         include:
         - language: c-cpp
           build-mode: manual
-        - language: javascript-typescript
-          build-mode: none
+# have to do all steps only 
+#        - language: javascript-typescript
+#          build-mode: none
     steps:
-
-    - name: Qt install
-      # see https://github.com/marketplace/actions/install-qt for details
-      uses: jurplel/install-qt-action@v4
-      with:
-        version: '6.8.1'
-        modules: 'qtcharts qthttpserver qtwebsockets'
-        setup-python: false
-
-    ##################################################################
-    # VTK
-    - name: VTK download
-      uses: suisei-cn/actions-download-file@v1.6.0
-      with:
-        url: https://vtk.org/files/release/9.4/VTK-9.4.1.tar.gz
-        target: ${{github.workspace}}/vtk-src
-
-    - name: VTK extract
-      run: |
-          tar -xvzf VTK-9.4.1.tar.gz
-    
-    #- name: VTK create install folder
-    #  run: |
-    #      mkdir -p ${{github.workspace}}/vtkinst
-
-    - name: VTK install dependencies (Linux)
-      run: sudo apt update && sudo apt install libopenmpi-dev libopengl-dev libglx-dev libglw-dev
-      if: runner.os == 'Linux'
-
-    - name: VTK cmake configure
-      #  -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/vtkinst
-      run: cmake -B ${{env.VTK_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.VTK_CMAKE_OPTIONS}} vtk-src/VTK-9.4.1
-
-    - name: VTK build
-      run: cmake --build ${{env.VTK_BIN_DIR}} --config ${{env.BUILD_TYPE}}
-      # -j ${{inputs.threads}}
-
-    #- name: VTK install
-    #  working-directory: ${{github.workspace}}/vtk-bin
-    #  run: cmake --install ${{github.workspace}}/vtk-bin --config ${{env.BUILD_TYPE}}
-
-    ##################################################################
-    # ITK
-
-    - name: ITK download
-      uses: suisei-cn/actions-download-file@v1.6.0
-      with:
-        url: https://github.com/InsightSoftwareConsortium/ITK/releases/download/v5.4.0/InsightToolkit-5.4.0.tar.gz
-        target: ${{github.workspace}}/itk-src
-
-    - name: ITK extract
-      run: |
-          tar -xvzf InsightToolkit-5.4.0.tar.gz
-
-    - name: ITK cmake configure
-      run: cmake -B ${{env.ITK_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{env.VTK_BIN_DIR}} itk-src/InsightToolkit-5.4.0
-
-    - name: ITK build
-      run: cmake --build ${{env.ITK_BIN_DIR}} --config ${{env.BUILD_TYPE}}
-      # -j ${{inputs.threads}}
-    
+ 
     ##################################################################
     # open_iA
 
@@ -127,7 +65,79 @@ jobs:
         build-mode: ${{ matrix.build-mode }}
         dependency-caching: true
 
+    - name: Qt install
+      # see https://github.com/marketplace/actions/install-qt for details
+      uses: jurplel/install-qt-action@v4
+      with:
+        version: '6.8.1'
+        modules: 'qtcharts qthttpserver qtwebsockets'
+        setup-python: false
+
+    ##################################################################
+    # VTK
     - if: matrix.build-mode == 'manual'
+      name: VTK download
+      uses: suisei-cn/actions-download-file@v1.6.0
+      with:
+        url: https://vtk.org/files/release/9.4/VTK-9.4.1.tar.gz
+        target: ${{github.workspace}}/vtk-src
+
+    - if: matrix.build-mode == 'manual'
+      name: VTK extract
+      run: |
+          cd vtk-src
+          tar -xvzf VTK-9.4.1.tar.gz
+    
+    #- name: VTK create install folder
+    #  run: |
+    #      mkdir -p ${{github.workspace}}/vtkinst
+
+    - if: matrix.build-mode == 'manual'
+      name: VTK install dependencies (Linux)
+      run: sudo apt update && sudo apt install libopenmpi-dev libopengl-dev libglx-dev libglw-dev
+      # if: runner.os == 'Linux' only runs on ubuntu currently anyway
+
+    - if: matrix.build-mode == 'manual'
+      name: VTK cmake configure
+      #  -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/vtkinst
+      run: cmake -B ${{env.VTK_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.VTK_CMAKE_OPTIONS}} vtk-src/VTK-9.4.1
+
+    - if: matrix.build-mode == 'manual'
+      name: VTK build
+      run: cmake --build ${{env.VTK_BIN_DIR}} --config ${{env.BUILD_TYPE}}
+      # -j ${{inputs.threads}}
+
+    #- name: VTK install
+    #  working-directory: ${{github.workspace}}/vtk-bin
+    #  run: cmake --install ${{github.workspace}}/vtk-bin --config ${{env.BUILD_TYPE}}
+
+    ##################################################################
+    # ITK
+
+    - if: matrix.build-mode == 'manual'
+      name: ITK download
+      uses: suisei-cn/actions-download-file@v1.6.0
+      with:
+        url: https://github.com/InsightSoftwareConsortium/ITK/releases/download/v5.4.0/InsightToolkit-5.4.0.tar.gz
+        target: ${{github.workspace}}/itk-src
+
+    - if: matrix.build-mode == 'manual'
+      name: ITK extract
+      run: |
+          cd itk-src
+          tar -xvzf InsightToolkit-5.4.0.tar.gz
+
+    - if: matrix.build-mode == 'manual'
+      name: ITK cmake configure
+      run: cmake -B ${{env.ITK_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{env.VTK_BIN_DIR}} itk-src/InsightToolkit-5.4.0
+
+    - if: matrix.build-mode == 'manual'
+      name: ITK build
+      run: cmake --build ${{env.ITK_BIN_DIR}} --config ${{env.BUILD_TYPE}}
+      # -j ${{inputs.threads}}
+
+    - if: matrix.build-mode == 'manual'
+      name: open_iA build
       shell: bash
       run: |
         cmake -B ${{env.OPENIA_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{env.ITK_BIN_DIR}} .
