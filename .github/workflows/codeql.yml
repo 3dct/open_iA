@@ -1,12 +1,15 @@
 name: "CodeQL Advanced"
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-  schedule:
-    - cron: '45 15 * * 5'
+  # manual triggering allowed:
+  workflow_dispatch:
+  # currently disable any other automatic triggering:
+  #push:
+  #  branches: [ "main" ]
+  #pull_request:
+  #  branches: [ "main" ]
+  #schedule:
+  #  - cron: '45 15 * * 5'
 
 jobs:
   analyze:
