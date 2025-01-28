@@ -47,9 +47,8 @@ jobs:
         include:
         - language: c-cpp
           build-mode: manual
-# have to do all steps only 
-#        - language: javascript-typescript
-#          build-mode: none
+        - language: javascript-typescript
+          build-mode: none
     steps:
  
     ##################################################################
@@ -104,7 +103,7 @@ jobs:
 
     - if: matrix.build-mode == 'manual'
       name: VTK build
-      run: cmake --build ${{env.VTK_BIN_DIR}} --config ${{env.BUILD_TYPE}}
+      run: cmake --build ${{env.VTK_BIN_DIR}} --config ${{env.BUILD_TYPE}} -j 4
       # -j ${{inputs.threads}}
 
     #- name: VTK install
@@ -133,7 +132,7 @@ jobs:
 
     - if: matrix.build-mode == 'manual'
       name: ITK build
-      run: cmake --build ${{env.ITK_BIN_DIR}} --config ${{env.BUILD_TYPE}}
+      run: cmake --build ${{env.ITK_BIN_DIR}} --config ${{env.BUILD_TYPE}} -j 4
       # -j ${{inputs.threads}}
 
     - if: matrix.build-mode == 'manual'
@@ -141,7 +140,7 @@ jobs:
       shell: bash
       run: |
         cmake -B ${{env.OPENIA_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{env.ITK_BIN_DIR}} .
-        cmake --build ${{env.OPENIA_BIN_DIR}} --config ${{env.BUILD_TYPE}}
+        cmake --build ${{env.OPENIA_BIN_DIR}} --config ${{env.BUILD_TYPE}} -j 4
         #exit 1
 
     - name: Perform CodeQL Analysis
