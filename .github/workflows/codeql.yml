@@ -92,7 +92,7 @@ jobs:
     #      mkdir -p ${{github.workspace}}/vtkinst
 
     - if: matrix.build-mode == 'manual'
-      name: VTK install dependencies (Linux)
+      name: VTK install dependencies
       run: sudo apt update && sudo apt install libopenmpi-dev libopengl-dev libglx-dev libglw-dev
       # if: runner.os == 'Linux' only runs on ubuntu currently anyway
 
@@ -134,6 +134,15 @@ jobs:
       name: ITK build
       run: cmake --build ${{env.ITK_BIN_DIR}} --config ${{env.BUILD_TYPE}} -j 4
       # -j ${{inputs.threads}}
+
+    - if: matrix.build-mode == 'manual'
+      name: open_iA install dependencies
+      run: sudo apt update && sudo apt install boost-devel nodejs-npm
+      # vtk dependencies (again to be installed, when we make vtk a cached thing):  libopenmpi-dev libopengl-dev libglx-dev libglw-dev
+      # VR: openvr-devel openxr-devel
+      # OpenCL: ocl-icd-devel opencl-headers
+      # clang: clang libomp-devel
+      # if: runner.os == 'Linux' only runs on ubuntu currently anyway
 
     - if: matrix.build-mode == 'manual'
       name: open_iA build
