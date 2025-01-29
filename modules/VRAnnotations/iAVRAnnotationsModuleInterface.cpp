@@ -87,12 +87,12 @@ void iAVRAnnotationsModuleInterface::Initialize()
 		{
 			if (id == iAAnnotationTool::Name)
 			{
-				LOG(lvlDebug, QString("Annotations started."));
+				//LOG(lvlDebug, QString("Annotations started."));
 				auto tool = getTool<iAAnnotationTool>(child);
 				connect(tool, &iAAnnotationTool::annotationsUpdated, this, [this, child](std::vector<iAAnnotation> const& a)
 				{
 					m_annotations[child] = a;
-					LOG(lvlDebug, QString("Annotations updated: %1").arg(a.size()));
+					//LOG(lvlDebug, QString("Annotations updated: %1").arg(a.size()));
 					recreateVRAnnotations();
 					// TODO: for better performance, handle annotation changes specifically, instead of always recreating all!
 					// annotations were either:
@@ -125,21 +125,18 @@ void iAVRAnnotationsModuleInterface::Initialize()
 	//     - VR environment started
 	// TODO: check - probably depends on ImNDT module being loaded first ??
 	auto vrModule = m_mainWnd->moduleDispatcher().module<iAImNDTModuleInterface>();
-	connect(vrModule, &iAImNDTModuleInterface::vrStarted, this, [this, vrModule]
+	connect(vrModule, &iAImNDTModuleInterface::vrStarted, this, [this]
 	{
-		LOG(lvlDebug, QString("VR started"));
-		// push annotations to VR if existing; but only after a little delay
-		// (wait for VR to be fully initialized)
-		// maybe find a better way than just waiting? could there be a
-		//QTimer::singleShot(std::chrono::milliseconds(500), this, [this] {
+		//LOG(lvlDebug, QString("VR started"));
 		recreateVRAnnotations();
-		//});
 	});
-	connect(vrModule, &iAImNDTModuleInterface::vrStopped, this, [this, vrModule]
+	/*
+	connect(vrModule, &iAImNDTModuleInterface::vrStopped, this, []
 	{
 		LOG(lvlDebug, QString("VR stopped"));
-		// cleanup?
+		// TODO: check if some cleanup is required...
 	});
+	*/
 }
 
 void iAVRAnnotationsModuleInterface::recreateVRAnnotations()
