@@ -1,0 +1,30 @@
+name: "Build doxygen API doc"
+
+on:
+  # manual triggering allowed:
+  workflow_dispatch:
+  # or on a new release:
+  release:                
+    types: [published]
+
+jobs:
+  builddoc:
+    name: Generate API doc
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Run doxygen
+      uses: mattnotmitt/doxygen-action@v1.9.5
+      with:
+        # working-directory: '.'
+        doxyfile-path: 'Doxyfile'
+    - name: Create zip archive
+      uses: actions/upload-artifact@v4
+      # see https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/storing-and-sharing-data-from-a-workflow
+      # and https://github.com/actions/upload-artifact for details
+      with:
+        name: open_iA-main-doxygen.zip
+        path: doxygen
+        if-no-files-found: error
+        overwrite: true
