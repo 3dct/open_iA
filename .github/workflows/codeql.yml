@@ -90,7 +90,7 @@ jobs:
         tar -xvzf src-9.4.1.tar.gz
         mkdir bin-9.4.1
         cd bin-9.4.1
-        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.VTK_CMAKE_OPTIONS}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk-9.4.1 ../src-9.4.1
+        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.VTK_CMAKE_OPTIONS}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk-9.4.1 ../VTK-9.4.1
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ..
@@ -114,10 +114,10 @@ jobs:
         mkdir -p ${{github.workspace}}/itk
         curl https://github.com/InsightSoftwareConsortium/ITK/releases/download/v5.4.0/InsightToolkit-5.4.0.tar.gz --output ${{github.workspace}}/itk/src-5.4.0.tar.gz
         cd ${{github.workspace}}/itk
-        tar -xvzf itk-5.4.0.tar.gz
+        tar -xvzf src-5.4.0.tar.gz
         mkdir bin 5.4.0
         cd bin-5.4.0
-        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-9.4.1 -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/itk-5.4.0 ../src-5.4.0
+        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-9.4.1 -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/InsightToolkit-5.4.0 ../src-5.4.0
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ..
