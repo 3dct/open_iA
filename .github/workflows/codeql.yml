@@ -93,6 +93,10 @@ jobs:
         cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.VTK_CMAKE_OPTIONS}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk-9.4.1 ../src-9.4.1
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
+        cd ..
+        rm -r vtk
+        ls -al vtk-9.4.1
+        du -sh vtk-9.4.1
 
     ##################################################################
     # ITK
@@ -116,6 +120,10 @@ jobs:
         cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-9.4.1 -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/itk-5.4.0 ../src-5.4.0
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
+        cd ..
+        rm -r itk
+        ls -al itk-5.4.0
+        du -sh itk-5.4.0
 
     - if: matrix.build-mode == 'manual'
       name: open_iA install dependencies
