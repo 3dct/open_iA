@@ -13,8 +13,6 @@ on:
 
 env:
   BUILD_TYPE: Release
-  VTK_BIN_DIR: ${{github.workspace}}/vtk-bin
-  ITK_BIN_DIR: ${{github.workspace}}/itk-bin
   OPENIA_BIN_DIR: ${{github.workspace}}/bin
   VTK_CMAKE_OPTIONS: -DBUILD_SHARED_LIBS=ON -DVTK_BUILD_EXAMPLES=OFF -DVTK_BUILD_TESTING=OFF -DVTK_LEGACY_REMOVE:BOOL=ON -DVTK_MODULE_ENABLE_VTK_GUISupportQt:STRING=YES -DVTK_MODULE_ENABLE_VTK_GUISupportQtSQL:STRING=NO -DVTK_MODULE_ENABLE_VTK_RenderingQt:STRING=YES -DVTK_MODULE_ENABLE_VTK_ViewsQt:STRING=YES -DVTK_MODULE_ENABLE_VTK_RenderingContextOpenGL2:STRING=YES
     # optional: -DVTK_SMP_IMPLEMENTATION_TYPE:STRING=${VTK_SMP_TYPE}
@@ -75,51 +73,49 @@ jobs:
     ##################################################################
     # VTK
     - if: matrix.build-mode == 'manual'
-      name: VTK download and extract
+      name: Check cache for VTK build
+      id: cache-vtk
+      uses: actions/cache@v4
+      with:
+        path: vtk-9.4.1
+        key: ${{ runner.os }}-vtk-9.4.1
+
+    - if: ${{ (matrix.build-mode == 'manual' && steps.cache-vtk.outputs.cache-hit != 'true') }}
+      name: VTK download, extract, configure, build, install
       run: |
-        curl https://vtk.org/files/release/9.4/VTK-9.4.1.tar.gz --output ${{github.workspace}}/VTK-9.4.1.tar.gz
-        tar -xvzf VTK-9.4.1.tar.gz
-    
-    #- name: VTK create install folder
-    #  run: |
-    #      mkdir -p ${{github.workspace}}/vtkinst
-
-    - if: matrix.build-mode == 'manual'
-      name: VTK install dependencies
-      run: sudo apt update && sudo apt install libopenmpi-dev libopengl-dev libglx-dev libglw-dev
-      # if: runner.os == 'Linux' only runs on ubuntu currently anyway
-
-    - if: matrix.build-mode == 'manual'
-      name: VTK cmake configure
-      #  -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/vtkinst
-      run: cmake -B ${{env.VTK_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.VTK_CMAKE_OPTIONS}} vtk-src/VTK-9.4.1
-
-    - if: matrix.build-mode == 'manual'
-      name: VTK build
-      run: cmake --build ${{env.VTK_BIN_DIR}} --config ${{env.BUILD_TYPE}} -j 4
-      # -j ${{inputs.threads}}
-
-    #- name: VTK install
-    #  working-directory: ${{github.workspace}}/vtk-bin
-    #  run: cmake --install ${{github.workspace}}/vtk-bin --config ${{env.BUILD_TYPE}}
+        sudo apt update && sudo apt install libopenmpi-dev libopengl-dev libglx-dev libglw-dev
+        mkdir -p ${{github.workspace}}/vtk
+        curl https://vtk.org/files/release/9.4/VTK-9.4.1.tar.gz --output ${{github.workspace}}/vtk/src-9.4.1.tar.gz
+        cd ${{github.workspace}}/vtk
+        tar -xvzf src-9.4.1.tar.gz
+        mkdir bin-9.4.1
+        cd bin-9.4.1
+        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.VTK_CMAKE_OPTIONS}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk-9.4.1 ../src-9.4.1
+        cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
+        cmake --install . --config ${{env.BUILD_TYPE}}
 
     ##################################################################
     # ITK
-
     - if: matrix.build-mode == 'manual'
-      name: ITK download and extract
+      name: Check cache for ITK build
+      id: cache-itk
+      uses: actions/cache@v4
+      with:
+        path: itk-5.4.0
+        key: ${{ runner.os }}-itk-5.4.0
+
+    - if: ${{ (matrix.build-mode == 'manual' && steps.cache-itk.outputs.cache-hit != 'true') }}
+      name: ITK download, extract, configure, build, install (potentially use cached version)
       run: |
-        curl https://github.com/InsightSoftwareConsortium/ITK/releases/download/v5.4.0/InsightToolkit-5.4.0.tar.gz --output ${{github.workspace}}/ITK-5.4.0.tar.gz
-        tar -xvzf ITK-5.4.0.tar.gz
-
-    - if: matrix.build-mode == 'manual'
-      name: ITK cmake configure
-      run: cmake -B ${{env.ITK_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{env.VTK_BIN_DIR}} itk-src/InsightToolkit-5.4.0
-
-    - if: matrix.build-mode == 'manual'
-      name: ITK build
-      run: cmake --build ${{env.ITK_BIN_DIR}} --config ${{env.BUILD_TYPE}} -j 4
-      # -j ${{inputs.threads}}
+        mkdir -p ${{github.workspace}}/itk
+        curl https://github.com/InsightSoftwareConsortium/ITK/releases/download/v5.4.0/InsightToolkit-5.4.0.tar.gz --output ${{github.workspace}}/itk/src-5.4.0.tar.gz
+        cd ${{github.workspace}}/itk
+        tar -xvzf itk-5.4.0.tar.gz
+        mkdir bin 5.4.0
+        cd bin-5.4.0
+        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-9.4.1 -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/itk-5.4.0 ../src-5.4.0
+        cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
+        cmake --install . --config ${{env.BUILD_TYPE}}
 
     - if: matrix.build-mode == 'manual'
       name: open_iA install dependencies
@@ -134,7 +130,7 @@ jobs:
       name: open_iA build
       shell: bash
       run: |
-        cmake -B ${{env.OPENIA_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{env.ITK_BIN_DIR}} .
+        cmake -B ${{env.OPENIA_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{github.workspace}}/itk-5.4.0 .
         cmake --build ${{env.OPENIA_BIN_DIR}} --config ${{env.BUILD_TYPE}} -j 4
         #exit 1
 
