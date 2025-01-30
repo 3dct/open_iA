@@ -127,11 +127,12 @@ jobs:
 
     - if: matrix.build-mode == 'manual'
       name: open_iA install dependencies
-      run: sudo apt update && sudo apt install boost-devel nodejs-npm
+      run: sudo apt update && sudo apt install npm
       # vtk dependencies (again to be installed, when we make vtk a cached thing):  libopenmpi-dev libopengl-dev libglx-dev libglw-dev
-      # VR: openvr-devel openxr-devel
-      # OpenCL: ocl-icd-devel opencl-headers
-      # clang: clang libomp-devel
+      # dependencies stated in superbuild: libgl1-mesa-dev libxt-dev libxt-dev libxcursor-dev libsdl2-dev
+      # VR: libboost-dev libopenvr-dev libopenxr-dev
+      # OpenCL: ocl-icd-opencl-dev opencl-headers opencl-clhpp-headers
+      # clang: clang libomp-dev
       # if: runner.os == 'Linux' only runs on ubuntu currently anyway
 
     - if: matrix.build-mode == 'manual'
