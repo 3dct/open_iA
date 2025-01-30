@@ -93,10 +93,11 @@ jobs:
         cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.VTK_CMAKE_OPTIONS}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk-9.4.1 ../VTK-9.4.1
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
-        cd ..
+        cd ../..
         rm -r vtk
         ls -al vtk-9.4.1
         du -sh vtk-9.4.1
+        df -h
 
     ##################################################################
     # ITK
@@ -115,15 +116,16 @@ jobs:
         curl https://github.com/InsightSoftwareConsortium/ITK/releases/download/v5.4.0/InsightToolkit-5.4.0.tar.gz --output ${{github.workspace}}/itk/src-5.4.0.tar.gz
         cd ${{github.workspace}}/itk
         tar -xvzf src-5.4.0.tar.gz
-        mkdir bin 5.4.0
+        mkdir bin-5.4.0
         cd bin-5.4.0
         cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-9.4.1 -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/InsightToolkit-5.4.0 ../src-5.4.0
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
-        cd ..
+        cd ../..
         rm -r itk
         ls -al itk-5.4.0
         du -sh itk-5.4.0
+        df -h
 
     - if: matrix.build-mode == 'manual'
       name: open_iA install dependencies
@@ -141,6 +143,7 @@ jobs:
       run: |
         cmake -B ${{env.OPENIA_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{github.workspace}}/itk-5.4.0 .
         cmake --build ${{env.OPENIA_BIN_DIR}} --config ${{env.BUILD_TYPE}} -j 4
+        df -h
         #exit 1
 
     - name: Perform CodeQL Analysis
