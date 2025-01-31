@@ -10,6 +10,8 @@ on:
   #  branches: [ "main" ]
   #schedule:
   #  - cron: '45 15 * * 5'
+  # required for manual triggering when not in main branch:
+  pull_request:
 
 env:
   BUILD_TYPE: Release
