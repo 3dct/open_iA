@@ -94,6 +94,7 @@ jobs:
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ../..
+        du -sh vtk
         rm -r vtk
         ls -al vtk-9.4.1
         du -sh vtk-9.4.1
@@ -113,15 +114,17 @@ jobs:
       name: ITK download, extract, configure, build, install (potentially use cached version)
       run: |
         mkdir -p ${{github.workspace}}/itk
-        curl https://github.com/InsightSoftwareConsortium/ITK/releases/download/v5.4.0/InsightToolkit-5.4.0.tar.gz --output ${{github.workspace}}/itk/src-5.4.0.tar.gz
+        # some redirect is happening - use -L to allow for that!
+        curl -L https://github.com/InsightSoftwareConsortium/ITK/releases/download/v5.4.0/InsightToolkit-5.4.0.tar.gz --output ${{github.workspace}}/itk/src-5.4.0.tar.gz
         cd ${{github.workspace}}/itk
         tar -xvzf src-5.4.0.tar.gz
         mkdir bin-5.4.0
         cd bin-5.4.0
-        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-9.4.1 -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/InsightToolkit-5.4.0 ../src-5.4.0
+        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-9.4.1 -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/itk-5.4.0 ../InsightToolkit-5.4.0
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ../..
+        du -sh itk
         rm -r itk
         ls -al itk-5.4.0
         du -sh itk-5.4.0
