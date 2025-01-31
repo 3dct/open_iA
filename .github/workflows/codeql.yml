@@ -114,13 +114,13 @@ jobs:
       name: ITK download, extract, configure, build, install (potentially use cached version)
       run: |
         mkdir -p ${{github.workspace}}/itk
-        # some redirect is happening - use -L to allow for that!
+        # redirects to some objects.githubusercontent.com URL - use -L to allow for that!
         curl -L https://github.com/InsightSoftwareConsortium/ITK/releases/download/v5.4.0/InsightToolkit-5.4.0.tar.gz --output ${{github.workspace}}/itk/src-5.4.0.tar.gz
         cd ${{github.workspace}}/itk
         tar -xvzf src-5.4.0.tar.gz
         mkdir bin-5.4.0
         cd bin-5.4.0
-        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-9.4.1 -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/itk-5.4.0 ../InsightToolkit-5.4.0
+        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-9.4.1/lib/cmake/vtk-9.4 -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/itk-5.4.0 ../InsightToolkit-5.4.0
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ../..
@@ -144,7 +144,7 @@ jobs:
       name: open_iA build
       shell: bash
       run: |
-        cmake -B ${{env.OPENIA_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{github.workspace}}/itk-5.4.0 .
+        cmake -B ${{env.OPENIA_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{github.workspace}}/itk-5.4.0/lib/cmake/ITK-5.4 .
         cmake --build ${{env.OPENIA_BIN_DIR}} --config ${{env.BUILD_TYPE}} -j 4
         df -h
         #exit 1
