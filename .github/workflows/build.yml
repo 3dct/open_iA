@@ -12,6 +12,9 @@ on:
   #  - cron: '45 15 * * 5'
   # required for manual triggering when not in main branch:
   pull_request:
+  push:
+    branches:
+      - '**'
 
 env:
   BUILD_TYPE: Release
