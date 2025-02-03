@@ -1,4 +1,4 @@
-name: "Build open_iA on Ubuntu"
+name: "Build open_iA"
 
 on:
   # manual triggering allowed:
@@ -29,22 +29,16 @@ env:
   QT_VERSION: 6.8.2
 
 jobs:
-# cannot do as separate job - then it would not be accessible (unless via artifacts)
-#  build_vtk:
-#    name: Build VTK
-#    runs-on: ${{ matrix.os }}
-#    strategy:
-#        matrix:
-#            os: [windows-latest, macOS-13, macOS-14]
-#    steps:
   build:
-    name: Build open_iA on linux
-    runs-on: 'ubuntu-latest'
+    name: Build open_iA
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        # , macos-latest
     permissions:
       # required for all workflows
       security-events: write
-      # required to fetch internal or private CodeQL packs
-      packages: read
     steps:
  
     ##################################################################
@@ -72,25 +66,25 @@ jobs:
         path: vtk-9.4.1
         key: ${{ runner.os }}-qt${{env.QT_VERSION}}-vtk-9.4.1
 
+    - if: ${{ ( runner.os == 'Linux' && steps.cache-vtk.outputs.cache-hit != 'true' ) }}
+    - name: VTK install prerequisites (Linux)
+      run: |
+        sudo apt update && sudo apt install libopengl-dev libglx-dev libglw-dev
+
     - if: steps.cache-vtk.outputs.cache-hit != 'true'
       name: VTK download, extract, configure, build, install
       run: |
-        sudo apt update && sudo apt install libopenmpi-dev libopengl-dev libglx-dev libglw-dev
-        mkdir -p ${{github.workspace}}/vtk
-        curl https://vtk.org/files/release/9.4/VTK-9.4.1.tar.gz --output ${{github.workspace}}/vtk/src-9.4.1.tar.gz
-        cd ${{github.workspace}}/vtk
-        tar -xvzf src-9.4.1.tar.gz
+        mkdir vtk
+        curl https://vtk.org/files/release/9.4/VTK-9.4.1.tar.gz --output vtk/src-9.4.1.tar.gz
+        cd vtk
+        tar -xzf src-9.4.1.tar.gz
         mkdir bin-9.4.1
         cd bin-9.4.1
         cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.VTK_CMAKE_OPTIONS}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk-9.4.1 ../VTK-9.4.1
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ../..
-        du -sh vtk
         rm -r vtk
-        ls -al vtk-9.4.1
-        du -sh vtk-9.4.1
-        df -h
 
     ##################################################################
     # ITK
@@ -104,28 +98,25 @@ jobs:
     - if: steps.cache-itk.outputs.cache-hit != 'true'
       name: ITK download, extract, configure, build, install
       run: |
-        mkdir -p ${{github.workspace}}/itk
-        # redirects to some objects.githubusercontent.com URL - use -L to allow for that!
-        curl -L https://github.com/InsightSoftwareConsortium/ITK/releases/download/v5.4.0/InsightToolkit-5.4.0.tar.gz --output ${{github.workspace}}/itk/src-5.4.0.tar.gz
-        cd ${{github.workspace}}/itk
-        tar -xvzf src-5.4.0.tar.gz
+        mkdir -p itk
+        curl -L https://github.com/InsightSoftwareConsortium/ITK/releases/download/v5.4.0/InsightToolkit-5.4.0.tar.gz --output itk/src-5.4.0.tar.gz
+        cd itk
+        tar -xzf src-5.4.0.tar.gz
         mkdir bin-5.4.0
         cd bin-5.4.0
         cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-9.4.1/lib/cmake/vtk-9.4 -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/itk-5.4.0 ../InsightToolkit-5.4.0
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ../..
-        du -sh itk
         rm -r itk
-        ls -al itk-5.4.0
-        du -sh itk-5.4.0
-        df -h
+
+  - name: Install npm
+    uses: actions/setup-node@v4
+    with:
+      node-version: 18
 
     ##################################################################
     # open_iA
-    - name: open_iA install dependencies
-      run: sudo apt update && sudo apt install npm
-      # vtk dependencies (again to be installed, when we make vtk a cached thing):  libopenmpi-dev libopengl-dev libglx-dev libglw-dev
       # dependencies stated in superbuild: libgl1-mesa-dev libxt-dev libxt-dev libxcursor-dev libsdl2-dev
       # VR: libboost-dev libopenvr-dev libopenxr-dev
       # OpenCL: ocl-icd-opencl-dev opencl-headers opencl-clhpp-headers
@@ -137,5 +128,3 @@ jobs:
       run: |
         cmake -B ${{env.OPENIA_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{github.workspace}}/itk-5.4.0/lib/cmake/ITK-5.4 .
         cmake --build ${{env.OPENIA_BIN_DIR}} --config ${{env.BUILD_TYPE}} -j 4
-        df -h
-        #exit 1
