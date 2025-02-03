@@ -61,7 +61,7 @@ jobs:
         modules: 'qtcharts qthttpserver qtwebsockets'
         setup-python: false
         cache: true
-        cache-key-prefix: ${{ runner.os }}-qt{{env.QT_VERSION}}
+        cache-key-prefix: Qt
 
     ##################################################################
     # VTK
@@ -70,7 +70,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: vtk-9.4.1
-        key: ${{ runner.os }}-qt{{env.QT_VERSION}}-vtk-9.4.1
+        key: ${{ runner.os }}-qt${{env.QT_VERSION}}-vtk-9.4.1
 
     - if: steps.cache-vtk.outputs.cache-hit != 'true'
       name: VTK download, extract, configure, build, install
@@ -99,7 +99,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: itk-5.4.0
-        key: ${{ runner.os }}-qt{{env.QT_VERSION}}-itk-5.4.0
+        key: ${{ runner.os }}-qt${{env.QT_VERSION}}-itk-5.4.0
 
     - if: steps.cache-itk.outputs.cache-hit != 'true'
       name: ITK download, extract, configure, build, install
