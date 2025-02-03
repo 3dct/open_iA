@@ -10,6 +10,18 @@ A tool for the visual analysis and processing of volumetric datasets, with a foc
 - For documentation, see our [github wiki](https://github.com/3dct/open_ia/wiki).
 
 
+## How to Contribute
+
+- If you use open\_iA and want to tell us how you use it, share your ideas, or have any questions, head over [to the discussions forum](https://github.com/3dct/open_iA/discussions).
+- If you find a bug, if something does not work the way you would expect, or if you have an idea for an enhancement that would help you and others in your analysis tasks, let us know [in the issue tracker](https://github.com/3dct/open_iA/issues). Please use the search function there first, to make sure the issue has not already been reported.
+- open\_iA is an open analysis platform. If you want to develop your own additions, want to use it on a system for which we don't provide pre-built binaries, or want to try out very new developments, head over to the [development section in our wiki](https://github.com/3dct/open_iA/wiki/Development) for more information on things such as [how to set up a build environment](https://github.com/3dct/open_iA/wiki/Building-open_iA) or [how to extend open\_iA by adding new modules](https://github.com/3dct/open_iA/wiki/Developing-a-simple-module)!
+
+
+## Automated Builds
+
+[![Build open\_iA on Ubuntu](https://github.com/3dct/open_iA/actions/workflows/build.yml/badge.svg)](https://github.com/3dct/open_iA/actions/workflows/build.yml)
+
+
 ## How to Cite
 
 If you use open\_iA for your research, please cite our journal article: [![status](http://joss.theoj.org/papers/efb86983da60c89c5e7ef74479be45c6/status.svg)](http://joss.theoj.org/papers/efb86983da60c89c5e7ef74479be45c6)
