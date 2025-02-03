@@ -8,7 +8,18 @@
 #include "iAToolsVTK.h"
 #include "iATypedCallHelper.h"
 
-#include <vtkImageAccumulate.h>
+//#define MODE_OWN 0        // use self-written code
+//#define MODE_VTK_ACC 1    // use vtkImageAccumulate
+//#define MODE_VTK_HIS 2    // use vtkImageHistogram
+
+//#define HISTO_MODE MODE_VTK_HIS
+
+//#if HISTO_MODE == MODE_VTK_ACC
+//#include <vtkImageAccumulate.h>
+//#elif HISTO_MODE == MODE_VTK_HIS
+#include <vtkIdTypeArray.h>
+#include <vtkImageHistogramStatistics.h>
+//#endif
 #include <vtkImageCast.h>
 #include <vtkImageData.h>
 
@@ -243,10 +254,6 @@ void computeHistogram(std::shared_ptr<iAHistogramData> histData, vtkImageData* i
 	}
 }
 
-
-#define MODE_VTK 0    // use self-written code above
-//#define MODE_VTK 1    // use vtkImageAccumulate
-
 std::shared_ptr<iAHistogramData> iAHistogramData::create(QString const& name,
 	vtkImageData* img, size_t desiredNumBin, iAImageStatistics* imgStatistics, int component)
 {
@@ -264,40 +271,62 @@ std::shared_ptr<iAHistogramData> iAHistogramData::create(QString const& name,
 
 	//QElapsedTimer timer;
 	//timer.start();
-#if MODE_VTK
-	if (img->GetNumberOfScalarComponents() != 1)
-	{
-		LOG(lvlDebug,
-			QString("Image has %2 components, only computing histogram of first one!")
-				.arg(img->GetNumberOfScalarComponents()));
-	}
-	auto accumulate = vtkSmartPointer<vtkImageAccumulate>::New();
-	accumulate->ReleaseDataFlagOn();
-	accumulate->SetInputData(img);
-	accumulate->SetComponentOrigin(img->GetScalarRange()[0], 0.0, 0.0);
-	// The check in finalNumBin guarantees that numBin is smaller than int max, so the cast to int below is safe!
-	accumulate->SetComponentExtent(0, static_cast<int>(numBin - 1), 0, 0, 0, 0);
-	accumulate->SetComponentSpacing(histRange / numBin, 0.0, 0.0);
-	accumulate->Update();
+//#if HISTO_MODE == MODE_VTK_ACC
+//	if (img->GetNumberOfScalarComponents() != 1)
+//	{
+//		LOG(lvlDebug,
+//			QString("Image has %2 components, only computing histogram of first one!")
+//				.arg(img->GetNumberOfScalarComponents()));
+//	}
+//	vtkNew<vtkImageAccumulate> accumulate;
+//	accumulate->ReleaseDataFlagOn();
+//	accumulate->SetInputData(img);
+//	accumulate->SetComponentOrigin(img->GetScalarRange()[0], 0.0, 0.0);
+//	// The check in finalNumBin guarantees that numBins is smaller than int max, so the cast to int below is safe!
+//	accumulate->SetComponentExtent(0, static_cast<int>(numBins - 1), 0, 0, 0, 0);
+//	accumulate->SetComponentSpacing(histRange / numBins, 0.0, 0.0);
+//	accumulate->Update();
+//	int extent[6];
+//	accumulate->GetComponentExtent(extent);
+//	vtkNew<vtkImageCast> caster;
+//	caster->SetInputData(accumulate->GetOutput());
+//	caster->SetOutputScalarType(iAVtkDataType<DataType>::value);
+//	caster->Update();
+//	auto rawImg = caster->GetOutput();
+//
+//	auto vtkRawData = static_cast<DataType*>(rawImg->GetScalarPointer());
+//	std::copy(vtkRawData, vtkRawData + result->m_numBin, result->m_histoData);
+//	if (imgStatistics)
+//	{
+//		*imgStatistics = iAImageStatistics{ *accumulate->GetMin(), *accumulate->GetMax(), *accumulate->GetMean(), *accumulate->GetStandardDeviation() };
+//	}
+//	LOG(lvlDebug, QString("VTK (vtkImageAccumulate): %1 seconds").arg(timer.elapsed() / 1000.0, 5, 'f', 3));
+//#elif HISTO_MODE == MODE_VTK_HIS
+	vtkNew<vtkImageHistogramStatistics> histo;
+	histo->SetInputData(img);
+	histo->GenerateHistogramImageOff();
+	histo->AutomaticBinningOff();
+	histo->SetNumberOfBins(numBins);
+	histo->SetBinOrigin(scalarRange[0]);
+	histo->SetBinSpacing(histRange / numBins);
+	histo->SetActiveComponent(component);
+	histo->Update();
 	int extent[6];
-	accumulate->GetComponentExtent(extent);
-	auto caster = vtkSmartPointer<vtkImageCast>::New();
-	caster->SetInputData(accumulate->GetOutput());
-	caster->SetOutputScalarType(iAVtkDataType<DataType>::value);
-	caster->Update();
-	auto rawImg = caster->GetOutput();
-
-	auto vtkRawData = static_cast<DataType*>(rawImg->GetScalarPointer());
-	std::copy(vtkRawData, vtkRawData + result->m_numBin, result->m_histoData);
+	histo->GetOutput()->GetExtent(extent);
+	auto vtkRawData = histo->GetHistogram();
+//#pragma omp parallel for  // no difference in runtimes
+	for (size_t b=0; b<result->m_numBin; ++b) {
+		result->m_histoData[b] = vtkRawData->GetTuple1(b);
+	}
 	if (imgStatistics)
 	{
-		*imgStatistics = iAImageStatistics{ *accumulate->GetMin(), *accumulate->GetMax(), *accumulate->GetMean(), *accumulate->GetStandardDeviation() };
+		*imgStatistics = iAImageStatistics{scalarRange[0], scalarRange[1], histo->GetMean(), histo->GetStandardDeviation() };
 	}
-	//LOG(lvlDebug, QString("VTK: %1 seconds").arg(timer.elapsed() / 1000.0, 5, 'f', 3));
-#else
-	VTK_TYPED_CALL(computeHistogram, img->GetScalarType(), result, img, imgStatistics, component);
-	//LOG(lvlDebug, QString("OpenMP: %1 seconds").arg(timer.elapsed() / 1000.0, 5, 'f', 3));
-#endif
+	//LOG(lvlDebug, QString("VTK (vtkImageHistogram): %1 seconds").arg(timer.elapsed() / 1000.0, 5, 'f', 3));
+//#else  // MODE_OWN
+//	VTK_TYPED_CALL(computeHistogram, img->GetScalarType(), result, img, imgStatistics, component);
+//	LOG(lvlDebug, QString("OpenMP: %1 seconds").arg(timer.elapsed() / 1000.0, 5, 'f', 3));
+//#endif
 	result->m_spacing = histRange / result->m_numBin;
 	result->updateYBounds();
 
