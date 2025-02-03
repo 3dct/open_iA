@@ -8,13 +8,14 @@ on:
   #  branches: [ "main" ]
   #pull_request:
   #  branches: [ "main" ]
-  #schedule:
-  #  - cron: '45 15 * * 5'
   # required for manual triggering when not in main branch:
   pull_request:
   push:
     branches:
       - '**'
+  schedule:
+    # trigger automatic build Mon-Sat at 4:39 UTC:
+    - cron: '39 4 * * 1-6'
 
 env:
   BUILD_TYPE: Release
