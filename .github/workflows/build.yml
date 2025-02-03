@@ -67,7 +67,7 @@ jobs:
         key: ${{ runner.os }}-qt${{env.QT_VERSION}}-vtk-9.4.1
 
     - if: ${{ ( runner.os == 'Linux' && steps.cache-vtk.outputs.cache-hit != 'true' ) }}
-    - name: VTK install prerequisites (Linux)
+      name: VTK install prerequisites (Linux)
       run: |
         sudo apt update && sudo apt install libopengl-dev libglx-dev libglw-dev
 
@@ -110,10 +110,10 @@ jobs:
         cd ../..
         rm -r itk
 
-  - name: Install npm
-    uses: actions/setup-node@v4
-    with:
-      node-version: 18
+    - name: Install npm
+      uses: actions/setup-node@v4
+      with:
+        node-version: 18
 
     ##################################################################
     # open_iA
