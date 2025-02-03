@@ -26,6 +26,7 @@ env:
     # Compiler: -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
   ITK_CMAKE_OPTIONS: -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING:BOOL=OFF -DITK_USE_GPU:BOOL=OFF -DITK_USE_64BITS_IDS:BOOL=ON -DModule_ITKReview:BOOL=ON -DModule_HigherOrderAccurateGradient:BOOL=ON -DModule_SplitComponents:BOOL=ON -DModule_ITKVtkGlue:BOOL=On
   OPENIA_CMAKE_OPTIONS: -DopeniA_CUDA_ENABLED:BOOL=OFF -DModule_CommonImageFilters:BOOL=ON -DModule_FeatureCharacteristics:BOOL=ON -DModule_MetaFilters:BOOL=ON -DModule_Metrics:BOOL=ON -DModule_Segmentation:BOOL=ON -DModule_Surfaces:BOOL=ON -DModule_4DCT:BOOL=ON -DModule_BoneThickness:BOOL=ON -DModule_CompVis:BOOL=ON -DModule_DynamicVolumeLines:BOOL=ON -DModule_FeatureAnalyzer:BOOL=ON -DModule_FeatureAnalyzerComputation:BOOL=ON -DModule_FeatureScout:BOOL=ON -DModule_FiAKEr:BOOL=ON -DModule_FilterPreview:BOOL=ON -DModule_FoamCharacterization:BOOL=ON -DModule_FuzzyFeatureTracking:BOOL=ON -DModule_GEMSe:BOOL=ON -DModule_InSpectr:BOOL=ON -DModule_Labelling:BOOL=ON -DModule_NModalTF:BOOL=ON -DModule_Remote:BOOL=ON -DModule_TripleHistogramTF:BOOL=ON -DModule_Uncertainty:BOOL=ON -DModule_VolumePlayer:BOOL=ON
+  QT_VERSION: 6.8.2
 
 jobs:
 # cannot do as separate job - then it would not be accessible (unless via artifacts)
@@ -56,9 +57,11 @@ jobs:
       # see https://github.com/marketplace/actions/install-qt for details
       uses: jurplel/install-qt-action@v4
       with:
-        version: '6.8.1'
+        version: ${{env.QT_VERSION}}
         modules: 'qtcharts qthttpserver qtwebsockets'
         setup-python: false
+        cache: true
+        cache-key-prefix: ${{ runner.os }}-qt{{env.QT_VERSION}}
 
     ##################################################################
     # VTK
@@ -67,7 +70,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: vtk-9.4.1
-        key: ${{ runner.os }}-vtk-9.4.1
+        key: ${{ runner.os }}-qt{{env.QT_VERSION}}-vtk-9.4.1
 
     - if: steps.cache-vtk.outputs.cache-hit != 'true'
       name: VTK download, extract, configure, build, install
@@ -96,7 +99,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: itk-5.4.0
-        key: ${{ runner.os }}-itk-5.4.0
+        key: ${{ runner.os }}-qt{{env.QT_VERSION}}-itk-5.4.0
 
     - if: steps.cache-itk.outputs.cache-hit != 'true'
       name: ITK download, extract, configure, build, install
