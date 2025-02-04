@@ -306,7 +306,7 @@ std::shared_ptr<iAHistogramData> iAHistogramData::create(QString const& name,
 	histo->SetInputData(img);
 	histo->GenerateHistogramImageOff();
 	histo->AutomaticBinningOff();
-	histo->SetNumberOfBins(numBins);
+	histo->SetNumberOfBins(static_cast<int>(numBins));    // A check in finalNumBin guarantees that numBins is smaller than int max!
 	histo->SetBinOrigin(scalarRange[0]);
 	histo->SetBinSpacing(histRange / numBins);
 	histo->SetActiveComponent(component);
