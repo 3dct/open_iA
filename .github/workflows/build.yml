@@ -149,7 +149,7 @@ jobs:
       shell: bash
       run: |
         cmake -B ${{env.OPENIA_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{github.workspace}}/itk-5.4.0/lib/cmake/ITK-5.4 .
-        cmake --build ${{env.OPENIA_BIN_DIR}} -- --config ${{env.BUILD_TYPE}} -j 4
+        cmake --build ${{env.OPENIA_BIN_DIR}} --config ${{env.BUILD_TYPE}} -j 4
         cmake --install ${{env.OPENIA_BIN_DIR}} --config ${{env.BUILD_TYPE}} --prefix ${{github.workspace}}/install
 
     - name: Create zip archive
