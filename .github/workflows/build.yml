@@ -125,6 +125,7 @@ jobs:
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ..
         rm -r itk-src-${{ env.ITK_VERSION }} itk-bin-${{ env.ITK_VERSION }}
+        echo "ITK_DIR=${{github.workspace}}/itk-${{ env.ITK_VERSION }}/lib/cmake/ITK-${{ env.ITK_SHORTVER }}" >> "$GITHUB_ENV"
 
     - if: ${{ runner.os == 'Windows' && (steps.cache-itk.outputs.cache-hit != 'true' || steps.cache-itk-src.outputs.cache-hit != 'true') }}
       # ITK install is currently broken on Windows, see https://discourse.itk.org/t/7414
@@ -137,6 +138,7 @@ jobs:
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cd ..
         rm itk-src-${{ env.ITK_VERSION }}.tar.gz
+        echo "ITK_DIR=${{github.workspace}}/itk-${{ env.ITK_VERSION }}" >> "$GITHUB_ENV"
 
     - name: Install npm
       uses: actions/setup-node@v4
@@ -156,7 +158,7 @@ jobs:
       run: |
         mkdir bin
         cd bin
-        cmake -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{github.workspace}}/itk-${{ env.ITK_VERSION }}/lib/cmake/ITK-${{ env.ITK_SHORTVER }} ..
+        cmake -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{env.ITK_DIR}} ..
         cmake --build . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}} --prefix ${{github.workspace}}/install
 
