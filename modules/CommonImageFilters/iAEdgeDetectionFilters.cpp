@@ -21,22 +21,22 @@ IAFILTER_DEFAULT_CLASS(iASobelEdgeDetection);
 
 namespace
 {
-	using RealPixelType = float;
-	using RealImageType = itk::Image<RealPixelType, 3>;
+	using FloatPixelType = float;
+	using FloatImageType = itk::Image<FloatPixelType, 3>;
 }
 
 template<class T>
 void canny_edge_detection(iAFilter* filter, QVariantMap const & parameters)
 {
-	using EdgeDetectionType = itk::CannyEdgeDetectionImageFilter<RealImageType, RealImageType>;
+	using EdgeDetectionType = itk::CannyEdgeDetectionImageFilter<FloatImageType, FloatImageType>;
 
-	auto inImg = castImageTo<RealPixelType>(filter->imageInput(0)->itkImage());
+	auto inImg = castImageTo<FloatPixelType>(filter->imageInput(0)->itkImage());
 	auto canny = EdgeDetectionType::New();
 	canny->SetVariance(parameters["Variance"].toDouble());
 	canny->SetMaximumError(parameters["Maximum error"].toDouble());
 	canny->SetUpperThreshold(parameters["Upper threshold"].toDouble());
 	canny->SetLowerThreshold(parameters["Lower threshold"].toDouble());
-	canny->SetInput(dynamic_cast<RealImageType*>(inImg.GetPointer()));
+	canny->SetInput(dynamic_cast<FloatImageType*>(inImg.GetPointer()));
 	filter->progress()->observe( canny );
 	canny->Update();
 	filter->addOutput(std::make_shared<iAImageData>(canny->GetOutput()));
@@ -68,11 +68,11 @@ template <class T>
 void sobel_edge_detection(iAFilter* filter, QVariantMap const& parameters)
 {
 	Q_UNUSED(parameters);
-	using EdgeDetectionType = itk::SobelEdgeDetectionImageFilter<RealImageType, RealImageType> ;
+	using EdgeDetectionType = itk::SobelEdgeDetectionImageFilter<FloatImageType, FloatImageType>;
 
-	auto inImg = castImageTo<RealPixelType>(filter->imageInput(0)->itkImage());
+	auto inImg = castImageTo<FloatPixelType>(filter->imageInput(0)->itkImage());
 	auto edgeDetector = EdgeDetectionType::New();
-	edgeDetector->SetInput(dynamic_cast<RealImageType*>(inImg.GetPointer()));
+	edgeDetector->SetInput(dynamic_cast<FloatImageType*>(inImg.GetPointer()));
 	filter->progress()->observe(edgeDetector);
 	edgeDetector->Update();
 	filter->addOutput(std::make_shared<iAImageData>(edgeDetector->GetOutput()));

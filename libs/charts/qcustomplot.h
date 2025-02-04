@@ -4322,9 +4322,9 @@ double QCPAbstractPlottable1D<DataType>::selectTest(const QPointF &pos, bool onl
   if (DataType::sortKeyIsMainKey()) // we can assume that data is sorted by main key, so can reduce the searched key interval:
   {
     // determine which key range comes into question, taking selection tolerance around pos into account:
-    double posKeyMin, posKeyMax, dummy;
-    pixelsToCoords(pos-QPointF(mParentPlot->selectionTolerance(), mParentPlot->selectionTolerance()), posKeyMin, dummy);
-    pixelsToCoords(pos+QPointF(mParentPlot->selectionTolerance(), mParentPlot->selectionTolerance()), posKeyMax, dummy);
+    double posKeyMin, posKeyMax, valueDummy;
+    pixelsToCoords(pos-QPointF(mParentPlot->selectionTolerance(), mParentPlot->selectionTolerance()), posKeyMin, valueDummy);
+    pixelsToCoords(pos+QPointF(mParentPlot->selectionTolerance(), mParentPlot->selectionTolerance()), posKeyMax, valueDummy);
     if (posKeyMin > posKeyMax)
       qSwap(posKeyMin, posKeyMax);
     begin = mDataContainer->findBegin(posKeyMin, true);
