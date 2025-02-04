@@ -27,6 +27,10 @@ env:
   ITK_CMAKE_OPTIONS: -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING:BOOL=OFF -DITK_USE_GPU:BOOL=OFF -DITK_USE_64BITS_IDS:BOOL=ON -DModule_ITKReview:BOOL=ON -DModule_HigherOrderAccurateGradient:BOOL=ON -DModule_SplitComponents:BOOL=ON -DModule_ITKVtkGlue:BOOL=On
   OPENIA_CMAKE_OPTIONS: -DopeniA_CUDA_ENABLED:BOOL=OFF -DModule_CommonImageFilters:BOOL=ON -DModule_FeatureCharacteristics:BOOL=ON -DModule_MetaFilters:BOOL=ON -DModule_Metrics:BOOL=ON -DModule_Segmentation:BOOL=ON -DModule_Surfaces:BOOL=ON -DModule_4DCT:BOOL=ON -DModule_BoneThickness:BOOL=ON -DModule_CompVis:BOOL=ON -DModule_DynamicVolumeLines:BOOL=ON -DModule_FeatureAnalyzer:BOOL=ON -DModule_FeatureAnalyzerComputation:BOOL=ON -DModule_FeatureScout:BOOL=ON -DModule_FiAKEr:BOOL=ON -DModule_FilterPreview:BOOL=ON -DModule_FoamCharacterization:BOOL=ON -DModule_FuzzyFeatureTracking:BOOL=ON -DModule_GEMSe:BOOL=ON -DModule_InSpectr:BOOL=ON -DModule_Labelling:BOOL=ON -DModule_NModalTF:BOOL=ON -DModule_Remote:BOOL=ON -DModule_TripleHistogramTF:BOOL=ON -DModule_Uncertainty:BOOL=ON -DModule_VolumePlayer:BOOL=ON
   QT_VERSION: 6.8.2
+  VTK_VERSION: 9.4.1
+  VTK_SHORTVER: 9.4
+  ITK_VERSION: 5.4.2
+  ITK_SHORTVER: 5.4
 
 jobs:
   build:
@@ -63,8 +67,8 @@ jobs:
       id: cache-vtk
       uses: actions/cache@v4
       with:
-        path: vtk-9.4.1
-        key: ${{ runner.os }}-qt${{env.QT_VERSION}}-vtk-9.4.1
+        path: vtk-${{ env.VTK_VERSION }}
+        key: ${{ runner.os }}-qt${{env.QT_VERSION}}-vtk-${{ env.VTK_VERSION }}
 
     - if: ${{ ( runner.os == 'Linux' && steps.cache-vtk.outputs.cache-hit != 'true' ) }}
       name: VTK install prerequisites (Linux)
@@ -75,12 +79,12 @@ jobs:
       name: VTK download, extract, configure, build, install
       run: |
         mkdir vtk
-        curl https://vtk.org/files/release/9.4/VTK-9.4.1.tar.gz --output vtk/src-9.4.1.tar.gz
+        curl https://vtk.org/files/release/${{ env.VTK_SHORTVER }}/VTK-${{ env.VTK_VERSION }}.tar.gz --output vtk/src-${{ env.VTK_VERSION }}.tar.gz
         cd vtk
-        tar -xzf src-9.4.1.tar.gz
-        mkdir bin-9.4.1
-        cd bin-9.4.1
-        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.VTK_CMAKE_OPTIONS}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk-9.4.1 ../VTK-9.4.1
+        tar -xzf src-${{ env.VTK_VERSION }}.tar.gz
+        mkdir bin-${{ env.VTK_VERSION }}
+        cd bin-${{ env.VTK_VERSION }}
+        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.VTK_CMAKE_OPTIONS}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk-${{ env.VTK_VERSION }} ../VTK-${{ env.VTK_VERSION }}
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ../..
@@ -92,8 +96,8 @@ jobs:
       id: cache-itk
       uses: actions/cache@v4
       with:
-        path: itk-5.4.0
-        key: ${{ runner.os }}-qt${{env.QT_VERSION}}-itk-5.4.0
+        path: itk-${{ env.ITK_VERSION }}
+        key: ${{ runner.os }}-qt${{env.QT_VERSION}}-itk-${{ env.ITK_VERSION }}
 
     - if: runner.os == 'Windows'
       # Since ITK install is currently broken on Windows (see below), we also need to cache source folder here:
@@ -101,19 +105,19 @@ jobs:
       id: cache-itk-src
       uses: actions/cache@v4
       with:
-        path: itk-src-5.4.0
-        key: ${{ runner.os }}-qt${{env.QT_VERSION}}-itk-src-5.4.0
+        path: itk-src-${{ env.ITK_VERSION }}
+        key: ${{ runner.os }}-qt${{env.QT_VERSION}}-itk-src-${{ env.ITK_VERSION }}
 
     - if: ${{ runner.os == 'Linux' && steps.cache-itk.outputs.cache-hit != 'true' }}
       name: ITK download, extract, configure, build, install
       run: |
         mkdir -p itk
-        curl -L https://github.com/InsightSoftwareConsortium/ITK/releases/download/v5.4.0/InsightToolkit-5.4.0.tar.gz --output itk/src-5.4.0.tar.gz
+        curl -L https://github.com/InsightSoftwareConsortium/ITK/releases/download/v${{ env.ITK_VERSION }}/InsightToolkit-${{ env.ITK_VERSION }}.tar.gz --output itk/src-${{ env.ITK_VERSION }}.tar.gz
         cd itk
-        tar -xzf src-5.4.0.tar.gz
-        mkdir bin-5.4.0
-        cd bin-5.4.0
-        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-9.4.1/lib/cmake/vtk-9.4 -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/itk-5.4.0 ../InsightToolkit-5.4.0
+        tar -xzf src-${{ env.ITK_VERSION }}.tar.gz
+        mkdir bin-${{ env.ITK_VERSION }}
+        cd bin-${{ env.ITK_VERSION }}
+        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-${{ env.VTK_VERSION }}/lib/cmake/vtk-${{ env.VTK_SHORTVER }} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/itk-${{ env.ITK_VERSION }} ../InsightToolkit-${{ env.ITK_VERSION }}
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ../..
@@ -124,12 +128,12 @@ jobs:
       # therefore, we build ITK instead at the location to which we would otherwise install it, and keep the build and source folder (see also src cache step above):
       name: ITK download, extract, configure, build, install
       run: |
-        curl -L https://github.com/InsightSoftwareConsortium/ITK/releases/download/v5.4.0/InsightToolkit-5.4.0.tar.gz --output src-5.4.0.tar.gz
-        tar -xzf src-5.4.0.tar.gz
-        mv InsightToolkit-5.4.0 itk-src-5.4.0
-        mkdir itk-5.4.0
-        cd itk-5.4.0
-        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-9.4.1/lib/cmake/vtk-9.4 ../itk-src-5.4.0
+        curl -L https://github.com/InsightSoftwareConsortium/ITK/releases/download/v${{ env.ITK_VERSION }}/InsightToolkit-${{ env.ITK_VERSION }}.tar.gz --output src-${{ env.ITK_VERSION }}.tar.gz
+        tar -xzf src-${{ env.ITK_VERSION }}.tar.gz
+        mv InsightToolkit-${{ env.ITK_VERSION }} itk-src-${{ env.ITK_VERSION }}
+        mkdir itk-${{ env.ITK_VERSION }}
+        cd itk-${{ env.ITK_VERSION }}
+        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-${{ env.VTK_VERSION }}/lib/cmake/vtk-${{ env.VTK_SHORTVER }} ../itk-src-${{ env.ITK_VERSION }}
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
 
     - name: Install npm
@@ -148,7 +152,7 @@ jobs:
     - name: open_iA build
       shell: bash
       run: |
-        cmake -B ${{env.OPENIA_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{github.workspace}}/itk-5.4.0/lib/cmake/ITK-5.4 .
+        cmake -B ${{env.OPENIA_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{github.workspace}}/itk-${{ env.ITK_VERSION }}/lib/cmake/ITK-${{ env.ITK_SHORTVER }} .
         cmake --build ${{env.OPENIA_BIN_DIR}} --config ${{env.BUILD_TYPE}} -j 4
         cmake --install ${{env.OPENIA_BIN_DIR}} --config ${{env.BUILD_TYPE}} --prefix ${{github.workspace}}/install
 
