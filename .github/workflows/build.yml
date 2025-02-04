@@ -125,6 +125,10 @@ jobs:
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ..
         rm -r itk-src-${{ env.ITK_VERSION }} itk-bin-${{ env.ITK_VERSION }}
+
+    - if: runner.os == 'Linux'
+      name: set ITK_DIR (Linux)
+      run: |
         echo "ITK_DIR=${{github.workspace}}/itk-${{ env.ITK_VERSION }}/lib/cmake/ITK-${{ env.ITK_SHORTVER }}" >> "$GITHUB_ENV"
 
     - if: ${{ runner.os == 'Windows' && (steps.cache-itk.outputs.cache-hit != 'true' || steps.cache-itk-src.outputs.cache-hit != 'true') }}
@@ -138,6 +142,10 @@ jobs:
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cd ..
         rm itk-src-${{ env.ITK_VERSION }}.tar.gz
+
+    - if: runner.os == 'Windows'
+      name: set ITK_DIR (Windows)
+      run: |
         echo "ITK_DIR=${{github.workspace}}/itk-${{ env.ITK_VERSION }}" >> "$GITHUB_ENV"
 
     - name: Install npm
