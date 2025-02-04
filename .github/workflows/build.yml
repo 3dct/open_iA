@@ -156,7 +156,7 @@ jobs:
       run: |
         mkdir bin
         cd bin
-        cmake -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{github.workspace}}/itk-${{ env.ITK_VERSION }}/lib/cmake/ITK-${{ env.ITK_SHORTVER }} .
+        cmake -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{github.workspace}}/itk-${{ env.ITK_VERSION }}/lib/cmake/ITK-${{ env.ITK_SHORTVER }} ..
         cmake --build . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}} --prefix ${{github.workspace}}/install
 
