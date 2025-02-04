@@ -131,8 +131,6 @@ jobs:
         cd itk-5.4.0
         cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-9.4.1/lib/cmake/vtk-9.4 ../itk-src-5.4.0
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
-        cd ..
-        rm -r src-5.4.0.tar.gz
 
     - name: Install npm
       uses: actions/setup-node@v4
@@ -151,4 +149,13 @@ jobs:
       shell: bash
       run: |
         cmake -B ${{env.OPENIA_BIN_DIR}} -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{github.workspace}}/itk-5.4.0/lib/cmake/ITK-5.4 .
-        cmake --build ${{env.OPENIA_BIN_DIR}} --config ${{env.BUILD_TYPE}} -j 4
+        cmake --build ${{env.OPENIA_BIN_DIR}} -- --config ${{env.BUILD_TYPE}} -j 4
+        cmake --install ${{env.OPENIA_BIN_DIR}} --config ${{env.BUILD_TYPE}} --prefix ${{github.workspace}}/install
+
+    - name: Create zip archive
+      uses: actions/upload-artifact@v4
+      with:
+        name: open_iA-${{runner.os}}-latest.zip
+        path: ${{github.workspace}}/install
+        if-no-files-found: error
+        overwrite: true
