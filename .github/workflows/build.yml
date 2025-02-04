@@ -108,33 +108,36 @@ jobs:
         path: itk-src-${{ env.ITK_VERSION }}
         key: ${{ runner.os }}-qt${{env.QT_VERSION}}-itk-src-${{ env.ITK_VERSION }}
 
-    - if: ${{ runner.os == 'Linux' && steps.cache-itk.outputs.cache-hit != 'true' }}
-      name: ITK download, extract, configure, build, install
+    - if: steps.cache-itk.outputs.cache-hit != 'true'
+      name: ITK download and extract
       run: |
-        mkdir -p itk
-        curl -L https://github.com/InsightSoftwareConsortium/ITK/releases/download/v${{ env.ITK_VERSION }}/InsightToolkit-${{ env.ITK_VERSION }}.tar.gz --output itk/src-${{ env.ITK_VERSION }}.tar.gz
-        cd itk
-        tar -xzf src-${{ env.ITK_VERSION }}.tar.gz
-        mkdir bin-${{ env.ITK_VERSION }}
-        cd bin-${{ env.ITK_VERSION }}
-        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-${{ env.VTK_VERSION }}/lib/cmake/vtk-${{ env.VTK_SHORTVER }} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/itk-${{ env.ITK_VERSION }} ../InsightToolkit-${{ env.ITK_VERSION }}
+        curl -L https://github.com/InsightSoftwareConsortium/ITK/archive/refs/tags/v${{ env.ITK_VERSION }}.tar.gz --output itk-src-${{ env.ITK_VERSION }}.tar.gz
+        tar -xzf itk-src-${{ env.ITK_VERSION }}.tar.gz
+        mv InsightToolkit-${{ env.ITK_VERSION }} itk-src-${{ env.ITK_VERSION }}
+
+    - if: ${{ runner.os == 'Linux' && steps.cache-itk.outputs.cache-hit != 'true' }}
+      # TODO: maybe just set a environment variable or something to the build directory depending on OS?
+      name: ITK configure, build, install (Linux)
+      run: |
+        mkdir -p itk-bin-${{ env.ITK_VERSION }}
+        cd itk-bin-${{ env.ITK_VERSION }}
+        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-${{ env.VTK_VERSION }}/lib/cmake/vtk-${{ env.VTK_SHORTVER }} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/itk-${{ env.ITK_VERSION }} ../itk-src-${{ env.ITK_VERSION }}
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
-        cd ../..
-        rm -r itk
+        cd ..
+        rm -r itk-src-${{ env.ITK_VERSION }} itk-bin-${{ env.ITK_VERSION }}
 
     - if: ${{ runner.os == 'Windows' && (steps.cache-itk.outputs.cache-hit != 'true' || steps.cache-itk-src.outputs.cache-hit != 'true') }}
       # ITK install is currently broken on Windows, see https://discourse.itk.org/t/7414
       # therefore, we build ITK instead at the location to which we would otherwise install it, and keep the build and source folder (see also src cache step above):
-      name: ITK download, extract, configure, build, install
+      name: ITK configure, build (Windows)
       run: |
-        curl -L https://github.com/InsightSoftwareConsortium/ITK/releases/download/v${{ env.ITK_VERSION }}/InsightToolkit-${{ env.ITK_VERSION }}.tar.gz --output src-${{ env.ITK_VERSION }}.tar.gz
-        tar -xzf src-${{ env.ITK_VERSION }}.tar.gz
-        mv InsightToolkit-${{ env.ITK_VERSION }} itk-src-${{ env.ITK_VERSION }}
         mkdir itk-${{ env.ITK_VERSION }}
         cd itk-${{ env.ITK_VERSION }}
         cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-${{ env.VTK_VERSION }}/lib/cmake/vtk-${{ env.VTK_SHORTVER }} ../itk-src-${{ env.ITK_VERSION }}
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
+        cd ..
+        rm itk-src-${{ env.ITK_VERSION }}.tar.gz
 
     - name: Install npm
       uses: actions/setup-node@v4
