@@ -95,7 +95,16 @@ jobs:
         path: itk-5.4.0
         key: ${{ runner.os }}-qt${{env.QT_VERSION}}-itk-5.4.0
 
-    - if: steps.cache-itk.outputs.cache-hit != 'true'
+    - if: runner.os == 'Windows'
+      # Since ITK install is currently broken on Windows (see below), we also need to cache source folder here:
+      name: Check cache for ITK source folder
+      id: cache-itk-src
+      uses: actions/cache@v4
+      with:
+        path: itk-src-5.4.0
+        key: ${{ runner.os }}-qt${{env.QT_VERSION}}-itk-src-5.4.0
+
+    - if: ${{ runner.os == 'Linux' && steps.cache-itk.outputs.cache-hit != 'true' }}
       name: ITK download, extract, configure, build, install
       run: |
         mkdir -p itk
@@ -109,6 +118,21 @@ jobs:
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ../..
         rm -r itk
+
+    - if: ${{ runner.os == 'Windows' && (steps.cache-itk.outputs.cache-hit != 'true' || steps.cache-itk-src.outputs.cache-hit != 'true') }}
+      # ITK install is currently broken on Windows, see https://discourse.itk.org/t/7414
+      # therefore, we build ITK instead at the location to which we would otherwise install it, and keep the build and source folder (see also src cache step above):
+      name: ITK download, extract, configure, build, install
+      run: |
+        curl -L https://github.com/InsightSoftwareConsortium/ITK/releases/download/v5.4.0/InsightToolkit-5.4.0.tar.gz --output src-5.4.0.tar.gz
+        tar -xzf src-5.4.0.tar.gz
+        mv InsightToolkit-5.4.0 itk-src-5.4.0
+        mkdir itk-5.4.0
+        cd itk-5.4.0
+        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-9.4.1/lib/cmake/vtk-9.4 ../itk-src-5.4.0
+        cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
+        cd ..
+        rm -r src-5.4.0.tar.gz
 
     - name: Install npm
       uses: actions/setup-node@v4
