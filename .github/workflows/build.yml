@@ -168,12 +168,13 @@ jobs:
         cd bin
         cmake -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{env.ITK_DIR}} ..
         cmake --build . --config ${{env.BUILD_TYPE}} -j 4
-        cmake --install . --config ${{env.BUILD_TYPE}} --prefix ${{github.workspace}}/install
-
-    - name: Create zip archive
-      uses: actions/upload-artifact@v4
-      with:
-        name: open_iA-${{runner.os}}-latest.zip
-        path: ${{github.workspace}}/install
-        if-no-files-found: error
-        overwrite: true
+#        cmake --install . --config ${{env.BUILD_TYPE}} --prefix ${{github.workspace}}/install
+#
+#    - name: Create zip archive
+#      uses: actions/upload-artifact@v4
+#      with:
+#        name: open_iA-${{runner.os}}-latest.zip
+#        path: ${{github.workspace}}/install
+#        if-no-files-found: error
+#        overwrite: true
+#
