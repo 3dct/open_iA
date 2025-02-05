@@ -146,7 +146,7 @@ jobs:
     - if: runner.os == 'Windows'
       name: set ITK_DIR (Windows)
       run: |
-        echo "ITK_DIR=${{github.workspace}}/itk-${{ env.ITK_VERSION }}" >> "$GITHUB_ENV"
+        "ITK_DIR=${{github.workspace}}/itk-${{ env.ITK_VERSION }}" >> $env:GITHUB_ENV
 
     - name: Install npm
       uses: actions/setup-node@v4
