@@ -434,7 +434,9 @@ std::vector<iAAnnotation> const& iAAnnotationTool::annotations() const
 namespace
 {
 	const QString PrjAnnotation("Annotation%1");
+	const QString PrjAnnPos("Annotation%1Position");
 	const QString FieldSeparator("|");
+	const QString ArraySeparator(",");
 	const int NumFields = 5;
 	QString toString(iAAnnotation const& a)
 	{
@@ -496,6 +498,13 @@ void iAAnnotationTool::loadState(QSettings& projectFile, QString const& fileName
 		{
 			auto a = fromString(projectFile.value(PrjAnnotation.arg(annIdx), "").toString());
 			addAnnotation(a);
+			auto aPos = projectFile.value(PrjAnnPos.arg(annIdx), "").toString();
+			if (!aPos.isEmpty()) {
+				auto pos = stringToVector<std::vector<double>, double>(aPos, ArraySeparator);
+				dynamic_cast<vtkCaptionRepresentation*>(
+					m_ui->m_vtkAnnotateData[a.m_id].m_caption3D->GetRepresentation())
+					->SetPosition(pos.data());
+			}
 			++annIdx;
 		}
 		m_nextID = annIdx;
@@ -510,10 +519,15 @@ void iAAnnotationTool::saveState(QSettings& projectFile, QString const& fileName
 {
 	Q_UNUSED(fileName);
 	auto const& annList = annotations();
-	size_t annIdx = 0;
-	for (auto const& a : annList)
+	for (size_t a = 0; a<annList.size(); a++)
 	{
-		projectFile.setValue(PrjAnnotation.arg(annIdx++), toString(a));
+		auto const& annotation = annList[a];
+		auto & vtkData = m_ui->m_vtkAnnotateData.at(annotation.m_id);
+		projectFile.setValue(PrjAnnPos.arg(a),
+			arrayToString<double>(
+				dynamic_cast<vtkCaptionRepresentation*>(vtkData.m_caption3D->GetRepresentation())->GetPosition(), 2,
+				ArraySeparator));
+		projectFile.setValue(PrjAnnotation.arg(a), toString(annotation));
 	}
 }
 
