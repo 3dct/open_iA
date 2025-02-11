@@ -30,7 +30,9 @@ env:
   VTK_SHORTVER: 9.4
   ITK_VERSION: 5.4.2
   ITK_SHORTVER: 5.4
-  EIGEN_GITREF: d791d48859c6
+  # EIGEN: tested, working commit from Jun 18, 2024:
+  EIGEN_LONGREF: d791d48859c6fc7850c9fd5270d2b236c818068d
+  EIGEN_SHORTREF: d791d48859c6
 
 jobs:
   build:
@@ -157,16 +159,18 @@ jobs:
       id: cache-eigen
       uses: actions/cache@v4
       with:
-        path: eigen-${{env.EIGEN_GITREF}}
-        key: eigen-${{env.EIGEN_GITREF}}
+        path: eigen-${{env.EIGEN_SHORTREF}}
+        key: eigen-${{env.EIGEN_SHORTREF}}
     - if: steps.cache-eigen.outputs.cache-hit != 'true'
       name: Clone eigen repository
-      uses: actions/checkout@v4
-      with:
-        repository: 'https://gitlab.com/libeigen/eigen.git'
-        ref: ${{env.EIGEN_GITREF}}
-        token: ''
-        path: 'eigen-${{env.EIGEN_GITREF}}'
+      # "workaround" for only checking out a specific commit, from https://stackoverflow.com/a/78674407:
+      run: |
+        mkdir eigen-${{env.EIGEN_SHORTREF}}
+        cd eigen-${{env.EIGEN_SHORTREF}}
+        git init
+        git remote add origin https://gitlab.com/libeigen/eigen.git
+        git fetch origin --depth 1 ${{env.EIGEN_LONGREF}}
+        git checkout FETCH_HEAD
 
     - name: Install npm
       uses: actions/setup-node@v4
@@ -185,7 +189,7 @@ jobs:
       run: |
         mkdir bin
         cd bin
-        cmake -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{env.ITK_DIR}} -DEIGEN3_INCLUDE_DIR=${{github.workspace}}/eigen-${{env.EIGEN_GITREF}} ..
+        cmake -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{env.ITK_DIR}} -DEIGEN3_INCLUDE_DIR=${{github.workspace}}/eigen-${{env.EIGEN_SHORTREF}} ..
         cmake --build . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}} --prefix ${{github.workspace}}/install
 
