@@ -30,6 +30,7 @@ env:
   VTK_SHORTVER: 9.4
   ITK_VERSION: 5.4.2
   ITK_SHORTVER: 5.4
+  EIGEN_GITREF: d791d48859c6
 
 jobs:
   build:
@@ -49,6 +50,10 @@ jobs:
 
     - name: Checkout open_iA
       uses: actions/checkout@v4
+      with:
+        submodules: true
+        fetch-tags: true
+        fetch-depth: 500
 
     - name: Qt install
       # see https://github.com/marketplace/actions/install-qt for details
@@ -148,6 +153,21 @@ jobs:
       run: |
         "ITK_DIR=${{github.workspace}}/itk-${{ env.ITK_VERSION }}" >> $env:GITHUB_ENV
 
+    - name: Check cache for eigen
+      id: cache-eigen
+      uses: actions/cache@v4
+      with:
+        path: eigen-${{env.EIGEN_GITREF}}
+        key: eigen-${{env.EIGEN_GITREF}}
+    - if: steps.cache-eigen.outputs.cache-hit != 'true'
+      name: Clone eigen repository
+      uses: actions/checkout@v4
+      with:
+        repository: 'https://gitlab.com/libeigen/eigen.git'
+        ref: ${{env.EIGEN_GITREF}}
+        token: ''
+        path: 'eigen-${{env.EIGEN_GITREF}}'
+
     - name: Install npm
       uses: actions/setup-node@v4
       with:
@@ -165,7 +185,7 @@ jobs:
       run: |
         mkdir bin
         cd bin
-        cmake -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{env.ITK_DIR}} ..
+        cmake -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{env.ITK_DIR}} -DEIGEN3_INCLUDE_DIR=${{github.workspace}}/eigen-${{env.EIGEN_GITREF}} ..
         cmake --build . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}} --prefix ${{github.workspace}}/install
 
