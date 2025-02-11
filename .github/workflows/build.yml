@@ -30,6 +30,8 @@ env:
   VTK_SHORTVER: 9.4
   ITK_VERSION: 5.4.2
   ITK_SHORTVER: 5.4
+  HDF5_VERSION: 1.14.5
+  HDF5_ZLIB_VERSION: 1.3.1
   # EIGEN: tested, working commit from Jun 18, 2024:
   EIGEN_LONGREF: d791d48859c6fc7850c9fd5270d2b236c818068d
   EIGEN_SHORTREF: d791d48859c6
@@ -172,6 +174,26 @@ jobs:
         git fetch origin --depth 1 ${{env.EIGEN_LONGREF}}
         git checkout FETCH_HEAD
 
+    - name: Check cache for hdf5
+      id: cache-hdf5
+      uses: actions/cache@v4
+      with:
+        path: hdf5-${{env.HDF5_VERSION}}
+        key: ${{ runner.os }}-hdf5-${{env.HDF5_VERSION}}
+    - if: steps.cache-hdf5.outputs.cache-hit != 'true'
+      name: Build hdf5
+      run: |
+        mkdir hdf5
+        cd hdf5
+        curl -L https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_${{env.HDF5_VERSION}}.zip --output src-${{ env.HDF5_VERSION }}.tar.gz
+        tar xf src-${{ env.HDF5_VERSION }}.tar.gz
+        curl -L https://github.com/madler/zlib/releases/download/v${{env.HDF5_ZLIB_VERSION}}/zlib-${{env.HDF5_ZLIB_VERSION}}.tar.gz
+        mkdir bin
+        cd bin
+        cmake -C ../hdf5-hdf5_${{env.HDF5_VERSION}}/config/cmake/cacheinit.cmake -DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ -DBUILD_SHARED_LIBS:BOOL=OFF -DHDF5_BUILD_TOOLS:BOOL=OFF -DHDF5_BUILD_UTILS:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DHDF5_BUILD_EXAMPLES:BOOL=OFF -DHDF5_BUILD_JAVA:BOOL=OFF -DHDF5_BUILD_FORTRAN:BOOL=OFF -DHDF5_BUILD_CPP_LIB:BOOL=OFF -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON -DZLIB_TGZ_NAME:STRING=zlib-${{env.HDF5_ZLIB_VERSION}}.tar.gz -DZLIB_USE_LOCALCONTENT:BOOL=ON -DZLIB_USE_EXTERNAL:BOOL=ON -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=OFF -DHDF5_PACKAGE_EXTLIBS:BOOL=ON -DTGZPATH:PATH=../ -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/hdf5-${{env.HDF5_VERSION}} ../hdf5-hdf5_${{env.HDF5_VERSION}}
+        cmake --build . --config ${{env.BUILD_TYPE}} -j 4
+        cmake --install . --config ${{env.BUILD_TYPE}}
+
     - name: Install npm
       uses: actions/setup-node@v4
       with:
@@ -189,7 +211,7 @@ jobs:
       run: |
         mkdir bin
         cd bin
-        cmake -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{env.ITK_DIR}} -DEIGEN3_INCLUDE_DIR=${{github.workspace}}/eigen-${{env.EIGEN_SHORTREF}} ..
+        cmake -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{env.ITK_DIR}} -DEIGEN3_INCLUDE_DIR=${{github.workspace}}/eigen-${{env.EIGEN_SHORTREF}} -DHDF5_DIR:PATH=${{github.workspace}}/hdf5-${{env.HDF5_VERSION}}/cmake ..
         cmake --build . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}} --prefix ${{github.workspace}}/install
 
