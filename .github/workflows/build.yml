@@ -185,7 +185,7 @@ jobs:
       run: |
         mkdir hdf5
         cd hdf5
-        curl -L https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_${{env.HDF5_VERSION}}.zip --output src-${{ env.HDF5_VERSION }}.tar.gz
+        curl -L https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_${{env.HDF5_VERSION}}.tar.gz --output src-${{ env.HDF5_VERSION }}.tar.gz
         tar xf src-${{ env.HDF5_VERSION }}.tar.gz
         curl -L https://github.com/madler/zlib/releases/download/v${{env.HDF5_ZLIB_VERSION}}/zlib-${{env.HDF5_ZLIB_VERSION}}.tar.gz --output zlib-${{env.HDF5_ZLIB_VERSION}}.tar.gz
         mkdir bin
