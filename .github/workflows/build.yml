@@ -194,10 +194,6 @@ jobs:
         cmake -C ../hdf5-hdf5_${{env.HDF5_VERSION}}/config/cmake/cacheinit.cmake --log-level=VERBOSE -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ -DBUILD_SHARED_LIBS:BOOL=OFF -DHDF5_BUILD_TOOLS:BOOL=OFF -DHDF5_BUILD_UTILS:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DHDF5_BUILD_EXAMPLES:BOOL=OFF -DHDF5_BUILD_JAVA:BOOL=OFF -DHDF5_BUILD_FORTRAN:BOOL=OFF -DHDF5_BUILD_CPP_LIB:BOOL=OFF -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON -DZLIB_TGZ_NAME:STRING=zlib-${{env.HDF5_ZLIB_VERSION}}.tar.gz -DZLIB_USE_LOCALCONTENT:BOOL=ON -DZLIB_USE_EXTERNAL:BOOL=ON -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=OFF -DHDF5_PACKAGE_EXTLIBS:BOOL=ON -DTGZPATH:PATH=${{github.workspace}}/hdf5 -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/hdf5-${{env.HDF5_VERSION}} ../hdf5-hdf5_${{env.HDF5_VERSION}}
         cmake --build . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
-        ls -al ${{github.workspace}}/hdf5-${{env.HDF5_VERSION}}
-        ls -al ${{github.workspace}}/hdf5-${{env.HDF5_VERSION}}/cmake
-        cat ${{github.workspace}}/hdf5-${{env.HDF5_VERSION}}/cmake/hdf5-config.cmake
-        cat ${{github.workspace}}/hdf5-${{env.HDF5_VERSION}}/cmake/hdf5-targets.cmake
 
     - name: Install npm
       uses: actions/setup-node@v4
