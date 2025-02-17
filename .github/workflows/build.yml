@@ -41,6 +41,7 @@ jobs:
     name: Build open_iA
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
         # , macos-latest
@@ -162,7 +163,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: eigen-${{env.EIGEN_SHORTREF}}
-        key: eigen-${{env.EIGEN_SHORTREF}}
+        key: ${{ runner.os }}-eigen-${{env.EIGEN_SHORTREF}}
     - if: steps.cache-eigen.outputs.cache-hit != 'true'
       name: Clone eigen repository
       # "workaround" for only checking out a specific commit, from https://stackoverflow.com/a/78674407:
