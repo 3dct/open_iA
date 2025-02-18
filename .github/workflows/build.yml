@@ -80,7 +80,7 @@ jobs:
     - if: ${{ (runner.os == 'Windows' && steps.cache-openxr.outputs.cache-hit != 'true' ) }}
       name: Download OpenXR
       run: |
-        curl -L https://github.com/KhronosGroup/OpenXR-SDK-Source/releases/download/release-${OPENXR_VERSION}/openxr_loader_windows-${{ env.OPENXR_VERSION }}.zip --output openxr-${{ env.OPENXR_VERSION }}.zip
+        curl -L https://github.com/KhronosGroup/OpenXR-SDK-Source/releases/download/release-${{ env.OPENXR_VERSION }}/openxr_loader_windows-${{ env.OPENXR_VERSION }}.zip --output openxr-${{ env.OPENXR_VERSION }}.zip
         Expand-Archive openxr-${{ env.OPENXR_VERSION }}.zip -DestinationPath openxr-${{ env.OPENXR_VERSION }}
     - if: runner.os == 'Windows'
       name: Set up OpenXR options
