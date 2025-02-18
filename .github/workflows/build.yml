@@ -3,13 +3,9 @@ name: "Build open_iA"
 on:
   # manual triggering allowed:
   workflow_dispatch:
-  # currently disable any other automatic triggering:
-  #push:
-  #  branches: [ "main" ]
   #pull_request:
   #  branches: [ "main" ]
   # required for manual triggering when not in main branch:
-  pull_request:
   push:
     branches:
       - '**'
