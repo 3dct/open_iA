@@ -28,6 +28,10 @@ env:
   ITK_SHORTVER: 5.4
   HDF5_VERSION: 1.14.5
   HDF5_ZLIB_VERSION: 1.3.1
+  OPENXR_VERSION: 1.1.45
+  OPENVR_VERSION: 2.5.1
+  BOOST_VERSION: 1.87.0
+  BOOST_VERSION_UNDERSCORE: 1_87_0
   # EIGEN: tested, working commit from Jun 18, 2024:
   EIGEN_LONGREF: d791d48859c6fc7850c9fd5270d2b236c818068d
   EIGEN_SHORTREF: d791d48859c6
@@ -46,9 +50,6 @@ jobs:
       security-events: write
     steps:
  
-    ##################################################################
-    # open_iA
-
     - name: Checkout open_iA
       uses: actions/checkout@v4
       with:
@@ -67,7 +68,75 @@ jobs:
         cache-key-prefix: Qt
 
     ##################################################################
+    # VR: OpenXR, OpenVR, boost
+
+    - if: runner.os == 'Windows'
+      name: Check cache OpenXR
+      uses: actions/cache@v4
+      id: cache-openxr
+      with:
+        path: openxr-${{ env.OPENXR_VERSION }}
+        key: ${{ runner.os }}-openxr-${{ env.OPENXR_VERSION }}
+    - if: ${{ (runner.os == 'Windows' && steps.cache-openxr.outputs.cache-hit != 'true' ) }}
+      name: Download OpenXR
+      run: |
+        curl -L https://github.com/KhronosGroup/OpenXR-SDK-Source/releases/download/release-${OPENXR_VERSION}/openxr_loader_windows-${{ env.OPENXR_VERSION }}.zip --output openxr-${{ env.OPENXR_VERSION }}.zip
+        Expand-Archive openxr-${{ env.OPENXR_VERSION }}.zip -DestinationPath openxr-${{ env.OPENXR_VERSION }}
+    - if: runner.os == 'Windows'
+      name: Set up OpenXR options
+      run: |
+        "VTK_CMAKE_OPTIONS=${{env.VTK_CMAKE_OPTIONS}} -DVTK_MODULE_ENABLE_VTK_RenderingOpenXR:BOOL=YES -DOpenXR_DIR:PATH=${{github.workspace}}/openxr-${{ env.OPENXR_VERSION }}/x64/lib/cmake/openxr" >> $env:GITHUB_ENV
+        "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenXR_DIR:PATH=${{github.workspace}}/openxr-${{ env.OPENXR_VERSION }}/x64/lib/cmake/openxr" >> $env:GITHUB_ENV
+        "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenXR_DIR:PATH=${{github.workspace}}/openxr-${{ env.OPENXR_VERSION }}/x64/lib/cmake/openxr" >> $env:GITHUB_ENV
+
+    - if: runner.os == 'Windows'
+      name: Check cache OpenVR
+      uses: actions/cache@v4
+      id: cache-openvr
+      with:
+        path: openvr-${{ env.OPENVR_VERSION }}
+        key: ${{ runner.os }}-openvr-${{ env.OPENVR_VERSION }}
+    - if: ${{ (runner.os == 'Windows' && steps.cache-openvr.outputs.cache-hit != 'true' ) }}
+      name: Download OpenVR
+      run: |
+        curl -L https://github.com/ValveSoftware/openvr/archive/v${{ env.OPENVR_VERSION }}.zip --output openvr-${{ env.OPENVR_VERSION }}.zip
+        Expand-Archive openvr-${{ env.OPENVR_VERSION }}.zip -DestinationPath .
+    - if: runner.os == 'Windows'
+      name: Set up OpenVR options
+      run: |
+        "VTK_CMAKE_OPTIONS=${{env.VTK_CMAKE_OPTIONS}} -DVTK_MODULE_ENABLE_VTK_RenderingOpenVR:BOOL=YES -DOpenVR_INCLUDE_DIR:PATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/headers -DOpenVR_LIBRARY:FILEPATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/lib/win64/openvr_api.lib" >> $env:GITHUB_ENV
+        "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenVR_INCLUDE_DIR:PATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/headers -DOpenVR_LIBRARY:FILEPATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/lib/win64/openvr_api.lib" >> $env:GITHUB_ENV
+        "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenVR_INCLUDE_DIR:PATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/headers -DOpenVR_LIBRARY:FILEPATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/lib/win64/openvr_api.lib" >> $env:GITHUB_ENV
+
+    # set up boost, required for VR:
+    - if: runner.os == 'Windows'
+      name: Check cache Boost
+      uses: actions/cache@v4
+      id: cache-boost
+      with:
+        path: boost-${{ env.BOOST_VERSION }}
+        key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}
+    - if: ${{ (runner.os == 'Windows' && steps.cache-boost.outputs.cache-hit != 'true' ) }}
+      name: Download Boost
+      run: |
+        curl -L https://archives.boost.io/release/${{env.BOOST_VERSION}}/source/boost_${{env.BOOST_VERSION_UNDERSCORE}}.zip --output boost-${{ env.BOOST_VERSION }}.zip
+        Expand-Archive boost-${{ env.OPENVR_VERSION }}.zip -DestinationPath .
+
+    #- if: runner.os == 'Linux'
+    #  name: Install OpenXR and OpenVR
+    #  run: |
+    #    sudo apt update && apt install libopenxr-dev libopenvr-dev libboost-dev
+    # boost could be problematic - no findpackage(boost) in open_iA (yet)
+
+    # enable open_iA VR modules, set boost path
+    - if: runner.os == 'Windows'
+      name: Set up VR modules
+      run: |
+        "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DModule_ImNDT:BOOL=YES -DModule_VRAnnotation:BOOL=YES -DModule_XVRA:BOOL=YES -DBOOST_INCLUDE_DIR=${{github.workspace}}/boost_${{env.BOOST_VERSION_UNDERSCORE}}" >> $env:GITHUB_ENV
+
+    ##################################################################
     # VTK
+
     - name: Check cache for VTK build
       id: cache-vtk
       uses: actions/cache@v4
@@ -97,6 +166,7 @@ jobs:
 
     ##################################################################
     # ITK
+
     - name: Check cache for ITK build
       id: cache-itk
       uses: actions/cache@v4
@@ -154,6 +224,9 @@ jobs:
       run: |
         "ITK_DIR=${{github.workspace}}/itk-${{ env.ITK_VERSION }}" >> $env:GITHUB_ENV
 
+    ##################################################################
+    # eigen
+
     - name: Check cache for eigen
       id: cache-eigen
       uses: actions/cache@v4
@@ -170,6 +243,9 @@ jobs:
         git remote add origin https://gitlab.com/libeigen/eigen.git
         git fetch origin --depth 1 ${{env.EIGEN_LONGREF}}
         git checkout FETCH_HEAD
+
+    ##################################################################
+    # HDF5
 
     - name: Check cache for hdf5
       id: cache-hdf5
@@ -190,6 +266,9 @@ jobs:
         cmake -C ../hdf5-hdf5_${{env.HDF5_VERSION}}/config/cmake/cacheinit.cmake --log-level=VERBOSE -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ -DBUILD_SHARED_LIBS:BOOL=OFF -DHDF5_BUILD_TOOLS:BOOL=OFF -DHDF5_BUILD_UTILS:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DHDF5_BUILD_EXAMPLES:BOOL=OFF -DHDF5_BUILD_JAVA:BOOL=OFF -DHDF5_BUILD_FORTRAN:BOOL=OFF -DHDF5_BUILD_CPP_LIB:BOOL=OFF -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON -DZLIB_TGZ_NAME:STRING=zlib-${{env.HDF5_ZLIB_VERSION}}.tar.gz -DZLIB_USE_LOCALCONTENT:BOOL=ON -DZLIB_USE_EXTERNAL:BOOL=ON -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=OFF -DHDF5_PACKAGE_EXTLIBS:BOOL=ON -DTGZPATH:PATH=${{github.workspace}}/hdf5 -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/hdf5-${{env.HDF5_VERSION}} ../hdf5-hdf5_${{env.HDF5_VERSION}}
         cmake --build . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
+
+    ##################################################################
+    # Node/npm (required for Remote module)
 
     - name: Install npm
       uses: actions/setup-node@v4
