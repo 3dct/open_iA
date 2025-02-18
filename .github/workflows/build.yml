@@ -114,13 +114,13 @@ jobs:
       uses: actions/cache@v4
       id: cache-boost
       with:
-        path: boost-${{ env.BOOST_VERSION }}
+        path: boost-${{ env.BOOST_VERSION_UNDERSCORE }}
         key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}
     - if: ${{ (runner.os == 'Windows' && steps.cache-boost.outputs.cache-hit != 'true' ) }}
       name: Download Boost
       run: |
         curl -L https://archives.boost.io/release/${{env.BOOST_VERSION}}/source/boost_${{env.BOOST_VERSION_UNDERSCORE}}.zip --output boost-${{ env.BOOST_VERSION }}.zip
-        Expand-Archive boost-${{ env.OPENVR_VERSION }}.zip -DestinationPath .
+        Expand-Archive boost-${{ env.BOOST_VERSION }}.zip -DestinationPath .
 
     #- if: runner.os == 'Linux'
     #  name: Install OpenXR and OpenVR
