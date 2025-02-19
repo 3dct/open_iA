@@ -197,21 +197,19 @@ jobs:
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ..
-        rm -r bin-headers OpenCL-Headers-${{ env.OPENCL_VERSION }}
         mkdir bin-clhpp
         cd bin-clhpp
         cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }} -DOpenCLHeaders_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeaders -DBUILD_DOCS:BOOL=OFF -DBUILD_EXAMPLES:BOOL=OFF -DBUILD_TESTING:BOOL=OFF ../OpenCL-CLHPP-${{ env.OPENCL_VERSION }}
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ..
-        rm -r bin-clhpp OpenCL-CLHPP-${{ env.OPENCL_VERSION }}
         mkdir bin-icdloader
         cd bin-icdloader
         cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }} -DOpenCLHeaders_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeaders -DENABLE_OPENCL_LAYERINFO:BOOL=OFF -DOPENCL_ICD_LOADER_BUILD_SHARED_LIBS:BOOL=ON -DBUILD_TESTING:BOOL=OFF ../OpenCL-ICD-Loader-${{ env.OPENCL_VERSION }}
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
-        cd ..
-        rm -r bin-icdloader OpenCL-ICD-Loader-${{ env.OPENCL_VERSION }}
+        cd ../..
+        rm -r opencl
         "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenCL_INCLUDE_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/include -DOpenCL_LIBRARY:FILEPATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/lib/OpenCL.lib" >> $env:GITHUB_ENV
         "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenCLHeaders_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeaders -DOpenCLHeadersCpp_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeadersCpp -DOpenCLICDLoader_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLICDLoader" >> $env:GITHUB_ENV
 
