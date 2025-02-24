@@ -123,7 +123,7 @@ jobs:
       uses: actions/cache@v4
       id: cache-boost
       with:
-        path: boost-${{ env.BOOST_VERSION_UNDERSCORE }}
+        path: boost_${{ env.BOOST_VERSION_UNDERSCORE }}
         key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}
     - if: ${{ ((runner.os == 'Windows' || runner.os == 'Linux') && steps.cache-boost.outputs.cache-hit != 'true' ) }}
       name: Download Boost
