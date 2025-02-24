@@ -129,7 +129,7 @@ jobs:
       name: Download Boost
       run: |
         curl -L https://archives.boost.io/release/${{env.BOOST_VERSION}}/source/boost_${{env.BOOST_VERSION_UNDERSCORE}}.zip --output boost-${{ env.BOOST_VERSION }}.zip
-        unzip boost-${{ env.BOOST_VERSION }}.zip
+        7z x boost-${{ env.BOOST_VERSION }}.zip
         rm boost-${{ env.BOOST_VERSION }}.zip
 
     #- if: runner.os == 'Linux'
