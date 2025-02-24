@@ -254,8 +254,9 @@ jobs:
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ..
-        rm -r itk-src-${{ env.ITK_VERSION }}
-        rm -r itk-bin-${{ env.ITK_VERSION }}
+      # fails on windows for some reason with message "You do not have sufficient access rights to perform this operation or the item is hidden, system, or read only."
+      # rm -r itk-src-${{ env.ITK_VERSION }}
+      # rm -r itk-bin-${{ env.ITK_VERSION }}
 
     - if: runner.os == 'Linux'
       name: set ITK_DIR (Linux)
