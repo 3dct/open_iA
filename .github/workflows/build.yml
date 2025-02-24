@@ -82,7 +82,7 @@ jobs:
       name: Download and extract OpenXR
       run: |
         curl -L https://github.com/KhronosGroup/OpenXR-SDK-Source/releases/download/release-${{ env.OPENXR_VERSION }}/openxr_loader_windows-${{ env.OPENXR_VERSION }}.zip --output openxr-${{ env.OPENXR_VERSION }}.zip
-        Expand-Archive openxr-${{ env.OPENXR_VERSION }}.zip -DestinationPath openxr-${{ env.OPENXR_VERSION }}
+        7z x openxr-${{ env.OPENXR_VERSION }}.zip -oopenxr-${{ env.OPENXR_VERSION }}
         rm openxr-${{ env.OPENXR_VERSION }}.zip
     - if: runner.os == 'Windows'
       name: Set up OpenXR options
@@ -102,7 +102,7 @@ jobs:
       name: Download and extract OpenVR
       run: |
         curl -L https://github.com/ValveSoftware/openvr/archive/v${{ env.OPENVR_VERSION }}.zip --output openvr-${{ env.OPENVR_VERSION }}.zip
-        Expand-Archive openvr-${{ env.OPENVR_VERSION }}.zip -DestinationPath .
+        7z x openvr-${{ env.OPENVR_VERSION }}.zip
         rm openvr-${{ env.OPENVR_VERSION }}.zip
     - if: ${{ runner.os == 'Windows' }}
       name: Set up OpenVR options (Windows)
