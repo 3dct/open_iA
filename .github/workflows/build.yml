@@ -209,6 +209,10 @@ jobs:
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ../..
         rm -r opencl
+
+# only difference is that on linux we need to use .so extension...
+    - name: Set up OpenCL ITK, open_iA
+      run: |
         "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenCL_INCLUDE_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/include" >> $env:GITHUB_ENV
         "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenCLHeaders_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeaders -DOpenCLHeadersCpp_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeadersCpp -DOpenCLICDLoader_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLICDLoader" >> $env:GITHUB_ENV
 
