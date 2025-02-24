@@ -185,6 +185,17 @@ include(${ITK_USE_FILE}) # <- maybe avoid by using include/link commands on targ
 set(ITK_BASE_DIR "${ITK_DIR}")
 if (MSVC)
 	set(ITK_LIB_DIR "${ITK_DIR}/bin/Release")
+	# TODO: avoid duplication between here and folder for Visual studio running environment path
+	if (EXISTS "${ITK_DIR}/bin/Release")
+		set(ITK_LIB_DIR "${ITK_DIR}/bin/Release")
+	else()
+		# when using an installed ITK version, we only know the relative path from the itk-config.cmake file
+		# we are not aware of a variable containing the "base folder" of the ITK installation
+		get_filename_component(ITK_LIB_DIR "../../../bin" REALPATH BASE_DIR "${ITK_DIR}")
+		if (NOT EXISTS "${ITK_LIB_DIR}")
+			message(WARNING "Did not find the folder containing the ITK dll's (checked: ${ITK_DIR}/bin/Release, ${ITK_LIB_DIR}). Installation will fail!")
+		endif()
+	endif()
 else()
 	if (EXISTS "${ITK_DIR}/lib")
 		set(ITK_LIB_DIR "${ITK_DIR}/lib")
@@ -332,7 +343,7 @@ if (MSVC)
 		# we are not aware of a variable containing the "base folder" of the VTK installation
 		get_filename_component(VTK_LIB_DIR "../../../bin" REALPATH BASE_DIR "${VTK_DIR}")
 		if (NOT EXISTS "${VTK_LIB_DIR}")
-			message(SEND_ERROR "Did not find a VTK dll folder (checked: ${VTK_DIR}/bin/Release, ${VTK_LIB_DIR})!")
+			message(WARNING "Did not find the folder containing the VTK dll's (checked: ${VTK_DIR}/bin/Release, ${VTK_LIB_DIR}). Installation will fail!")
 		endif()
 	endif()
 else()
