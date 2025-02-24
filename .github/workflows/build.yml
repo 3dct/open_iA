@@ -223,7 +223,7 @@ jobs:
     - if: runner.os == 'Linux'
       name: Set up OpenCL library path for ITK (Linux)
       run: |
-        echo "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenCL_LIBRARY:FILEPATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/lib/OpenCL.so -DOpenCL_INCLUDE_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/include" >> "$GITHUB_ENV"
+        echo "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenCL_LIBRARY:FILEPATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/lib/libOpenCL.so -DOpenCL_INCLUDE_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/include" >> "$GITHUB_ENV"
         echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenCLHeaders_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeaders -DOpenCLHeadersCpp_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeadersCpp -DOpenCLICDLoader_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLICDLoader" >> "$GITHUB_ENV"
 
     - if: runner.os == 'Windows'
