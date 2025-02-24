@@ -171,16 +171,15 @@ jobs:
     ##################################################################
     # OpenCL
 
-    # on windows, download and build icd loader, C headers and CPP headers manually, and cache the install folder:
-    - if: runner.os == 'Windows'
-      name: Check cache for OpenCL
+    # Download and build ICD loader, C headers and CPP headers, and cache the install folder:
+    - name: Check cache for OpenCL
       id: cache-opencl
       uses: actions/cache@v4
       with:
         path: opencl-${{ env.OPENCL_VERSION }}
         key: ${{ runner.os }}-opencl-${{ env.OPENCL_VERSION }}
 
-    - if: ${{ ( runner.os == 'Windows' && steps.cache-opencl.outputs.cache-hit != 'true' ) }}
+    - if: steps.cache-opencl.outputs.cache-hit != 'true'
       name: Install OpenCL
       run: |
         mkdir opencl
@@ -212,12 +211,6 @@ jobs:
         rm -r opencl
         "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenCL_INCLUDE_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/include -DOpenCL_LIBRARY:FILEPATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/lib/OpenCL.lib" >> $env:GITHUB_ENV
         "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenCLHeaders_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeaders -DOpenCLHeadersCpp_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeadersCpp -DOpenCLICDLoader_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLICDLoader" >> $env:GITHUB_ENV
-
-    # on ubuntu, use apt-installed opencl:
-    - if: runner.os == 'Linux'
-      name: Install OpenCL
-      run: |
-        sudo apt update && sudo apt install ocl-icd-opencl-dev opencl-headers opencl-clhpp-headers
 
     ##################################################################
     # ITK
