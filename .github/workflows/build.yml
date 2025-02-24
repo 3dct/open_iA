@@ -209,8 +209,20 @@ jobs:
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ../..
         rm -r opencl
-        "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenCL_INCLUDE_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/include -DOpenCL_LIBRARY:FILEPATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/lib/OpenCL.lib" >> $env:GITHUB_ENV
+        "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenCL_INCLUDE_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/include" >> $env:GITHUB_ENV
         "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenCLHeaders_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeaders -DOpenCLHeadersCpp_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeadersCpp -DOpenCLICDLoader_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLICDLoader" >> $env:GITHUB_ENV
+
+    # only difference is that on linux we need to use .so extension...
+    - if: runner.os == 'Linux'
+      name: Set up OpenCL library path for ITK (Linux)
+      run: |
+        "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenCL_LIBRARY:FILEPATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/lib/OpenCL.so" >> $env:GITHUB_ENV
+
+    # ...while on windows we need .lib extension
+    - if: runner.os == 'Windows'
+      name: Set up OpenCL library path for ITK (Windows)
+      run: |
+        "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenCL_LIBRARY:FILEPATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/lib/OpenCL.lib" >> $env:GITHUB_ENV
 
     ##################################################################
     # ITK
