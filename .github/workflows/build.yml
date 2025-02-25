@@ -88,14 +88,16 @@ jobs:
         "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenXR_DIR:PATH=${{github.workspace}}/openxr-${{ env.OPENXR_VERSION }}/x64/lib/cmake/openxr" >> $env:GITHUB_ENV
         "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenXR_DIR:PATH=${{github.workspace}}/openxr-${{ env.OPENXR_VERSION }}/x64/lib/cmake/openxr" >> $env:GITHUB_ENV
 
-    - if: ${{ (runner.os == 'Windows' || runner.os == 'Linux') }}
+    # disabling Linux for now, as it turns out that OpenVR causes problems in installation of open_iA,
+    # see https://discourse.cmake.org/t/file-paths-to-dependencies-are-not-supported-on-cpack-with-runtime-dependency-set/11434/6
+    - if: ${{ (runner.os == 'Windows') }}  #  || runner.os == 'Linux'
       name: Check cache OpenVR
       uses: actions/cache@v4
       id: cache-openvr
       with:
         path: openvr-${{ env.OPENVR_VERSION }}
         key: ${{ runner.os }}-openvr-${{ env.OPENVR_VERSION }}
-    - if: ${{ ((runner.os == 'Windows' || runner.os == 'Linux') && steps.cache-openvr.outputs.cache-hit != 'true' ) }}
+    - if: ${{ ((runner.os == 'Windows') && steps.cache-openvr.outputs.cache-hit != 'true' ) }}  #  || runner.os == 'Linux'
       name: Download and extract OpenVR
       run: |
         curl -L https://github.com/ValveSoftware/openvr/archive/v${{ env.OPENVR_VERSION }}.zip --output openvr-${{ env.OPENVR_VERSION }}.zip
@@ -107,22 +109,22 @@ jobs:
         "VTK_CMAKE_OPTIONS=${{env.VTK_CMAKE_OPTIONS}} -DVTK_MODULE_ENABLE_VTK_RenderingOpenVR:BOOL=YES -DOpenVR_INCLUDE_DIR:PATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/headers -DOpenVR_LIBRARY:FILEPATH=" >> $env:GITHUB_ENV
         "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenVR_INCLUDE_DIR:PATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/headers -DOpenVR_LIBRARY:FILEPATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/lib/win64/openvr_api.lib" >> $env:GITHUB_ENV
         "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenVR_INCLUDE_DIR:PATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/headers -DOpenVR_LIBRARY:FILEPATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/lib/win64/openvr_api.lib" >> $env:GITHUB_ENV
-    - if: ${{ runner.os == 'Linux' }}
-      name: Set up OpenVR options (Linux)
-      run: |
-        echo "VTK_CMAKE_OPTIONS=${{env.VTK_CMAKE_OPTIONS}} -DVTK_MODULE_ENABLE_VTK_RenderingOpenVR:BOOL=YES -DOpenVR_INCLUDE_DIR:PATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/headers -DOpenVR_LIBRARY:FILEPATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/lib/linux64/libopenvr_api.so" >> "$GITHUB_ENV"
-        echo "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenVR_INCLUDE_DIR:PATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/headers -DOpenVR_LIBRARY:FILEPATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/lib/linux64/libopenvr_api.so" >> "$GITHUB_ENV"
-        echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenVR_INCLUDE_DIR:PATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/headers -DOpenVR_LIBRARY:FILEPATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/lib/linux64/libopenvr_api.so" >> "$GITHUB_ENV"
+    # - if: ${{ runner.os == 'Linux' }}
+    #   name: Set up OpenVR options (Linux)
+    #   run: |
+    #     echo "VTK_CMAKE_OPTIONS=${{env.VTK_CMAKE_OPTIONS}} -DVTK_MODULE_ENABLE_VTK_RenderingOpenVR:BOOL=YES -DOpenVR_INCLUDE_DIR:PATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/headers -DOpenVR_LIBRARY:FILEPATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/lib/linux64/libopenvr_api.so" >> "$GITHUB_ENV"
+    #     echo "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenVR_INCLUDE_DIR:PATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/headers -DOpenVR_LIBRARY:FILEPATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/lib/linux64/libopenvr_api.so" >> "$GITHUB_ENV"
+    #     echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenVR_INCLUDE_DIR:PATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/headers -DOpenVR_LIBRARY:FILEPATH=${{github.workspace}}/openvr-${{ env.OPENVR_VERSION }}/lib/linux64/libopenvr_api.so" >> "$GITHUB_ENV"
 
     # set up boost, required for VR:
-    - if: ${{ (runner.os == 'Windows' || runner.os == 'Linux') }}
+    - if: ${{ (runner.os == 'Windows') }}  #  || runner.os == 'Linux'
       name: Check cache Boost
       uses: actions/cache@v4
       id: cache-boost
       with:
         path: boost_${{ env.BOOST_VERSION_UNDERSCORE }}
         key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}
-    - if: ${{ ((runner.os == 'Windows' || runner.os == 'Linux') && steps.cache-boost.outputs.cache-hit != 'true' ) }}
+    - if: ${{ ((runner.os == 'Windows') && steps.cache-boost.outputs.cache-hit != 'true' ) }}  #  || runner.os == 'Linux'
       name: Download Boost
       run: |
         curl -L https://archives.boost.io/release/${{env.BOOST_VERSION}}/source/boost_${{env.BOOST_VERSION_UNDERSCORE}}.zip --output boost-${{ env.BOOST_VERSION }}.zip
@@ -140,10 +142,10 @@ jobs:
       name: Set up VR modules (Windows)
       run: |
         "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DModule_ImNDT:BOOL=YES -DModule_VRAnnotation:BOOL=YES -DModule_XVRA:BOOL=YES -DBOOST_INCLUDE_DIR=${{github.workspace}}/boost_${{env.BOOST_VERSION_UNDERSCORE}}" >> $env:GITHUB_ENV
-    - if: runner.os == 'Linux'
-      name: Set up VR modules (Linux)
-      run: |
-        echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DModule_ImNDT:BOOL=YES -DModule_VRAnnotation:BOOL=YES -DModule_XVRA:BOOL=YES -DBOOST_INCLUDE_DIR=${{github.workspace}}/boost_${{env.BOOST_VERSION_UNDERSCORE}}" >> "$GITHUB_ENV"
+    # - if: runner.os == 'Linux'
+    #   name: Set up VR modules (Linux)
+    #   run: |
+    #     echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DModule_ImNDT:BOOL=YES -DModule_VRAnnotation:BOOL=YES -DModule_XVRA:BOOL=YES -DBOOST_INCLUDE_DIR=${{github.workspace}}/boost_${{env.BOOST_VERSION_UNDERSCORE}}" >> "$GITHUB_ENV"
 
     ##################################################################
     # VTK
