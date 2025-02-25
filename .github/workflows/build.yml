@@ -44,13 +44,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest]
-        # , macos-latest
-    permissions:
-      # required for all workflows
-      security-events: write
+        os: [macos-13, ubuntu-latest, ubuntu-20.04, windows-latest]
+
     steps:
- 
+
     - name: Checkout open_iA
       uses: actions/checkout@v4
       with:
