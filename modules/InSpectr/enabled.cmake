@@ -7,5 +7,9 @@ install(CODE "
 	execute_process(COMMAND \"${CMAKE_COMMAND}\"
 		\"-DSPECTRA_ARCHIVE=${SPECTRA_ARCHIVE}\" \"-DTARGET_DIR=\${CMAKE_INSTALL_PREFIX}/refSpectra\"
 		-P \"${CMAKE_CURRENT_SOURCE_DIR}/InSpectr/extractSpectra.cmake\"
+		RESULT_VARIABLE return
 	)
+	if(return AND NOT return EQUAL 0)
+		message(\"InSpectr: refSpectra folder installation failed (\${return})!\")
+	endif()
 ")
