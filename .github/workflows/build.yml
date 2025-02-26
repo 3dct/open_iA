@@ -55,6 +55,12 @@ jobs:
         fetch-tags: true
         fetch-depth: 500
 
+    #
+    - if: matrix.os == 'ubuntu-20.04'
+      name: Set Qt version (Ubuntu 20.04)
+      run: |
+        echo "QT_VERSION=6.7.3" >> "$GITHUB_ENV"
+
     - name: Qt install
       # see https://github.com/marketplace/actions/install-qt for details
       uses: jurplel/install-qt-action@v4
