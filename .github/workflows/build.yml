@@ -278,13 +278,13 @@ jobs:
       # rm -r itk-src-${{ env.ITK_VERSION }}
       # rm -r itk-bin-${{ env.ITK_VERSION }}
 
-    - if: runner.os == 'Linux'
-      name: set ITK_DIR (Linux)
+    - if: runner.os != 'Windows'
+      name: Set ITK_DIR (non-Windows)
       run: |
         echo "ITK_DIR=${{github.workspace}}/itk-${{ env.ITK_VERSION }}/lib/cmake/ITK-${{ env.ITK_SHORTVER }}" >> "$GITHUB_ENV"
 
     - if: runner.os == 'Windows'
-      name: set ITK_DIR (Windows)
+      name: Set ITK_DIR (Windows)
       run: |
         "ITK_DIR=${{github.workspace}}/itk-${{ env.ITK_VERSION }}/lib/cmake/ITK-${{ env.ITK_SHORTVER }}" >> $env:GITHUB_ENV
 
