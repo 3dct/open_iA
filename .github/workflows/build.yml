@@ -216,7 +216,7 @@ jobs:
         tar -xzf icdloader-${{ env.OPENCL_VERSION }}.tar.gz
         mkdir bin-headers
         cd bin-headers
-        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }} -DOPENCL_HEADERS_BUILD_CXX_TESTS:BOOL=OFF -DBUILD_TESTING:BOOL=OFF ../OpenCL-Headers-${{ env.OPENCL_VERSION }}
+        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }} -DBUILD_TESTING:BOOL=OFF ../OpenCL-Headers-${{ env.OPENCL_VERSION }}
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ..
