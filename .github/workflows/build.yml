@@ -59,7 +59,9 @@ jobs:
     #   - we cannot use the standard g++9 because it's not fully C++20 compatible yet (e.g. <numbers> header is not available on g++-9)
     #     - install g++ 11
     #     - update open_iA cmake config to use it
-    #   - Also, aqt cannot install Qt > 6.8.0, because it's only available in version 3.1.18 (see
+    #   - Also, aqt cannot install Qt > 6.8.0 there
+    #     - only aqt >= 3.1.19 can do that, but it's only available in version 3.1.18
+    #     - see https://github.com/miurahr/aqtinstall/issues/825
     - if: matrix.os == 'ubuntu-20.04'
       name: Set Qt version (Ubuntu 20.04)
       run: |
