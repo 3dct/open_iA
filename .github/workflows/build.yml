@@ -55,10 +55,19 @@ jobs:
         fetch-tags: true
         fetch-depth: 500
 
-    #
+    # On Ubuntu 20.04
+    #   - we cannot use the standard g++9 because it's not fully C++20 compatible yet (e.g. <numbers> header is not available on g++-9)
+    #     - install g++ 11
+    #     - update open_iA cmake config to use it
+    #   - Also, aqt cannot install Qt > 6.8.0, because it's only available in version 3.1.18 (see
     - if: matrix.os == 'ubuntu-20.04'
       name: Set Qt version (Ubuntu 20.04)
       run: |
+        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+        sudo apt update
+        sudo apt upgrade -y
+        sudo apt install -y g++-11
+        echo "OPENIA_CMAKE_OPTIONS=-DCMAKE_C_COMPILER=/usr/bin/gcc-11 -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 ${{env.OPENIA_CMAKE_OPTIONS}}" >> "$GITHUB_ENV"
         echo "QT_VERSION=6.7.3" >> "$GITHUB_ENV"
 
     - name: Qt install
