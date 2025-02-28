@@ -210,14 +210,15 @@ jobs:
     # OpenCL
 
     # Download and build ICD loader, C headers and CPP headers, and cache the install folder:
-    - name: Check cache for OpenCL
+    - if: runner.os != 'macOS'
+      name: Check cache for OpenCL
       id: cache-opencl
       uses: actions/cache@v4
       with:
         path: opencl-${{ env.OPENCL_VERSION }}
         key: ${{ runner.os }}-opencl-${{ env.OPENCL_VERSION }}
 
-    - if: steps.cache-opencl.outputs.cache-hit != 'true'
+    - if: ${{ (runner.os != 'macOS' && steps.cache-opencl.outputs.cache-hit != 'true') }}
       name: Install OpenCL
       run: |
         mkdir opencl
@@ -260,11 +261,11 @@ jobs:
         "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenCL_LIBRARY:FILEPATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/lib/OpenCL.lib -DOpenCL_INCLUDE_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/include" >> $env:GITHUB_ENV
         "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenCLHeaders_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeaders -DOpenCLHeadersCpp_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeadersCpp -DOpenCLICDLoader_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLICDLoader" >> $env:GITHUB_ENV
 
-    - if: runner.os == 'macOS'
-      name: Set up OpenCL library path for ITK (macOS)
-      run: |
-        echo "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenCL_LIBRARY:FILEPATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/lib/libOpenCL.dylib -DOpenCL_INCLUDE_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/include" >> "$GITHUB_ENV"
-        echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenCLHeaders_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeaders -DOpenCLHeadersCpp_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeadersCpp -DOpenCLICDLoader_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLICDLoader" >> "$GITHUB_ENV"
+    #- if: runner.os == 'macOS'
+    #  name: Set up OpenCL library path for ITK (macOS)
+    #  run: |
+    #    echo "ITK_CMAKE_OPTIONS=${{env.ITK_CMAKE_OPTIONS}} -DOpenCL_LIBRARY:FILEPATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/lib/libOpenCL.dylib -DOpenCL_INCLUDE_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/include" >> "$GITHUB_ENV"
+    #    echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenCLHeaders_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeaders -DOpenCLHeadersCpp_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeadersCpp -DOpenCLICDLoader_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLICDLoader" >> "$GITHUB_ENV"
 
     ##################################################################
     # ITK
