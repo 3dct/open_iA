@@ -84,6 +84,15 @@ jobs:
         sudo update-alternatives --set gcc /usr/bin/gcc-${{env.UBUNTU2004_GCC_VERSION}}
         echo "QT_VERSION=6.7.3" >> "$GITHUB_ENV"
 
+    - if: runner.os == 'macOS'
+      name: Set up required libraries (macOS)
+      run: |
+        brew install libomp
+        ompversion=$(ls /usr/local/Cellar/libomp | tr -d '/')
+        ln -s /usr/local/Cellar/libomp/$ompversion/include/omp.h /usr/local/include/omp.h
+        echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenMP_CXX_FLAGS=\"-Xpreprocessor -fopenmp -lomp\" -DOpenMP_CXX_INCLUDE_DIR=\"/usr/local/include\" -DOpenMP_libomp_LIBRARY=\"/usr/local/Cellar/libomp/$ompversion/lib/libomp.dylib\"" >> "$GITHUB_ENV"
+        brew install node
+
     - name: Qt install
       # see https://github.com/marketplace/actions/install-qt for details
       uses: jurplel/install-qt-action@v4
