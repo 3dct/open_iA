@@ -21,6 +21,7 @@ env:
     # Compiler: -DCMAKE_CXX_COMPILER:FILEPATH=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER:FILEPATH=${CMAKE_C_COMPILER}
   ITK_CMAKE_OPTIONS: -DBUILD_SHARED_LIBS=ON -DBUILD_TESTING:BOOL=OFF -DITK_USE_64BITS_IDS:BOOL=ON -DModule_ITKReview:BOOL=ON -DModule_HigherOrderAccurateGradient:BOOL=ON -DModule_SplitComponents:BOOL=ON -DModule_ITKVtkGlue:BOOL=ON
   OPENIA_CMAKE_OPTIONS: -DopeniA_CUDA_ENABLED:BOOL=OFF -DModule_CommonImageFilters:BOOL=ON -DModule_FeatureCharacteristics:BOOL=ON -DModule_MetaFilters:BOOL=ON -DModule_Metrics:BOOL=ON -DModule_Segmentation:BOOL=ON -DModule_Surfaces:BOOL=ON -DModule_4DCT:BOOL=ON -DModule_AdaptiveThreshold:BOOL=ON -DModule_BoneThickness:BOOL=ON -DModule_CompVis:BOOL=ON -DModule_DreamCaster:BOOL=ON -DModule_DynamicVolumeLines:BOOL=ON -DModule_FeatureAnalyzer:BOOL=ON -DModule_FeatureAnalyzerComputation:BOOL=ON -DModule_FeatureScout:BOOL=ON -DModule_FiAKEr:BOOL=ON -DModule_FilterPreview:BOOL=ON -DModule_FoamCharacterization:BOOL=ON -DModule_FuzzyFeatureTracking:BOOL=ON -DModule_GEMSe:BOOL=ON -DModule_InSpectr:BOOL=ON -DModule_Labelling:BOOL=ON -DModule_NModalTF:BOOL=ON -DModule_Remote:BOOL=ON -DModule_TripleHistogramTF:BOOL=ON -DModule_Uncertainty:BOOL=ON -DModule_VolumePlayer:BOOL=ON
+  OPENIA_BUILD_VERSION: nightly
   QT_VERSION: 6.8.2
   VTK_VERSION: 9.4.1
   VTK_SHORTVER: 9.4
@@ -112,7 +113,7 @@ jobs:
       id: cache-openxr
       with:
         path: openxr-${{ env.OPENXR_VERSION }}
-        key: ${{ runner.os }}-openxr-${{ env.OPENXR_VERSION }}
+        key: ${{ matrix.os }}-openxr-${{ env.OPENXR_VERSION }}
     - if: ${{ (runner.os == 'Windows' && steps.cache-openxr.outputs.cache-hit != 'true' ) }}
       name: Download and extract OpenXR
       run: |
@@ -134,7 +135,7 @@ jobs:
       id: cache-openvr
       with:
         path: openvr-${{ env.OPENVR_VERSION }}
-        key: ${{ runner.os }}-openvr-${{ env.OPENVR_VERSION }}
+        key: ${{ matrix.os }}-openvr-${{ env.OPENVR_VERSION }}
     - if: ${{ ((runner.os == 'Windows') && steps.cache-openvr.outputs.cache-hit != 'true' ) }}  #  || runner.os == 'Linux'
       name: Download and extract OpenVR
       run: |
@@ -161,7 +162,7 @@ jobs:
       id: cache-boost
       with:
         path: boost_${{ env.BOOST_VERSION_UNDERSCORE }}
-        key: ${{ runner.os }}-boost-${{ env.BOOST_VERSION }}
+        key: ${{ matrix.os }}-boost-${{ env.BOOST_VERSION }}
     - if: ${{ ((runner.os == 'Windows') && steps.cache-boost.outputs.cache-hit != 'true' ) }}  #  || runner.os == 'Linux'
       name: Download Boost
       run: |
@@ -193,7 +194,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: vtk-${{ env.VTK_VERSION }}
-        key: ${{ runner.os }}-qt${{env.QT_VERSION}}-vtk-${{ env.VTK_VERSION }}
+        key: ${{ matrix.os }}-qt${{env.QT_VERSION}}-vtk-${{ env.VTK_VERSION }}
 
     - if: ${{ ( runner.os == 'Linux' && steps.cache-vtk.outputs.cache-hit != 'true' ) }}
       name: VTK install prerequisites (Linux)
@@ -225,7 +226,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: opencl-${{ env.OPENCL_VERSION }}
-        key: ${{ runner.os }}-opencl-${{ env.OPENCL_VERSION }}
+        key: ${{ matrix.os }}-opencl-${{ env.OPENCL_VERSION }}
 
     - if: ${{ (runner.os != 'macOS' && steps.cache-opencl.outputs.cache-hit != 'true') }}
       name: Install OpenCL
@@ -284,7 +285,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: itk-${{ env.ITK_VERSION }}
-        key: ${{ runner.os }}-qt${{env.QT_VERSION}}-itk-${{ env.ITK_VERSION }}
+        key: ${{ matrix.os }}-qt${{env.QT_VERSION}}-itk-${{ env.ITK_VERSION }}
 
     - if: steps.cache-itk.outputs.cache-hit != 'true'
       name: ITK download, extract, configure, build, install
@@ -320,7 +321,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: eigen-${{env.EIGEN_SHORTREF}}
-        key: ${{ runner.os }}-eigen-${{env.EIGEN_SHORTREF}}
+        key: ${{ matrix.os }}-eigen-${{env.EIGEN_SHORTREF}}
     - if: steps.cache-eigen.outputs.cache-hit != 'true'
       name: Clone eigen repository
       # "workaround" for only checking out a specific commit, from https://stackoverflow.com/a/78674407:
@@ -340,7 +341,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: hdf5-${{env.HDF5_VERSION}}
-        key: ${{ runner.os }}-hdf5-${{env.HDF5_VERSION}}
+        key: ${{ matrix.os }}-hdf5-${{env.HDF5_VERSION}}
     - if: steps.cache-hdf5.outputs.cache-hit != 'true'
       name: Build hdf5
       run: |
@@ -382,7 +383,7 @@ jobs:
     - name: Create zip archive
       uses: actions/upload-artifact@v4
       with:
-        name: open_iA-${{runner.os}}-latest.zip
+        name: open_iA-${{matrix.os}}-${{env.OPENIA_BUILD_VERSION}}.zip
         path: ${{github.workspace}}/install
         if-no-files-found: error
         overwrite: true
