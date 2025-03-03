@@ -118,7 +118,7 @@ jobs:
       name: Download and extract OpenXR
       run: |
         curl -L https://github.com/KhronosGroup/OpenXR-SDK-Source/releases/download/release-${{ env.OPENXR_VERSION }}/openxr_loader_windows-${{ env.OPENXR_VERSION }}.zip --output openxr-${{ env.OPENXR_VERSION }}.zip
-        7z x openxr-${{ env.OPENXR_VERSION }}.zip -oopenxr-${{ env.OPENXR_VERSION }}
+        7z x openxr-${{ env.OPENXR_VERSION }}.zip -o"openxr-${{ env.OPENXR_VERSION }}"
         rm openxr-${{ env.OPENXR_VERSION }}.zip
     - if: runner.os == 'Windows'
       name: Set up OpenXR options
