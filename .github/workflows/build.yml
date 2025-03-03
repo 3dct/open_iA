@@ -88,11 +88,21 @@ jobs:
     - if: runner.os == 'macOS'
       name: Set up required libraries (macOS)
       run: |
+        brew install node
         brew install libomp
+
+    - if: matrix.os == 'macos-13'
+      run: |
         ompversion=$(ls /usr/local/Cellar/libomp | tr -d '/')
         ln -s /usr/local/Cellar/libomp/$ompversion/include/omp.h /usr/local/include/omp.h
         echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenMP_CXX_FLAGS=\"-Xpreprocessor -fopenmp -lomp\" -DOpenMP_CXX_INCLUDE_DIR=\"/usr/local/include\" -DOpenMP_libomp_LIBRARY=\"/usr/local/Cellar/libomp/$ompversion/lib/libomp.dylib\"" >> "$GITHUB_ENV"
-        brew install node
+
+    - if: matrix.os == 'macos-latest'
+    # ln -s /usr/local/Cellar/libomp/$ompversion/include/omp.h /usr/local/include/omp.h
+    # export LDFLAGS="-L/opt/homebrew/opt/libomp/lib"
+    # export CPPFLAGS="-I/opt/homebrew/opt/libomp/include"
+      run: |
+        echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenMP_CXX_FLAGS=\"-Xpreprocessor -fopenmp -lomp\" -DOpenMP_CXX_INCLUDE_DIR=\"/opt/homebrew/opt/libomp/include\" -DOpenMP_libomp_LIBRARY=\"/opt/homebrew/opt/libomp/lib/libomp.dylib\"" >> "$GITHUB_ENV"
 
     - name: Qt install
       # see https://github.com/marketplace/actions/install-qt for details
