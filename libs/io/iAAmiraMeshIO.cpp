@@ -8,6 +8,7 @@
 #include <vtkImageData.h>
 
 #include <QFile>
+#include <QRegularExpression>
 #include <QString>
 #include <QStringList>
 #include <QTextStream>
@@ -28,11 +29,11 @@ typedef unsigned char LabelType;
 //! directly behind the SearchString.
 //! If not found, return the buffer. A subsequent sscanf()
 //! will fail then, but at least we return a decent pointer.
-const char* FindAndJump(const char* buffer, const char* SearchString)
+QString extractValues(QString str, QString identifier, QString finalizer)
 {
-	const char* FoundLoc = strstr(buffer, SearchString);
-	if (FoundLoc) return FoundLoc + strlen(SearchString);
-	return buffer;
+	auto startPos = str.indexOf(identifier) + identifier.length();
+	auto endPos = str.indexOf(QRegularExpression(finalizer), startPos);
+	return str.mid(startPos, endPos-startPos);
 }
 
 typedef char RawDataType;
@@ -73,57 +74,52 @@ namespace
 {
 	QString const AmiraMeshFileTag("# AmiraMesh BINARY-LITTLE-ENDIAN 2.1");
 	QString const AvizoFileTag("# Avizo BINARY-LITTLE-ENDIAN 2.1");
-	const char * DefineLatticeToken = "define Lattice";
-	const char * BoundingBoxToken = "BoundingBox";
+	QString const DefineLatticeToken("define Lattice ");
+	QString const BoundingBoxToken("BoundingBox ");
 	QString const ByteType("byte");
 	QString const FloatType("float");
 }
 
 vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 {
-	FILE* fp = fopen( fileName.toStdString().c_str(), "rb");
-	if (!fp)
+	const size_t MaxHeaderSize = 2047;
+	QFile f(fileName);
+	if (!f.open(QFile::ReadOnly | QFile::Text))
 	{
 		throw std::runtime_error(QString("Could not open file '%1'.").arg(fileName).toStdString());
 	}
-
-	//We read the first 2k bytes into memory to parse the header.
-	//The fixed buffer size looks a bit like a hack, and it is one, but it gets the job done.
-	const size_t MaxHeaderSize = 2047;
-	char buffer[MaxHeaderSize +1];
-	size_t readBytes = fread(buffer, sizeof(char), MaxHeaderSize, fp);
-
-	if (readBytes == 0 || ferror(fp) != 0)
+	QTextStream in(&f);
+	auto header = in.read(MaxHeaderSize);
+	auto readBytes = header.length();
+	if (readBytes == 0)
 	{
-		fclose(fp);
 		throw std::runtime_error(QString("Could not read header of Avizo/AmiraMesh file %1.").arg(MaxHeaderSize).arg(fileName).toStdString());
 	}
-	buffer[readBytes-1] = '\0'; //The following string routines prefer null-terminated strings
-
-	QString header(buffer);
-
 	if (!header.startsWith(AmiraMeshFileTag) &&
 		!header.startsWith(AvizoFileTag))
 	{
-		fclose(fp);
 		throw std::runtime_error(QString("File %1 is not a proper Avizo/AmiraMesh file, it is missing the initial file tag.").arg(fileName).toStdString());
 	}
 
 	//Find the Lattice definition, i.e., the dimensions of the uniform grid
-	int xDim(0), yDim(0), zDim(0);
-	sscanf(FindAndJump(buffer, DefineLatticeToken), "%d %d %d", &xDim, &yDim, &zDim);
-	//LOG(lvlInfo, QString("Grid Dimensions: %1 %2 %3").arg(xDim).arg(yDim).arg(zDim));
+	auto dims = extractValues(header, DefineLatticeToken, "[\r\n]");
+	auto dimStrs = dims.split(" ");
+	auto xDim = dimStrs[0].toInt();
+	auto yDim = dimStrs[1].toInt();
+	auto zDim = dimStrs[2].toInt();
 
 	//Find the BoundingBox
-	float xmin(1.0f), ymin(1.0f), zmin(1.0f);
-	float xmax(-1.0f), ymax(-1.0f), zmax(-1.0f);
-	sscanf(FindAndJump(buffer, BoundingBoxToken), "%g %g %g %g %g %g", &xmin, &xmax, &ymin, &ymax, &zmin, &zmax);
-	//LOG(lvlInfo, QString("BoundingBox: x=[%1...%2], y=[%3...%4], z=[%5...%6]")
-	//	.arg(xmin).arg(xmax).arg(ymin).arg(ymax).arg(zmin).arg(zmax));
+	auto bbs = extractValues(header, BoundingBoxToken, "[\r\n]");
+	auto bbStrs = bbs.split(" ");
+	auto xmin = bbStrs[0].toFloat();
+	auto xmax = bbStrs[1].toFloat();
+	auto ymin = bbStrs[2].toFloat();
+	auto ymax = bbStrs[3].toFloat();
+	auto zmin = bbStrs[4].toFloat();
+	auto zmax = bbStrs[5].toFloat();
 
 	//Is it a uniform grid? We need this only for the sanity check below.
-	const bool bIsUniform = (strstr(buffer, "CoordType \"uniform\"") != nullptr);
-	//LOG(lvlInfo, QString("GridType: %1").arg(bIsUniform ? "uniform" : "UNKNOWN"));
+	const bool bIsUniform = header.contains("CoordType \"uniform\"");
 
 	//Type of the field: scalar, vector
 	int NumComponents(0);
@@ -151,11 +147,11 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 	{
 		//A field with more than one component, i.e., a vector field
 		dataType = VTK_FLOAT;
-		sscanf(FindAndJump(buffer, "Lattice { float["), "%d", &NumComponents);
+		auto numComponentStr = extractValues(header, "Lattice { float[", "\\]");
+		NumComponents = numComponentStr.toInt();
 	}
 	else
 	{
-		fclose(fp);
 		throw std::runtime_error(QString("Unknown pixel type '%1' (not yet implemented). Supported pixel types: byte (unsigned char), float.").arg(dataTypeStr).toStdString());
 	}
 	const QString RLEMarker("HxByteRLE");
@@ -169,14 +165,12 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 			LOG(lvlWarn, QString("Expected at least 6 tokens in lattice line, only found %1.").arg(latticeTokens.size()));
 		}
 		auto pos = latticeTokens[5].indexOf(RLEMarker);
-		//int latticeLength = latticeTokens[5].length();
 		auto sizePos = pos + RLEMarker.length() + 1;
 		auto sizeLen = latticeTokens[5].length() - pos - RLEMarker.length() - 2;
 		QString dataLenStr = latticeTokens[5].mid(sizePos, sizeLen);
 		rawDataSize = dataLenStr.toInt();
 		LOG(lvlInfo, QString("RLE encoded (%1 compressed bytes)").arg(rawDataSize));
 	}
-	//LOG(lvlInfo, QString("Number of Components: %1").arg(NumComponents));
 
 	vtkImageData* imageData = vtkImageData::New();
 	imageData->SetDimensions(xDim, yDim, zDim);
@@ -187,16 +181,16 @@ vtkSmartPointer<vtkImageData> iAAmiraMeshIO::Load(QString const & fileName)
 		|| xmin > xmax || ymin > ymax || zmin > zmax
 		|| !bIsUniform || NumComponents <= 0)
 	{
-		fclose(fp);
 		throw std::runtime_error("Something went wrong (dimensions smaller or equal 0, [xyz]min > [xyz]max, not uniform or numComponents <= 0).");
 	}
 	//Find the beginning of the data section
-	const long idxStartData = strstr(buffer, "# Data section follows") - buffer;
+	const long idxStartData = header.indexOf("# Data section follows");
 	if (idxStartData <= 0)
 	{
-		fclose(fp);
 		throw std::runtime_error("Data section not found!");
 	}
+	FILE* fp = fopen(fileName.toStdString().c_str(), "rb");
+	char buffer[MaxHeaderSize + 1];
 	//Set the file pointer to the beginning of "# Data section follows"
 	bool err = fseek(fp, idxStartData, SEEK_SET) != 0;
 	//Consume this line, which is "# Data section follows"
