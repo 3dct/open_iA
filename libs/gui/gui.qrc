@@ -29,6 +29,10 @@
     <file>images/checkbox_checked_hover_dark.svg</file>
     <file>images/checkbox_checked_pressed.svg</file>
     <file>images/checkbox_checked_pressed_dark.svg</file>
+    <file>images/checkbox_disabled_checked.svg</file>
+    <file>images/checkbox_disabled_checked_dark.svg</file>
+    <file>images/checkbox_disabled_unchecked.svg</file>
+    <file>images/checkbox_disabled_unchecked_dark.svg</file>
     <file>images/checkbox_indeterminate.svg</file>
     <file>images/checkbox_indeterminate_dark.svg</file>
     <file>images/checkbox_indeterminate_hover.svg</file>

@@ -524,6 +524,15 @@ QCheckBox
 		image: url(:/images/checkbox_indeterminate_pressed_dark.svg);
 	}
 
+	QCheckBox::indicator:disabled
+	{
+		image: url(:/images/checkbox_disabled_unchecked_dark.svg);
+	}
+	QCheckBox::indicator:disabled:checked
+	{
+		image: url(:/images/checkbox_disabled_checked_dark.svg);
+	}
+
 	QRadioButton::indicator::unchecked
 	{
 		image: url(:/images/radiobutton_unchecked_dark.svg);
