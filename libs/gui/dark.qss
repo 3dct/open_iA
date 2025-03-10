@@ -558,6 +558,15 @@ QCheckBox
 	{
 		image: url(:/images/radiobutton_checked_pressed_dark.svg);
 	}
+
+	QRadioButton::indicator:disabled
+	{
+		image: url(:/images/radiobutton_disabled_unchecked_dark.svg);
+	}
+	QRadioButton::indicator:disabled:checked
+	{
+		image: url(:/images/radiobutton_disabled_checked_dark.svg);
+	}
 /****************************************************************************
 QSlider
 ****************************************************************************/
