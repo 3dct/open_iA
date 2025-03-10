@@ -67,6 +67,14 @@ iAbase_API void addAttr(iAAttributes& attributes,
 	double min = std::numeric_limits<double>::lowest(),
 	double max = std::numeric_limits<double>::max());
 
+//! store attributes to XML
 iAbase_API void storeAttributeValues(QDomElement& xml, iAAttributes const& attributes);
 
+//! load attributes from XML
 iAbase_API void loadAttributeValues(QDomNamedNodeMap const & xml, iAAttributes & attributes);
+
+//! set attribute with name to depend on the list of attributes in dependencies
+//! (i.e. attribute name is only effective if dependencies are set - currently only boolean dependencies are supported!) 
+iAbase_API void setDependencies(iAAttributes& attributes, QString const& name, QStringList const& dependencies);
+//! set attribute with name to depend on a single other attribute; @see setDependencies for more details
+iAbase_API void setDependency(iAAttributes& attributes, QString const& name, QString const& dependency);

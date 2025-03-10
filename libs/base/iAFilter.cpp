@@ -426,6 +426,16 @@ void iAFilter::addParameter(QString const & name, iAValueType valueType,
 	addAttr(m_parameters, name, valueType, defaultValue, min, max);
 }
 
+void iAFilter::setDependency(QString const& name, QString const& dependency)
+{
+	setDependencies(name, QStringList() << dependency);
+}
+
+void iAFilter::setDependencies(QString const& name, QStringList const& dependencies)
+{
+	::setDependencies(paramsWritable(), name, dependencies);
+}
+
 QVector<QString> const & iAFilter::outputValueNames() const
 {
 	return m_outputValueNames;

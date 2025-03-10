@@ -111,6 +111,10 @@ public:
 		QVariant defaultValue = 0.0,
 		double min = std::numeric_limits<double>::lowest(),
 		double max = std::numeric_limits<double>::max());
+	//! set a single dependency for a specific parameter name
+	void setDependency(QString const& name, QString const& dependency);
+	//! set multiple dependencies for a specific parameter name
+	void setDependencies(QString const& name, QStringList const& dependencies);
 	//! Returns the number of input images required by this filter.
 	//! For typical image filters, this returns 1.
 	//! @return the number of images required as input

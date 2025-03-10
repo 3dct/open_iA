@@ -160,6 +160,16 @@ void addAttr(iAAttributes& attributes, QString const& name, iAValueType valueTyp
 	attributes.push_back(iAAttributeDescriptor::createParam(name, valueType, defaultValue, min, max));
 }
 
+void setDependencies(iAAttributes& attributes, QString const& name, QStringList const & dependencies)
+{
+	attributes[findAttribute(attributes, name)]->setDependencies(dependencies);
+}
+
+void setDependency(iAAttributes& attributes, QString const& name, QString const& dependency)
+{
+	setDependencies(attributes, name, QStringList() << dependency);
+}
+
 #include "iASettings.h"
 
 #include <QDomElement>

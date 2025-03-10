@@ -160,6 +160,13 @@ iACastImageFilter::iACastImageFilter() :
 	addParameter("Use Full Output Range", iAValueType::Boolean, true);
 	addParameter("Output Min", iAValueType::Continuous, 0);
 	addParameter("Output Max", iAValueType::Continuous, 1);
+
+	setDependency("Automatic Input Range", "Rescale Range");
+	setDependencies("Input Min", QStringList() << "Rescale Range" << "!Automatic Input Range");
+	setDependencies("Input Max", QStringList() << "Rescale Range" << "!Automatic Input Range");
+	setDependency("Use Full Output Range", "Rescale Range");
+	setDependencies("Output Min", QStringList() << "Rescale Range" << "!Use Full Output Range");
+	setDependencies("Output Max", QStringList() << "Rescale Range" << "!Use Full Output Range");
 }
 
 

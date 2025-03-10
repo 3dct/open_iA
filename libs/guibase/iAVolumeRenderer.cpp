@@ -72,7 +72,8 @@ inline constexpr char VolumeRendererName[] = "Default Settings/Dataset Renderer:
 class iAVolumeRendererSettings : iASettingsObject<VolumeRendererName, iAVolumeRendererSettings>
 {
 public:
-	static iAAttributes& defaultAttributes() {
+	static iAAttributes& defaultAttributes()
+	{
 		static iAAttributes attr;
 		if (attr.isEmpty())
 		{

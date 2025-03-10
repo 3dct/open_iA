@@ -112,6 +112,8 @@ public:
 			addAttr(attr, iARendererImpl::UseStyleBGColor, iAValueType::Boolean, false);            // true - use background color from style (bright/dark), false - use BackgroundTop/BackgroundBottom
 			addAttr(attr, iARendererImpl::BackgroundTop, iAValueType::Color, "#7FAAFF");            // top color used in background gradient
 			addAttr(attr, iARendererImpl::BackgroundBottom, iAValueType::Color, "#FFFFFF");         // bottom color used in background gradient
+			setDependency(attr, iARendererImpl::BackgroundTop, QString("!%1").arg(iARendererImpl::UseStyleBGColor));
+			setDependency(attr, iARendererImpl::BackgroundBottom, QString("!%1").arg(iARendererImpl::UseStyleBGColor));
 			addAttr(attr, iARendererImpl::UseFXAA, iAValueType::Boolean, true);                     // whether to use FXAA anti-aliasing, if supported
 			addAttr(attr, iARendererImpl::MultiSamples, iAValueType::Discrete, 0);                  // number of multi-samples; needs to be 0 for depth peeling to work!
 			addAttr(attr, iARendererImpl::StereoRenderMode, iAValueType::Categorical, stereoModes); // whether to use a stereo rendering mode and if so, which one, for the render window
@@ -119,6 +121,8 @@ public:
 			addAttr(attr, iARendererImpl::UseDepthPeeling, iAValueType::Boolean, true);             // whether to use depth peeling (improves depth ordering in rendering of multiple objects), if false, alpha blending is used
 			addAttr(attr, iARendererImpl::DepthPeelOcclusionRatio, iAValueType::Continuous, 0.0);   // In case of use of depth peeling technique for rendering translucent material, define the threshold under which the algorithm stops to iterate over peel layers (see <a href="https://vtk.org/doc/nightly/html/classvtkRenderer.html">vtkRenderer documentation</a>
 			addAttr(attr, iARendererImpl::DepthPeelsMax, iAValueType::Discrete, 4, 0);              // maximum number of depth peels to use (if enabled via UseDepthPeeling). The more the higher quality, but also slower rendering
+			setDependency(attr, iARendererImpl::DepthPeelOcclusionRatio, iARendererImpl::UseDepthPeeling);
+			setDependency(attr, iARendererImpl::DepthPeelsMax, iARendererImpl::UseDepthPeeling);
 			addAttr(attr, iARendererImpl::MagicLensSize, iAValueType::Discrete, DefaultMagicLensSize, MinimumMagicLensSize, MaximumMagicLensSize); // size (width & height) of the 3D magic lens (in pixels / pixel-equivalent units considering scaling)
 			addAttr(attr, iARendererImpl::MagicLensFrameWidth, iAValueType::Discrete, DefaultMagicLensFrameWidth, 0); // width of the frame of the 3D magic lens
 			addAttr(attr, iARendererImpl::ShowFPS, iAValueType::Boolean, false);                    // whether to show frames per second
@@ -127,6 +131,11 @@ public:
 			addAttr(attr, iARendererImpl::SSAOBias, iAValueType::Continuous, 0.01);                 // SSAO: The bias when comparing samples
 			addAttr(attr, iARendererImpl::SSAOKernelSize, iAValueType::Discrete, 32);               // SSAO: The number of samples
 			addAttr(attr, iARendererImpl::SSAOBlur, iAValueType::Boolean, false);                   // SSAO: Whether the ambient occlusion should be blurred (can help to improve the result if samples number is low).
+
+			setDependency(attr, iARendererImpl::SSAORadius, iARendererImpl::UseSSAO);
+			setDependency(attr, iARendererImpl::SSAOBias, iARendererImpl::UseSSAO);
+			setDependency(attr, iARendererImpl::SSAOKernelSize, iARendererImpl::UseSSAO);
+			setDependency(attr, iARendererImpl::SSAOBlur, iARendererImpl::UseSSAO);
 			selfRegister();
 		}
 		return attr;

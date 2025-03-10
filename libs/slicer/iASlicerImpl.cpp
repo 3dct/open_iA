@@ -135,6 +135,9 @@ public:
 			addAttr(attr, iASlicerImpl::NumberOfIsoLines, iAValueType::Discrete, 5);
 			addAttr(attr, iASlicerImpl::MinIsoValue, iAValueType::Continuous, 20000);    // should probably be dependent on the value range of the image ...?
 			addAttr(attr, iASlicerImpl::MaxIsoValue, iAValueType::Continuous, 40000);    // should probably be dependent on the value range of the image ...?
+			setDependency(attr, iASlicerImpl::NumberOfIsoLines, iASlicerImpl::ShowIsoLines);
+			setDependency(attr, iASlicerImpl::MinIsoValue, iASlicerImpl::ShowIsoLines);
+			setDependency(attr, iASlicerImpl::MaxIsoValue, iASlicerImpl::ShowIsoLines);
 			// }
 			selfRegister();
 		}

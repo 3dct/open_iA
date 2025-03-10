@@ -767,6 +767,8 @@ void MainWindow::prefs()
 	addAttr(params, "Log to file", iAValueType::Boolean, iALogWidget::get()->isLogToFileOn());
 	addAttr(params, "Log File Name", iAValueType::FileNameSave, iALogWidget::get()->logFileName());
 	addAttr(params, "File Log Level", iAValueType::Categorical, fileLogLevels);
+	setDependency(params, "Log File Name", "Log to file");
+	setDependency(params, "File Log Level", "Log to file");
 	addAttr(params, "Looks", iAValueType::Categorical, looks);
 	addAttr(params, "Font size", iAValueType::Discrete, QString::number(p.FontSize), 4, 120);
 	addAttr(params, "Size limit for automatic 3D rendering (MB)", iAValueType::Discrete, p.LimitForAuto3DRender, 0);
