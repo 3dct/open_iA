@@ -74,6 +74,11 @@ public:
 	bool coversWholeRange(double min, double max) const;
 	//! Convert the attribute descriptor to a string.
 	QString toString() const;
+	//! other settings this settings depends on (=which must be enabled for this setting to be effective)
+	QStringList dependencies() const;
+	//! set dependencies
+	void setDependencies(QStringList const& dependencies);
+
 private:
 	iAAttributeDescriptor(iAAttributeDescriptor const & other) = delete;
 	iAAttributeDescriptor& operator=(iAAttributeDescriptor const & other) = delete;
@@ -84,6 +89,7 @@ private:
 	bool m_logarithmic;
 	QString m_name;
 	mutable std::shared_ptr<iANameMapper> m_nameMapper;
+	QStringList m_depends;
 };
 
 iAbase_API void selectOption(QStringList& options, QString const& selected);

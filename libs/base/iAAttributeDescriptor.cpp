@@ -122,6 +122,7 @@ std::shared_ptr<iAAttributeDescriptor> iAAttributeDescriptor::clone() const
 	result->m_max = m_max;
 	result->m_defaultValue = m_defaultValue;
 	result->m_logarithmic = m_logarithmic;
+	result->m_depends = m_depends;
 	result->m_nameMapper = m_nameMapper;
 	return result;
 }
@@ -140,6 +141,16 @@ QString iAAttributeDescriptor::toString() const
 		result += m_defaultValue.toStringList().join(CategoricalValueSplitString);
 	}
 	return result + "\n";
+}
+
+QStringList iAAttributeDescriptor::dependencies() const
+{
+	return m_depends;
+}
+
+void iAAttributeDescriptor::setDependencies(QStringList const& dependencies)
+{
+	m_depends = dependencies;
 }
 
 iAAttributeDescriptor::iAAttributeDescriptor(

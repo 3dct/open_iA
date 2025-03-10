@@ -168,6 +168,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 		{
 			auto checkBox = new QCheckBox(m_container);
 			checkBox->setChecked(p->defaultValue().toBool());
+			connect(checkBox, &QCheckBox::checkStateChanged, this, &iAParameterDlg::updateDependencies);
 			newWidget = checkBox;
 			break;
 		}
@@ -266,6 +267,8 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 
 	formLayout->addWidget(scrollArea);
 	formLayout->addWidget(m_buttonBox);
+	
+	updateDependencies();
 }
 
 void iAParameterDlg::setValue(QString const& key, QVariant const& value)
@@ -428,6 +431,49 @@ void iAParameterDlg::updatedROI(QVariant value)
 	QString senderName = QObject::sender()->objectName();
 	updateROIPart(senderName, value);
 	m_sourceMdiChild->updateROI(m_roi);
+}
+
+void iAParameterDlg::updateDependencies()
+{
+	QMap<QString, bool> optValue;
+	// determine values of all boolean parameters:
+	for (int i = 0; i < m_parameters.size(); ++i)
+	{
+		auto p = m_parameters[i];
+		if (p->valueType() == iAValueType::Boolean)
+		{
+			auto t = qobject_cast<QCheckBox*>(m_widgetList[i]);
+			optValue[p->name()] = t->isChecked();
+		}
+	}
+	for (int i = 0; i < m_parameters.size(); ++i)
+	{
+		auto p = m_parameters[i];
+		if (p->dependencies().size() > 0)
+		{
+			auto enabled = true;
+			for (auto d: p->dependencies()) {
+				auto dep = d;
+				auto inverted = false;
+				if (dep.startsWith("!")) {
+					inverted = true;
+					dep.remove(0, 1);
+				}
+				if (!optValue.contains(dep)) {
+					LOG(lvlError, QString("For parameter %1, dependency %2 is not a known parameter here!").arg(p->name()).arg(dep));
+				}
+				auto test = optValue[dep];
+				if (inverted) {
+					test = !test;
+				}
+				if (!test) {
+					enabled = false;
+					break;
+				}
+			}
+			m_widgetList[i]->setEnabled(enabled);
+		}
+	}
 }
 
 void iAParameterDlg::updateROIPart(QString const & partName, QVariant value)

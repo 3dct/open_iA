@@ -48,6 +48,7 @@ public:
 
 private slots:
 	void updatedROI(QVariant value);
+	void updateDependencies();
 	void sourceChildClosed();
 	void selectFilter();
 
