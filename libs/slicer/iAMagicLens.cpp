@@ -34,7 +34,7 @@ namespace
 	const int CaptionFrameDistance = 0;
 	const int CaptionFontSize = 13;
 
-	void CalculateViewPort(double viewPort[4], int const winSize[2], int const mousePos[2], int size, int const offset[2])
+	void calculateViewPort(double viewPort[4], int const winSize[2], int const mousePos[2], int size, int const offset[2])
 	{
 		double halfSize = size / 2.0;
 		for (int i = 0; i < 2; ++i)
@@ -171,7 +171,7 @@ void iALensData::updateViewPort(int const mousePos[2])
 {
 	double viewPort[4];
 	int const * windowSize = m_renderWindow->GetSize();
-	CalculateViewPort(viewPort, windowSize, mousePos, m_size, m_offset);
+	calculateViewPort(viewPort, windowSize, mousePos, m_size, m_offset);
 	m_imageRenderer->SetViewport(viewPort);
 	m_guiRenderer->SetViewport(viewPort);
 	m_bgRenderer->SetViewport(viewPort);
@@ -347,7 +347,7 @@ void iAMagicLens::updatePosition(vtkCamera * cam, double const lensPos[3], int c
 	{
 		double viewPort[4];
 		int offset[2] = { 0, 0 };
-		CalculateViewPort(viewPort, m_renderWindow->GetSize(), mousePos, m_size, offset);
+		calculateViewPort(viewPort, m_renderWindow->GetSize(), mousePos, m_size, offset);
 		m_srcWindowRenderer->SetViewport(viewPort);
 		double fwHalf = frameWidth() / 2;
 		// update border:
