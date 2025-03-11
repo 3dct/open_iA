@@ -41,7 +41,7 @@ private:
 	qint64 m_fileSize;
 	QLabel * m_proposedSizeLabel = nullptr;
 	QWidget* m_previewContainer = nullptr;
-	iAChartWithFunctionsWidget* m_chart;
+	iAChartWithFunctionsWidget* m_chart = nullptr;
 	iAParameterDlg* m_inputDlg = nullptr;
 	bool m_accepted = false;
 	bool m_brightTheme;
