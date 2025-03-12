@@ -80,6 +80,8 @@ struct iASliceMergedValues
 	}
 };
 
+bool iARawFileParamDlg::s_previewShown = false;
+
 iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, QString const& title, QVariantMap & paramValues, bool brightTheme) :
 	m_brightTheme(brightTheme),
 	m_fileName(fileName),
@@ -111,15 +113,38 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 	});
 
 	auto previewButton = new QPushButton(m_inputDlg);
-	previewButton->setText("Preview >>");
 	previewButton->setCheckable(true);
-	connect(previewButton, &QPushButton::clicked, this, &iARawFileParamDlg::togglePreview);
+	auto updatePreviewButton = [this, previewButton]
+	{
+		previewButton->setText(QString("Preview %1").arg(s_previewShown ? "<<" : ">>"));
+	};
+	updatePreviewButton();
+	connect(previewButton, &QPushButton::clicked, this, [this, updatePreviewButton]
+	{
+		s_previewShown = !s_previewShown;
+		updatePreviewButton();
+		if (!s_previewShown)
+		{
+			m_previewWidth = m_inputDlg->width();
+			m_previewContainer->hide();
+			m_inputDlg->adjustSize();  // works better than any resize call
+		}
+		else
+		{
+			if (m_previewWidth > 0)
+			{
+				m_inputDlg->resize(m_previewWidth, m_inputDlg->height());  // restore previous width
+			}
+			m_previewContainer->show();
+			m_previewContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+			updatePreview();
+		}
+	});
 
-	auto fileNameAndButtons = new QWidget();
-	fileNameAndButtons->setLayout(createLayout<QHBoxLayout>());
-	fileNameAndButtons->layout()->addWidget(fileNameLabel);
-	fileNameAndButtons->layout()->addWidget(guessFromFileNameButton);
-	fileNameAndButtons->layout()->addWidget(previewButton);
+	auto buttons = new QWidget();
+	buttons->setLayout(createLayout<QHBoxLayout>());
+	buttons->layout()->addWidget(guessFromFileNameButton);
+	buttons->layout()->addWidget(previewButton);
 
 	auto actualSizeLabel = new QLabel("Actual file size: " + QString::number(m_fileSize) + " bytes");
 	actualSizeLabel->setAlignment(Qt::AlignRight);
@@ -129,9 +154,53 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 
 	m_inputDlg = new iAParameterDlg(parent, title, params);
 	m_inputDlg->mainWidget()->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
-	m_inputDlg->layout()->addWidget(fileNameAndButtons);
+	m_inputDlg->layout()->addWidget(fileNameLabel);
+	m_inputDlg->layout()->addWidget(buttons);
 	m_inputDlg->layout()->addWidget(actualSizeLabel);
 	m_inputDlg->layout()->addWidget(m_proposedSizeLabel);
+
+	// workaround for bug with Qt 6.8, where dialog disappears on enabling preview
+	// when widget creation is delayed until that time -> create preview widgets in advance
+	m_previewContainer = new QWidget();
+	m_chart = new iAChartWithFunctionsWidget(m_previewContainer, "Greyvalue", "Frequency");
+	auto slicersWidget = new QWidget();
+	auto layout = createLayout<QHBoxLayout>();
+	slicersWidget->setLayout(layout);
+	const size_t NumBins = 2048;
+	for (int i = iASlicerMode::SlicerCount - 1; i >= 0; --i)
+	{
+		m_slicer.push_back(std::make_shared<iARawFilePreviewSlicer>(static_cast<iASlicerMode>(i), m_fileName, m_tf->colorTF()));
+		connect(m_slicer.back().get(), &iARawFilePreviewSlicer::loadDone, this, [this, i]
+		{
+			auto slicer = dynamic_cast<iARawFilePreviewSlicer*>(QObject::sender());
+			m_dataValues->addValues(slicer->image(), static_cast<iASlicerMode>(i), slicer->sliceNr());
+			m_chart->clearPlots();
+			auto type = isVtkIntegerImage(slicer->image()) ? iAValueType::Discrete : iAValueType::Continuous;
+			auto histogramData = iAHistogramData::create("Greyvalue", type, m_dataValues->values, NumBins);
+			auto const tfRange = m_tf->colorTF()->GetRange();
+			auto histRange = histogramData->xBounds();
+			if (tfRange[0] != histRange[0] || tfRange[1] != histRange[1])
+			{
+				m_tf->resetFunctions(histRange);
+			}
+			m_chart->addPlot(std::make_shared<iABarGraphPlot>(histogramData, QApplication::palette().color(QPalette::Shadow)));
+			m_chart->update();
+		});
+		connect(m_chart, &iAChartWithFunctionsWidget::transferFunctionChanged, m_slicer.back().get(),
+			&iARawFilePreviewSlicer::updateColors);
+		layout->addLayout(m_slicer.back()->layout());
+	}
+	m_previewContainer->setLayout(createLayout<QVBoxLayout>());
+	m_previewContainer->layout()->addWidget(slicersWidget);
+
+	m_chart->setTransferFunction(m_tf.get());
+	m_previewContainer->layout()->addWidget(m_chart);
+	m_inputDlg->mainLayout()->addWidget(m_previewContainer, 0, 1, m_inputDlg->mainLayout()->rowCount(), 1);
+	if (!s_previewShown)
+	{
+		m_previewContainer->hide();
+		m_inputDlg->adjustSize();
+	}
 
 	connect(qobject_cast<iAVectorInput*>(m_inputDlg->paramWidget(iARawFileIO::SizeStr)), &iAVectorInput::valueChanged, this, &iARawFileParamDlg::checkFileSize);
 	connect(qobject_cast<QSpinBox*>(m_inputDlg->paramWidget(iARawFileIO::HeadersizeStr)), QOverload<int>::of(&QSpinBox::valueChanged), this, &iARawFileParamDlg::checkFileSize);
@@ -236,65 +305,9 @@ iARawFileParamDlg::~iARawFileParamDlg()
 	delete m_inputDlg;
 }
 
-void iARawFileParamDlg::togglePreview()
-{
-	const size_t NumBins = 2048;
-	m_previewShown = !m_previewShown;
-	if (!m_previewShown)
-	{
-		m_previewWidth = m_inputDlg->width();
-		m_previewContainer->hide();
-		m_inputDlg->adjustSize();  // works better than any resize call
-	}
-	else
-	{
-		m_inputDlg->resize(m_previewWidth, m_inputDlg->height());   // restore previous width
-		if (!m_previewContainer)
-		{
-			m_chart = new iAChartWithFunctionsWidget(m_inputDlg, "Greyvalue", "Frequency");
-			m_previewContainer = new QWidget();
-			auto slicersWidget = new QWidget();
-			auto layout = createLayout<QHBoxLayout>();
-			slicersWidget->setLayout(layout);
-			for (int i = iASlicerMode::SlicerCount-1; i >= 0; --i)
-			{
-				m_slicer.push_back(std::make_shared<iARawFilePreviewSlicer>(static_cast<iASlicerMode>(i), m_fileName, m_tf->colorTF()));
-				connect(m_slicer.back().get(), &iARawFilePreviewSlicer::loadDone, this, [this, i]
-				{
-					auto slicer = dynamic_cast<iARawFilePreviewSlicer*>(QObject::sender());
-					m_dataValues->addValues(slicer->image(), static_cast<iASlicerMode>(i), slicer->sliceNr());
-					m_chart->clearPlots();
-					auto type = isVtkIntegerImage(slicer->image()) ? iAValueType::Discrete : iAValueType::Continuous;
-					auto histogramData = iAHistogramData::create("Greyvalue",
-						type, m_dataValues->values, NumBins);
-					auto const tfRange = m_tf->colorTF()->GetRange();
-					auto histRange = histogramData->xBounds();
-					if (tfRange[0] != histRange[0] || tfRange[1] != histRange[1])
-					{
-						m_tf->resetFunctions(histRange);
-					}
-					m_chart->addPlot(std::make_shared<iABarGraphPlot>(histogramData, QApplication::palette().color(QPalette::Shadow)));
-					m_chart->update();
-				});
-				connect(m_chart, &iAChartWithFunctionsWidget::transferFunctionChanged, m_slicer.back().get(), &iARawFilePreviewSlicer::updateColors);
-				layout->addLayout(m_slicer.back()->layout());
-			}
-			m_previewContainer->setLayout(createLayout<QVBoxLayout>());
-			m_previewContainer->layout()->addWidget(slicersWidget);
-
-			m_chart->setTransferFunction(m_tf.get());
-			m_previewContainer->layout()->addWidget(m_chart);
-			m_inputDlg->mainLayout()->addWidget(m_previewContainer, 0, 1, m_inputDlg->mainLayout()->rowCount(), 1);
-		}
-		m_previewContainer->show();
-		m_previewContainer->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-		updatePreview();
-	}
-}
-
 void iARawFileParamDlg::updatePreview()
 {
-	if (!m_previewShown)
+	if (!s_previewShown)
 	{
 		return;
 	}

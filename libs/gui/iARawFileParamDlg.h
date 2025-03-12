@@ -45,21 +45,19 @@ private:
 	iAParameterDlg* m_inputDlg = nullptr;
 	bool m_accepted = false;
 	bool m_brightTheme;
-	bool m_previewShown = false;
 	int m_previewWidth = 0;
 	QString m_fileName;
 	std::vector<std::shared_ptr<iARawFilePreviewSlicer>> m_slicer;
 	std::optional<iARawFileParameters> m_params;
 	std::unique_ptr<iASliceMergedValues> m_dataValues;
 	std::unique_ptr<iATransferFunctionOwner> m_tf;
+	static bool s_previewShown;
 
 private slots:
 	//! update labels indicating whether current parameters fit the actual file size
 	void checkFileSize();
 	//! guess file parameters from file name
 	void guessParameters(QString fileName);
-	//! toggle preview visibility
-	void togglePreview();
 	//! update the preview if visible
 	void updatePreview();
 };
