@@ -37,10 +37,6 @@ bool isCUDAAvailable()
 			idx = dev;
 		}
 	}
-	astra::SGPUParams gpuParams;
-	gpuParams.GPUIndices.push_back(idx);
-	gpuParams.memory = mostMem ;
-	astra::CCompositeGeometryManager::setGlobalGPUParams(gpuParams);
 	*/
 	return true;
 }

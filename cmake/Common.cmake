@@ -487,27 +487,6 @@ else()
 	message(STATUS "HDF5: Not found - ${HDF5_NOT_FOUND_MESSAGE}")
 endif()
 
-
-# Astra Toolbox
-find_package(AstraToolbox)
-if (ASTRA_TOOLBOX_FOUND)
-	message(STATUS "Astra Toolbox: ${ASTRA_VERSION} in ${ASTRA_TOOLBOX_DIR}")
-	set(BUILD_INFO "${BUILD_INFO}    \"Astra	${ASTRA_VERSION}\\n\"\n")
-	if (WIN32)
-		set(ASTRA_LIB_DIR "${ASTRA_TOOLBOX_DIR}/bin/x64/Release_CUDA")
-		if (NOT EXISTS "${ASTRA_LIB_DIR}/AstraCuda64.dll")
-			get_filename_component(ASTRA_LIB_DIR "${ASTRA_TOOLBOX_LIBRARIES_RELEASE}" DIRECTORY)
-		endif()
-		if (NOT EXISTS "${ASTRA_LIB_DIR}/AstraCuda64.dll")
-			message(WARNING "AstraCuda64.dll not found!")
-		endif()
-	elseif (UNIX AND NOT APPLE)
-		get_filename_component(ASTRA_LIB_DIR "${ASTRA_TOOLBOX_LIBRARIES_RELEASE}" DIRECTORY)
-	endif()
-	list(APPEND BUNDLE_DIRS "${ASTRA_LIB_DIR}")
-endif()
-
-
 # OpenCL
 find_package(OpenCLHeaders)
 find_package(OpenCLHeadersCpp)
@@ -713,13 +692,6 @@ if (MSVC)
 	if (CUDAToolkit_FOUND)
 		cmake_path(NATIVE_PATH CUDAToolkit_BIN_DIR CUDA_WIN_DIR)
 		set(WinDLLPaths "${CUDA_WIN_DIR};${WinDLLPaths}")
-	endif()
-
-	if (ASTRA_TOOLBOX_FOUND)
-		string(FIND ${ASTRA_TOOLBOX_LIBRARIES_RELEASE} "/" ASTRA_RELEASE_LIB_LASTSLASHPOS REVERSE)
-		string(SUBSTRING ${ASTRA_TOOLBOX_LIBRARIES_RELEASE} 0 ${ASTRA_RELEASE_LIB_LASTSLASHPOS} ASTRA_LIBRARIES_RELEASE_PATH)
-		cmake_path(NATIVE_PATH ASTRA_LIBRARIES_RELEASE_PATH ASTRA_LIBRARIES_RELEASE_WIN_PATH)
-		set(WinDLLPaths "${ASTRA_LIBRARIES_RELEASE_WIN_PATH};${WinDLLPaths}")
 	endif()
 
 	if (NOT ("${ITKZLIB_LIBRARIES}" STREQUAL "itkzlib" OR "${ITKZLIB_LIBRARIES}" STREQUAL "zlib") )

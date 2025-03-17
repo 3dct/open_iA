@@ -1,15 +1,11 @@
-# Check whether boost (from astra) has histogram.hpp (only available in boost >= 1.70)
-if (NOT BOOST_INCLUDE_DIR OR NOT EXISTS "${BOOST_INCLUDE_DIR}/boost/histogram.hpp")
-	message(STATUS "Boost with histogram.hpp not found (specify via BOOST_INCLUDE_DIR)!")
-	set(DEPENDENCIES_CMAKE BOOST_HISTOGRAM_HPP_FOUND)
+if(POLICY CMP0167)
+  cmake_policy(SET CMP0167 NEW)
 endif()
+find_package(Boost 1.70.0)
 
 set(DEPENDENCIES_LIBRARIES
 	iA::guibase
 	iA::objectvis
-)
-set(DEPENDENCIES_INCLUDE_DIRS
-	${BOOST_INCLUDE_DIR}
 )
 if (RenderingOpenVR IN_LIST VTK_COMPONENTS)
 	list(APPEND DEPENDENCIES_COMPILE_DEFINITIONS

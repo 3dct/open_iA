@@ -107,7 +107,7 @@ foreach (indx RANGE ${len} )
 		endif()
 	endforeach()
 
-	# required libraries (either from libs folder, or external, such as astra, eigen, OpenCL, ...)
+	# required libraries (either from libs folder, or external, such as eigen, OpenCL, ...)
 	if (ADDITIONAL_VTK_MODULES)
 		ADD_VTK_LIBRARIES(${module_name} "PUBLIC" "${ADDITIONAL_VTK_MODULES}")
 	endif()
