@@ -168,7 +168,11 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 		{
 			auto checkBox = new QCheckBox(m_container);
 			checkBox->setChecked(p->defaultValue().toBool());
+#if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
+			connect(checkBox, &QCheckBox::stateChanged, this, &iAParameterDlg::updateDependencies);
+#else
 			connect(checkBox, &QCheckBox::checkStateChanged, this, &iAParameterDlg::updateDependencies);
+#endif
 			newWidget = checkBox;
 			break;
 		}
