@@ -215,10 +215,10 @@ namespace FishersNaturalBreaks
 
 	void GetCountsDirect(ValueCountPairContainer& vcpc, const double* values, SizeT size)
 	{
-		assert(size <= BUFFER_SIZE);
-		assert(size > 0);
-		assert(vcpc.empty());
-
+		if (size > BUFFER_SIZE || size <= 0 || !vcpc.empty())
+		{
+			LOG(lvlError, QString("GetCountsDirect: Failed pre-condition (size: %1; vcpc: %2)!").arg(size).arg(vcpc.empty()));
+		}
 		double buffer[BUFFER_SIZE];
 
 		std::copy(values, values + size, buffer);

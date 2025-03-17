@@ -114,7 +114,7 @@ iARawFileParamDlg::iARawFileParamDlg(QString const& fileName, QWidget* parent, Q
 
 	auto previewButton = new QPushButton(m_inputDlg);
 	previewButton->setCheckable(true);
-	auto updatePreviewButton = [this, previewButton]
+	auto updatePreviewButton = [previewButton]
 	{
 		previewButton->setText(QString("Preview %1").arg(s_previewShown ? "<<" : ">>"));
 	};
