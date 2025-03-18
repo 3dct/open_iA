@@ -181,10 +181,10 @@ jobs:
         curl -L https://archives.boost.io/release/${{env.BOOST_VERSION}}/source/boost_${{env.BOOST_VERSION_UNDERSCORE}}.zip --output boost-${{ env.BOOST_VERSION }}.zip
         7z x boost-${{ env.BOOST_VERSION }}.zip
         del boost-${{ env.BOOST_VERSION }}.zip
-    # we need to build boost in order to get the CMake config it seems...
         cd ${{github.workspace}}/boost_${{env.BOOST_VERSION_UNDERSCORE}}
         bootstrap.bat
         b2 -j8 address-model=64 architecture=x86 link=static threading=multi runtime-link=shared --with-system stage
+    # we need to build boost in order to get the CMake config it seems...
 
     #- if: runner.os == 'Linux'
     #  name: Install OpenXR and OpenVR
