@@ -55,7 +55,7 @@ jobs:
       with:
         submodules: true
         fetch-tags: true
-        fetch-depth: 500
+        fetch-depth: 0
 
     # On Ubuntu 20.04
     #   - we cannot use the standard g++9 because it's not fully C++20 compatible yet (e.g. <numbers> header is not available on g++-9)
