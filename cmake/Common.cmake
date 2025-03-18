@@ -168,12 +168,6 @@ if (HigherOrderAccurateGradient_LOADED)
 	set(ITK_HGrad_INFO "on")
 	list(APPEND ITK_COMPONENTS HigherOrderAccurateGradient)
 endif()
-set(ITK_RTK_INFO "off")
-if (RTK_LOADED)
-	message(STATUS "    RTK ${RTK_VERSION_MAJOR}.${RTK_VERSION_MINOR}.${RTK_VERSION_PATCH} available as ITK module")
-	set(ITK_RTK_INFO "${RTK_VERSION_MAJOR}.${RTK_VERSION_MINOR}.${RTK_VERSION_PATCH}")
-	list(APPEND ITK_COMPONENTS RTK)
-endif()
 # ITK has been found in sufficient version, otherwise above REQUIRED / FATAL_ERROR would have triggered CMake abort
 # Now set it up with the components we need:
 find_package(ITK COMPONENTS ${ITK_COMPONENTS})
@@ -236,7 +230,7 @@ if (${ITK_USE_GPU} STREQUAL "OFF")
 else()
 	message(STATUS "    GPU-accelerated filters (ITK_USE_GPU) enabled")
 endif()
-set(BUILD_INFO "${BUILD_INFO}    \"ITK	${ITK_VERSION} (GPU: ${ITK_GPU_INFO}, SCIFIO: ${ITK_SCIFIO_INFO}, RTK: ${ITK_RTK_INFO}, HOAG: ${ITK_HGrad_INFO})\\n\"\n")
+set(BUILD_INFO "${BUILD_INFO}    \"ITK	${ITK_VERSION} (GPU: ${ITK_GPU_INFO}, SCIFIO: ${ITK_SCIFIO_INFO}, HOAG: ${ITK_HGrad_INFO})\\n\"\n")
 
 # VTK
 find_package(VTK REQUIRED)
