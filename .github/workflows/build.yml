@@ -131,6 +131,11 @@ jobs:
         curl -L https://github.com/KhronosGroup/OpenXR-SDK-Source/releases/download/release-${{ env.OPENXR_VERSION }}/openxr_loader_windows-${{ env.OPENXR_VERSION }}.zip --output openxr-${{ env.OPENXR_VERSION }}.zip
         7z x openxr-${{ env.OPENXR_VERSION }}.zip -o"openxr-${{ env.OPENXR_VERSION }}"
         rm openxr-${{ env.OPENXR_VERSION }}.zip
+        cd openxr-${{ env.OPENXR_VERSION }}
+        rm -r ARM64_uwp
+        rm -r Win32
+        rm -r Win32_uwp
+        rm -r x64_uwp
     - if: runner.os == 'Windows'
       name: Set up OpenXR options
       run: |
@@ -153,6 +158,24 @@ jobs:
         curl -L https://github.com/ValveSoftware/openvr/archive/v${{ env.OPENVR_VERSION }}.zip --output openvr-${{ env.OPENVR_VERSION }}.zip
         7z x openvr-${{ env.OPENVR_VERSION }}.zip
         rm openvr-${{ env.OPENVR_VERSION }}.zip
+        cd openvr-${{ env.OPENVR_VERSION }}
+        rm -r ./bin/androidarm64
+        rm -r ./bin/linux32
+        rm -r ./bin/linux64
+        rm -r ./bin/linuxarm64
+        rm -r ./bin/osx32
+        rm -r ./bin/win32
+        rm -r ./codegen
+        rm -r ./controller_callouts
+        rm -r ./docs
+        rm -r ./samples
+        rm -r ./src
+        rm -r ./lib/androidarm64
+        rm -r ./lib/linux32
+        rm -r ./lib/linux64
+        rm -r ./lib/linuxarm64
+        rm -r ./lib/osx32
+        rm -r ./lib/win32
     - if: ${{ runner.os == 'Windows' }}
       name: Set up OpenVR options (Windows)
       run: |
