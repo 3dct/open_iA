@@ -176,14 +176,13 @@ jobs:
         key: ${{ matrix.os }}-boost-${{ env.BOOST_VERSION }}
     - if: ${{ ((runner.os == 'Windows') && steps.cache-boost.outputs.cache-hit != 'true' ) }}  #  || runner.os == 'Linux'
       name: Download and build Boost
-      shell: cmd
       run: |
         curl -L https://archives.boost.io/release/${{env.BOOST_VERSION}}/source/boost_${{env.BOOST_VERSION_UNDERSCORE}}.zip --output boost-${{ env.BOOST_VERSION }}.zip
         7z x boost-${{ env.BOOST_VERSION }}.zip
-        del boost-${{ env.BOOST_VERSION }}.zip
+        rm boost-${{ env.BOOST_VERSION }}.zip
         cd ${{github.workspace}}/boost_${{env.BOOST_VERSION_UNDERSCORE}}
-        bootstrap.bat
-        b2 -j8 address-model=64 architecture=x86 link=static threading=multi runtime-link=shared --with-system stage
+        & .\bootstrap.bat
+        .\b2 -j8 address-model=64 link=static threading=multi runtime-link=shared --with-system stage
     # we need to build boost in order to get the CMake config it seems...
 
     #- if: runner.os == 'Linux'
@@ -196,7 +195,7 @@ jobs:
     - if: runner.os == 'Windows'
       name: Set up VR modules (Windows)
       run: |
-        "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DModule_ImNDT:BOOL=YES -DModule_VRAnnotation:BOOL=YES -DModule_XVRA:BOOL=YES -DBoost_DIR=${{github.workspace}}/boost_${{env.BOOST_VERSION_UNDERSCORE}}/stage/lib/cmake/Boost-${{env.BOOST_VERSION}}" >> $env:GITHUB_ENV
+        "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DModule_ImNDT:BOOL=YES -DModule_VRAnnotation:BOOL=YES -DModule_XVRA:BOOL=YES -DBoost_DIR:PATH=${{github.workspace}}/boost_${{env.BOOST_VERSION_UNDERSCORE}}/stage/lib/cmake/Boost-${{env.BOOST_VERSION}}" >> $env:GITHUB_ENV
     # - if: runner.os == 'Linux'
     #   name: Set up VR modules (Linux)
     #   run: |
