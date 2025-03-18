@@ -206,6 +206,32 @@ jobs:
         cd ${{github.workspace}}/boost_${{env.BOOST_VERSION_UNDERSCORE}}
         & .\bootstrap.bat
         .\b2 -j8 address-model=64 link=static threading=multi runtime-link=shared --with-system stage
+        rm -r doc
+        rm -r libs
+        rm -r bin.v2
+        rm -r tools
+        rm -r more
+        rm -r boost/phoenix
+        rm -r boost/geometry
+        rm -r boost/hana
+        rm -r boost/graph
+        rm -r boost/beast
+        rm -r boost/qvm
+        rm -r boost/log
+        rm -r boost/mysql
+        rm -r boost/compute
+        rm -r boost/gil
+        rm -r boost/polygon
+        rm -r boost/json
+        rm -r boost/wave
+        rm -r boost/pfr
+        rm -r boost/parser
+        rm -r boost/process
+        rm -r boost/msm
+        rm -r boost/vmd
+        rm -r boost/url
+        rm -r boost/random
+        rm -r boost/python
     # we need to build boost in order to get the CMake config it seems...
 
     #- if: runner.os == 'Linux'
