@@ -117,7 +117,7 @@ jobs:
         cache-key-prefix: Qt
 
     - if: matrix.os != 'ubuntu-24.04-arm'
-      name: Qt: install (Ubuntu ARM)
+      name: Qt install (Ubuntu ARM)
       run: |
         sudo apt update && sudo apt install libgl1-mesa-dev libxt-dev libxt-dev libxcursor-dev libsdl2-dev qt6-base-dev qt6-tools-dev qt6-svg-dev
         echo "QT_VERSION=$(/usr/bin/dpkg -s qt6-base-dev | /usr/bin/grep 'Version' | /usr/bin/awk '{ split($2, a, "+"); print a[1]; }')" >> "$GITHUB_ENV"
