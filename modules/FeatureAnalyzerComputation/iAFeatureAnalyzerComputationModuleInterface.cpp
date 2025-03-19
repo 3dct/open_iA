@@ -73,8 +73,8 @@ void iAFeatureAnalyzerComputationModuleInterface::Initialize()
 	setupTableWidgetContextMenu();
 
 	//Get CPU info
-	m_cpuVendor = iACPUID::cpuVendor().toLocal8Bit().data();
-	m_cpuBrand = iACPUID::cpuBrand().toLocal8Bit().data();
+	m_cpuVendor = iACPUID::cpuVendor();
+	m_cpuBrand = iACPUID::cpuBrand();
 }
 
 void iAFeatureAnalyzerComputationModuleInterface::computeParameterSpace()

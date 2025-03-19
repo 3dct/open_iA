@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
+#ifndef __arm__
 #ifdef _WIN32
 #include <intrin.h>
 using uint32_t = unsigned __int32;
@@ -9,12 +10,16 @@ using uint32_t = unsigned __int32;
 #else
 #include <cstdint>
 #endif
+#endif
 
 //! Retrieves and holds information on the CPU the program runs on.
-class iACPUID {
+class iACPUID
+{
+#ifndef __arm__
 	uint32_t regs[4];
-
+#endif
 public:
+#ifndef __arm__
 	explicit iACPUID(unsigned i)
 	{
 #ifdef _WIN32
@@ -33,20 +38,27 @@ public:
 	const uint32_t &ECX() const {return regs[2];}
 	const uint32_t &EDX() const {return regs[3];}
 
+#endif
 
 	static QString cpuVendor()
 	{
-		QString vendor;
-		iACPUID cpuID(0);
-		vendor += QString::fromLocal8Bit((const char *)&cpuID.EBX(), 4);
-		vendor += QString::fromLocal8Bit((const char *)&cpuID.EDX(), 4);
-		vendor += QString::fromLocal8Bit((const char *)&cpuID.ECX(), 4);
-
-		return vendor;
+#ifdef __arm__
+			return "ARM";
+#else
+			QString vendor;
+			iACPUID cpuID(0);
+			vendor += QString::fromLocal8Bit((const char *)&cpuID.EBX(), 4);
+			vendor += QString::fromLocal8Bit((const char *)&cpuID.EDX(), 4);
+			vendor += QString::fromLocal8Bit((const char *)&cpuID.ECX(), 4);
+			return vendor;
+#endif
 	}
 
 	static QString cpuBrand()
 	{
+#ifdef __arm__
+		return "Unknown";
+#else
 		iACPUID cpuID(0x80000000);
 		if (cpuID.EAX() >= 0x80000004)
 		{
@@ -60,5 +72,6 @@ public:
 			return brand;
 		}
 		return QString();
+#endif
 	}
 };
