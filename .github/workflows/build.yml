@@ -119,7 +119,10 @@ jobs:
     - if: matrix.os == 'ubuntu-24.04-arm'
       name: Qt install (Ubuntu ARM)
       run: |
-        sudo apt update && sudo apt install libgl1-mesa-dev libxt-dev libxt-dev libxcursor-dev libsdl2-dev qt6-base-dev qt6-tools-dev qt6-svg-dev
+        sudo apt update
+        sudo apt install libgl1-mesa-dev libxt-dev libxt-dev libxcursor-dev libsdl2-dev
+        sudo apt install qt6-base-dev qt6-tools-dev qt6-svg-dev
+        sudo apt install qt6-charts-dev qt6-httpserver-dev qt6-websockets-dev npm
         echo "QT_VERSION=$(/usr/bin/dpkg -s qt6-base-dev | /usr/bin/grep 'Version' | /usr/bin/awk '{ split($2, a, "+"); print a[1]; }')" >> "$GITHUB_ENV"
 
     ##################################################################
