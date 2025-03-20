@@ -133,6 +133,8 @@ jobs:
       name: Qt install (macOS ARM)
       run: |
         sudo port install qt6 qt6-qtcharts qt6-qthttpserver qt6-qtwebsockets
+        ls -al /opt/local/lib/cmake
+        echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DQt6Charts_DIR:PATH=/opt/local/lib/cmake/Qt6Charts -DQt6HttpServer_DIR:PATH=/opt/local/lib/cmake/Qt6HttpServer -DQt6WebSockets_DIR:PATH=/opt/local/lib/cmake/Qt6WebSockets" >> "$GITHUB_ENV"
 
     ##################################################################
     # VR: OpenXR, OpenVR, boost
