@@ -133,7 +133,6 @@ jobs:
       name: Qt install (macOS ARM)
       run: |
         sudo port install qt6 qt6-qtcharts qt6-qthttpserver qt6-qtwebsockets
-        cat /proc/cpuinfo
 
     ##################################################################
     # VR: OpenXR, OpenVR, boost
