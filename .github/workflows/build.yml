@@ -96,7 +96,7 @@ jobs:
       run: |
         ompversion=$(ls /usr/local/Cellar/libomp | tr -d '/')
         ln -s /usr/local/Cellar/libomp/$ompversion/include/omp.h /usr/local/include/omp.h
-        echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenMP_CXX_FLAGS=\"-Xpreprocessor -fopenmp -lomp\" -DOpenMP_CXX_INCLUDE_DIR=\"/usr/local/include\" -DOpenMP_libomp_LIBRARY=\"/usr/local/Cellar/libomp/$ompversion/lib/libomp.dylib\"" >> "$GITHUB_ENV"
+        echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenMP_CXX_FLAGS:STRING=\"-Xpreprocessor -fopenmp -lomp\" -DOpenMP_CXX_INCLUDE_DIR:PATH=\"/usr/local/include\" -DOpenMP_libomp_LIBRARY:FILEPATH=\"/usr/local/Cellar/libomp/$ompversion/lib/libomp.dylib\"" >> "$GITHUB_ENV"
 
 #    - if: matrix.os == 'macos-latest'
 #    # export LDFLAGS="-L/opt/homebrew/opt/libomp/lib"
@@ -293,7 +293,7 @@ jobs:
         tar -xzf src-${{ env.VTK_VERSION }}.tar.gz
         mkdir bin-${{ env.VTK_VERSION }}
         cd bin-${{ env.VTK_VERSION }}
-        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.VTK_CMAKE_OPTIONS}} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/vtk-${{ env.VTK_VERSION }} ../VTK-${{ env.VTK_VERSION }}
+        cmake -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} ${{env.VTK_CMAKE_OPTIONS}} -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/vtk-${{ env.VTK_VERSION }} ../VTK-${{ env.VTK_VERSION }}
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ../..
@@ -324,19 +324,19 @@ jobs:
         tar -xzf icdloader-${{ env.OPENCL_VERSION }}.tar.gz
         mkdir bin-headers
         cd bin-headers
-        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }} -DBUILD_TESTING:BOOL=OFF ../OpenCL-Headers-${{ env.OPENCL_VERSION }}
+        cmake -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }} -DBUILD_TESTING:BOOL=OFF ../OpenCL-Headers-${{ env.OPENCL_VERSION }}
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ..
         mkdir bin-clhpp
         cd bin-clhpp
-        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }} -DOpenCLHeaders_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeaders -DBUILD_DOCS:BOOL=OFF -DBUILD_EXAMPLES:BOOL=OFF -DBUILD_TESTING:BOOL=OFF ../OpenCL-CLHPP-${{ env.OPENCL_VERSION }}
+        cmake -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }} -DOpenCLHeaders_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeaders -DBUILD_DOCS:BOOL=OFF -DBUILD_EXAMPLES:BOOL=OFF -DBUILD_TESTING:BOOL=OFF ../OpenCL-CLHPP-${{ env.OPENCL_VERSION }}
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ..
         mkdir bin-icdloader
         cd bin-icdloader
-        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }} -DOpenCLHeaders_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeaders -DENABLE_OPENCL_LAYERINFO:BOOL=OFF -DOPENCL_ICD_LOADER_BUILD_SHARED_LIBS:BOOL=ON -DBUILD_TESTING:BOOL=OFF ../OpenCL-ICD-Loader-${{ env.OPENCL_VERSION }}
+        cmake -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }} -DOpenCLHeaders_DIR:PATH=${{github.workspace}}/opencl-${{ env.OPENCL_VERSION }}/share/cmake/OpenCLHeaders -DENABLE_OPENCL_LAYERINFO:BOOL=OFF -DOPENCL_ICD_LOADER_BUILD_SHARED_LIBS:BOOL=ON -DBUILD_TESTING:BOOL=OFF ../OpenCL-ICD-Loader-${{ env.OPENCL_VERSION }}
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ../..
@@ -378,7 +378,7 @@ jobs:
         mv ITK-${{ env.ITK_VERSION }} itk-src-${{ env.ITK_VERSION }}
         mkdir -p itk-bin-${{ env.ITK_VERSION }}
         cd itk-bin-${{ env.ITK_VERSION }}
-        cmake -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-${{ env.VTK_VERSION }}/lib/cmake/vtk-${{ env.VTK_SHORTVER }} -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/itk-${{ env.ITK_VERSION }} ../itk-src-${{ env.ITK_VERSION }}
+        cmake -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} ${{env.ITK_CMAKE_OPTIONS}} -DVTK_DIR:PATH=${{github.workspace}}/vtk-${{ env.VTK_VERSION }}/lib/cmake/vtk-${{ env.VTK_SHORTVER }} -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/itk-${{ env.ITK_VERSION }} ../itk-src-${{ env.ITK_VERSION }}
         cmake --build   . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
         cd ..
@@ -435,7 +435,7 @@ jobs:
         curl -L https://github.com/madler/zlib/releases/download/v${{env.HDF5_ZLIB_VERSION}}/zlib-${{env.HDF5_ZLIB_VERSION}}.tar.gz --output zlib-${{env.HDF5_ZLIB_VERSION}}.tar.gz
         mkdir bin
         cd bin
-        cmake -C ../hdf5-hdf5_${{env.HDF5_VERSION}}/config/cmake/cacheinit.cmake --log-level=VERBOSE -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ -DBUILD_SHARED_LIBS:BOOL=OFF -DHDF5_BUILD_TOOLS:BOOL=OFF -DHDF5_BUILD_UTILS:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DHDF5_BUILD_EXAMPLES:BOOL=OFF -DHDF5_BUILD_JAVA:BOOL=OFF -DHDF5_BUILD_FORTRAN:BOOL=OFF -DHDF5_BUILD_CPP_LIB:BOOL=OFF -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON -DZLIB_TGZ_NAME:STRING=zlib-${{env.HDF5_ZLIB_VERSION}}.tar.gz -DZLIB_USE_LOCALCONTENT:BOOL=ON -DZLIB_USE_EXTERNAL:BOOL=ON -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=OFF -DHDF5_PACKAGE_EXTLIBS:BOOL=ON -DTGZPATH:PATH=${{github.workspace}}/hdf5 -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/hdf5-${{env.HDF5_VERSION}} ../hdf5-hdf5_${{env.HDF5_VERSION}}
+        cmake -C ../hdf5-hdf5_${{env.HDF5_VERSION}}/config/cmake/cacheinit.cmake --log-level=VERBOSE -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} -DHDF5_ALLOW_EXTERNAL_SUPPORT:STRING=TGZ -DBUILD_SHARED_LIBS:BOOL=OFF -DHDF5_BUILD_TOOLS:BOOL=OFF -DHDF5_BUILD_UTILS:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DHDF5_BUILD_EXAMPLES:BOOL=OFF -DHDF5_BUILD_JAVA:BOOL=OFF -DHDF5_BUILD_FORTRAN:BOOL=OFF -DHDF5_BUILD_CPP_LIB:BOOL=OFF -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON -DZLIB_TGZ_NAME:STRING=zlib-${{env.HDF5_ZLIB_VERSION}}.tar.gz -DZLIB_USE_LOCALCONTENT:BOOL=ON -DZLIB_USE_EXTERNAL:BOOL=ON -DHDF5_ENABLE_SZIP_SUPPORT:BOOL=OFF -DHDF5_PACKAGE_EXTLIBS:BOOL=ON -DTGZPATH:PATH=${{github.workspace}}/hdf5 -DCMAKE_INSTALL_PREFIX:PATH=${{github.workspace}}/hdf5-${{env.HDF5_VERSION}} ../hdf5-hdf5_${{env.HDF5_VERSION}}
         cmake --build . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}}
 
@@ -459,7 +459,7 @@ jobs:
       run: |
         mkdir bin
         cd bin
-        cmake -B . -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR=${{env.ITK_DIR}} -DEIGEN3_INCLUDE_DIR=${{github.workspace}}/eigen-${{env.EIGEN_SHORTREF}} -DHDF5_DIR:PATH=${{github.workspace}}/hdf5-${{env.HDF5_VERSION}}/cmake ..
+        cmake -B . -DCMAKE_BUILD_TYPE:STRING=${{env.BUILD_TYPE}} ${{env.OPENIA_CMAKE_OPTIONS}} -DITK_DIR:PATH=${{env.ITK_DIR}} -DEIGEN3_INCLUDE_DIR:PATH=${{github.workspace}}/eigen-${{env.EIGEN_SHORTREF}} -DHDF5_DIR:PATH=${{github.workspace}}/hdf5-${{env.HDF5_VERSION}}/cmake ..
         cmake --build . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}} --prefix ${{github.workspace}}/install
 
