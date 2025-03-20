@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 #pragma once
 
-#ifndef __arm__
+#if (not defined(__arm__) && not defined(__aarch64__))
 #ifdef _WIN32
 #include <intrin.h>
 using uint32_t = unsigned __int32;
@@ -15,11 +15,8 @@ using uint32_t = unsigned __int32;
 //! Retrieves and holds information on the CPU the program runs on.
 class iACPUID
 {
-#ifndef __arm__
+#if (not defined(__arm__) && not defined(__aarch64__))
 	uint32_t regs[4];
-#endif
-public:
-#ifndef __arm__
 	explicit iACPUID(unsigned i)
 	{
 #ifdef _WIN32
@@ -40,9 +37,11 @@ public:
 
 #endif
 
+public:
+
 	static QString cpuVendor()
 	{
-#ifdef __arm__
+#if (defined(__arm__) || defined(__aarch64__))
 			return "ARM";
 #else
 			QString vendor;
@@ -56,7 +55,7 @@ public:
 
 	static QString cpuBrand()
 	{
-#ifdef __arm__
+#if (defined(__arm__) || defined(__aarch64__))
 		return "Unknown";
 #else
 		iACPUID cpuID(0x80000000);
