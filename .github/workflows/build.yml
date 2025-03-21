@@ -132,15 +132,11 @@ jobs:
       name: Qt install (macOS ARM)
       run: |
         sudo port install qt6 qt6-qtcharts qt6-qthttpserver qt6-qtwebsockets
-        ls -al /opt/local/lib/cmake
-        echo "port contents qt6-qtcharts:"
-        port contents qt6-qtcharts
-        echo "port contents qt6-qthttpserver:"
-        qt6-qthttpserver
-        echo "port contents qt6-qtwebsockets:"
-        qt6-qtwebsockets
-        echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DModule_AdaptiveThreshold:BOOL=OFF  -DModule_Remote:BOOL=OFF" >> "$GITHUB_ENV"
-        # -DQt6Charts_DIR:PATH= -DQt6HttpServer_DIR:PATH=/opt/local/lib/cmake/Qt6HttpServer -DQt6WebSockets_DIR:PATH=/opt/local/lib/cmake/Qt6WebSockets
+        #port contents qt6-qtcharts
+        #port contents qt6-qthttpserver
+        #port contents qt6-qtwebsockets
+        echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DQt6Charts_DIR:PATH=/opt/local/libexec/qt6/lib/cmake/Qt6Charts -DQt6HttpServer_DIR:PATH=/opt/local/libexec/qt6/lib/cmake/Qt6HttpServer -DQt6WebSockets_DIR:PATH=/opt/local/libexec/qt6/lib/cmake/Qt6WebSockets" >> "$GITHUB_ENV"
+        #echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DModule_AdaptiveThreshold:BOOL=OFF -DModule_Remote:BOOL=OFF" >> "$GITHUB_ENV"
 
     ##################################################################
     # VR: OpenXR, OpenVR, boost
