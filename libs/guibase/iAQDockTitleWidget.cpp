@@ -91,7 +91,11 @@ iAQDockTitleWidget::iAQDockTitleWidget(QDockWidget* parent, QString infoLink) : 
 	layout()->addWidget(floatButton);
 	layout()->addWidget(infoButton);
 	layout()->addItem(new QSpacerItem(0, 0, QSizePolicy::Fixed, QSizePolicy::Expanding));
-	layout()->addWidget(new iAVerticalLabel(parent->windowTitle()));
+	auto titleLabel = new iAVerticalLabel(parent->windowTitle());
+	layout()->addWidget(titleLabel);
+	connect(parent, &QWidget::windowTitleChanged, this, [titleLabel](QString const& title) {
+		titleLabel->setText(title);
+	});
 }
 
 QSize iAQDockTitleWidget::sizeHint() const

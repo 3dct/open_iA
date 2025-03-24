@@ -276,8 +276,8 @@ private:
 
 	bool m_isSmthMaximized;       //!< whether a single dock widget is currently maximized
 	bool m_isUntitled;            //!< whether current content is saved as a file already
-	bool m_isSliceProfileEnabled; //!< whether slice profile, shown in slices, is enabled
-	bool m_profileHandlesEnabled; //!< whether profile handles (profile points) in renderer/slicer are enabled
+	bool m_isSliceProfileEnabled; //!< whether line profile, shown in slices, is enabled
+	bool m_profileHandlesEnabled; //!< whether handles for line profile points in renderer/slicer are enabled
 	bool m_isMagicLensEnabled;    //!< whether magic lens in slicers is enabled
 
 	iARendererImpl * m_renderer;       //!< access and decoration of 3D renderers

@@ -70,6 +70,7 @@ namespace
 	constexpr const char HistogramLogarithmicYAxis[] = "Histogram Logarithmic y axis";
 
 	const QString Histogram = "Histogram";
+	const QString Profile = "Line Profile";
 	const QString ImageStatistics = "ImageStatistics";
 	const QString ImageRange = "ImageRange";
 	const QString HistogramSeparator = "|";
@@ -288,14 +289,14 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			showInSlicers(checked);
 			child->updateSlicers();
 		});
-	m_histogramAction = addViewAction("Histogram", "histogram-tf", renderFlagSet(RenderHistogramFlag));
+	m_histogramAction = addViewAction(Histogram, "histogram-tf", renderFlagSet(RenderHistogramFlag));
 	connect(m_histogramAction, &QAction::triggered, this, [this](bool checked)
 		{
 			setRenderFlag(RenderHistogramFlag, checked);
 			m_dwHistogram->setVisible(checked);
 		});
-	auto sliceProfileAction = addViewAction("Slice Profile", "profile", renderFlagSet(RenderProfileFlag));
-	connect(sliceProfileAction, &QAction::triggered, this, [this](bool checked)
+	auto lineProfileAction = addViewAction(Profile, "profile", renderFlagSet(RenderProfileFlag));
+	connect(lineProfileAction, &QAction::triggered, this, [this](bool checked)
 		{
 			setRenderFlag(RenderProfileFlag, checked);
 			if (checked)
@@ -304,9 +305,7 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			}
 			m_dwProfile->setVisible(checked);
 		});
-	// histogram
-	QString histoName = "Histogram " + m_dataSet->name();
-	m_histogram = new iAChartWithFunctionsWidget(child, histoName, "Frequency");
+	m_histogram = new iAChartWithFunctionsWidget(child, QString("Greyvalue %1").arg(m_dataSet->name()), "Frequency");
 	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
 	int numCmp = img->GetNumberOfScalarComponents();
 	for (int c = 0; c < numCmp; ++c)
@@ -316,11 +315,8 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	}
 	m_histogram->setTransferFunction(m_transfer.get());
 	m_histogram->update();
-	// TODO NEWIO:
-	//     - better unique widget name!
-	//     - option to put combined histograms of multiple datasets into one view
-	static int histoNum = -1;
-	m_dwHistogram = std::make_shared<iADockWidgetWrapper>(m_histogram, histoName, QString("Histogram%1").arg(++histoNum), "https://github.com/3dct/open_iA/wiki/Histogram");
+	m_dwHistogram = std::make_shared<iADockWidgetWrapper>(m_histogram, QString("%1 %2").arg(Histogram).arg(m_dataSet->name()),
+		QString("Histogram%1").arg(dataSetIdx), "https://github.com/3dct/open_iA/wiki/Histogram");
 	connect(m_dwHistogram.get(), &QDockWidget::visibilityChanged, this, [this](bool visible)
 	{
 		QSignalBlocker sb(m_histogramAction);
@@ -366,8 +362,9 @@ void iAVolumeViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 	bool visibleProfile = renderFlagSet(RenderProfileFlag);
 	m_profileProbe = std::make_shared<iAProfileProbe>(img);
 	setupProfilePoints(child);
-	m_profileChart = new iAChartWidget(nullptr, "Greyvalue", "Distance");
-	m_dwProfile = std::make_shared<iADockWidgetWrapper>(m_profileChart, "Profile Plot", "Profile", "https://github.com/3dct/open_iA/wiki/Profile-Plot");
+	m_profileChart = new iAChartWidget(nullptr, QString("Distance %1").arg(m_dataSet->name()), "Greyvalue");
+	m_dwProfile = std::make_shared<iADockWidgetWrapper>(m_profileChart, QString("%1 %2").arg(Profile).arg(m_dataSet->name()),
+		QString("Profile%1").arg(dataSetIdx), "https://github.com/3dct/open_iA/wiki/Profile-Plot");
 	child->splitDockWidget(child->renderDockWidget(), m_dwProfile.get(), Qt::Vertical);
 	if (visibleProfile)
 	{
@@ -421,9 +418,12 @@ QString iAVolumeViewer::information() const
 void iAVolumeViewer::applyAttributes(QVariantMap const& values)
 {
 	Q_UNUSED(values);
-	auto title = "Histogram " + m_dataSet->name();
-	m_histogram->setXCaption(title);
-	m_dwHistogram->setWindowTitle(title);
+	auto histoTitle = Histogram + " " + m_dataSet->name();
+	m_histogram->setXCaption(histoTitle);
+	m_dwHistogram->setWindowTitle(histoTitle);
+	auto profileTitle = Profile + " " + m_dataSet->name();
+	m_profileChart->setXCaption(profileTitle);
+	m_dwProfile->setWindowTitle(profileTitle);
 
 	auto img = dynamic_cast<iAImageData const*>(m_dataSet)->vtkImage();
 	size_t newBinCount = iAHistogramData::finalNumBin(img, values[HistogramBins].toUInt());
