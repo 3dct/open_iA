@@ -40,17 +40,14 @@ enum PathID
 	P_SCAN_LINE
 };
 
-const QStringList pathNames = QStringList()\
-<< "Hilbert"\
-<< "Scan Line";
+const QStringList pathNames = QStringList() << "Hilbert" << "Scan Line";
 
 typedef QMap<QString, PathID> MapPathNames2PathID;
 static MapPathNames2PathID fill_PathNameToId()
 {
 	MapPathNames2PathID m;
-	m[pathNames.at(1)] = P_HILBERT;
-	m[pathNames.at(0)] = P_SCAN_LINE;
-
+	m[pathNames.at(0)] = P_HILBERT;
+	m[pathNames.at(1)] = P_SCAN_LINE;
 	return m;
 }
 const MapPathNames2PathID PathNameToId = fill_PathNameToId();
