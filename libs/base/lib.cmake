@@ -4,6 +4,7 @@ target_link_libraries(${libname} PUBLIC
 	# ToDo: Get rid of GUI stuff here, move down to core/...
 	Qt6::Gui
 	# ::Widgets # seems to be pulled in by vtk's GUISupportQt automatically
+	OpenMP::OpenMP_CXX  # enable OpenMP for all depending libraries
 )
 if (CUDAToolkit_FOUND)
 	target_link_libraries(${libname} PRIVATE CUDA::cudart)

@@ -545,11 +545,12 @@ if (openiA_CUDA_ENABLED)
 	endif()
 endif()
 
-# OpenMP
-include(${CMAKE_ROOT}/Modules/FindOpenMP.cmake)
-# Above imports the target 'OpenMP::OpenMP_CXX'; only for CMake >= 3.9,
-# but project-wide we require a higher version already anyway!
-
+# OpenMP:
+find_package(OpenMP REQUIRED)
+if (OpenMP_CXX_FOUND)
+	set(BUILD_INFO "${BUILD_INFO}    \"OpenMP	${OpenMP_CXX_VERSION}\\n\"\n")
+	message(STATUS "OpenMP: ${OpenMP_CXX_VERSION}")
+endif()
 
 #-------------------------
 # Compiler Flags
@@ -640,11 +641,10 @@ else()
 endif()
 
 if (CMAKE_COMPILER_IS_GNUCXX OR "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
-	add_compile_options(-pipe -fpermissive -fopenmp)
+	add_compile_options(-pipe -fpermissive)
 	if (CMAKE_SYSTEM_PROCESSOR MATCHES "(x86)|(X86)|(amd64)|(AMD64)")
 		add_compile_options(-march=core2 -msse4.2)
 	endif()
-	add_link_options(-fopenmp)
 
 	if (NOT "${openiA_AVX_SUPPORT}" STREQUAL "${openiA_AVX_SUPPORT_DISABLED}")
 		string(TOLOWER "${openiA_AVX_SUPPORT}" openiA_AVX_SUPPORT_LOWER)
