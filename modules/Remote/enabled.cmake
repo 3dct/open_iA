@@ -45,7 +45,7 @@ if (Qt6HttpServer_FOUND)
 		message(WARNING "NPM not found; required for building client part of ${MODULE_NAME} module! Please install node.js and the npm binary and/or add it to the path")
 	endif()
 else()
-	message(WARNING "Qt Http Server library not available! To install, start Qt Maintenance tool, select 'Add or remove components', and under 'Additional Libraries', select the 'Qt HTTP Server (TP)' option!")
+	message(WARNING "Qt Http Server library not available! To install, start Qt Maintenance tool, select 'Add or remove components', and under 'Additional Libraries', select the 'Qt HTTP Server' option!")
 endif()
 
 if ("${WebServerConfigured}" STREQUAL "OFF")
