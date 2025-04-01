@@ -24,9 +24,11 @@ A tool for the visual analysis and processing of volumetric datasets, with a foc
 
 ## How to Cite
 
-If you use open\_iA for your research, please cite our journal article: [![status](http://joss.theoj.org/papers/efb86983da60c89c5e7ef74479be45c6/status.svg)](http://joss.theoj.org/papers/efb86983da60c89c5e7ef74479be45c6)
+- If you use open\_iA in your research, please cite our journal article:
 
-- Bibtex:
+  [![status](http://joss.theoj.org/papers/efb86983da60c89c5e7ef74479be45c6/status.svg)](http://joss.theoj.org/papers/efb86983da60c89c5e7ef74479be45c6)
+
+    - Bibtex:
   ```
   @Article{Froehler:2019:JOSS,
     title   = {{open\_iA}: A tool for processing and visual analysis
@@ -42,9 +44,12 @@ If you use open\_iA for your research, please cite our journal article: [![statu
   }
   ```
 
-- B. Fröhler, J. Weissenböck, M. Schiwarth, J. Kastner, C. Heinzl, open\_iA: A tool for processing and visual analysis of industrial computed tomography datasets, Journal of Open Source Software, 4 (35), 1185, 2019, doi: [10.21105/joss.01185](https://doi.org/10.21105/joss.01185).
+    - B. Fröhler, J. Weissenböck, M. Schiwarth, J. Kastner, C. Heinzl, open\_iA: A tool for processing and visual analysis of industrial computed tomography datasets, Journal of Open Source Software, 4 (35), 1185, 2019, doi: [10.21105/joss.01185](https://doi.org/10.21105/joss.01185).
 
-If you want to refer to the software directly, you can use the zenodo DOI; use [doi: 10.5281/zenodo.2591998](https://doi.org/10.5281/zenodo.2591998), which always refers to the latest release on github. You can also cite a specific release by picking the respective DOI from the list visible after following [that same link](https://doi.org/10.5281/zenodo.2591998)).
+    - If you want to refer to the software directly, you can use the zenodo DOI; use [doi: 10.5281/zenodo.2591998](https://doi.org/10.5281/zenodo.2591998), which always refers to the latest release on github. You can also cite a specific release by picking the respective DOI from the list visible after following [that same link](https://doi.org/10.5281/zenodo.2591998)).
+
+
+- If you use a specific tool included in open_iA, we would appreciate if you cite the according paper, as mentioned [in the Tools section of our wiki](https://github.com/3dct/open_iA/wiki/Tools).
 
 
 ## Contributors
