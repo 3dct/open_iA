@@ -40,6 +40,7 @@ add_executable(FunctionalBoxplotTest iAFunctionalBoxplotTest.cpp)
 target_include_directories(FunctionalBoxplotTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_SOURCE_DIR}/../Toolkit/FunctionalBoxplot)
 target_compile_definitions(FunctionalBoxplotTest PRIVATE IABASE_STATIC_DEFINE)
 add_test(NAME FunctionalBoxplotTest COMMAND FunctionalBoxplotTest)
+target_link_libraries(FunctionalBoxplotTest PRIVATE OpenMP::OpenMP_CXX)
 
 # MSVC
 if (openiA_USE_IDE_FOLDERS)
