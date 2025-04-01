@@ -1,125 +1,13 @@
 <!DOCTYPE html>
 <html lang="en-us">
-  <head>
-    <meta charset="UTF-8">
-    <title>open_iA by 3dct</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
-    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
-  </head>
-  <body>
-    <section class="page-header">
-      <h1 class="project-name">open_iA</h1>
-      <h2 class="project-tagline">A tool for the visual analysis and processing of volumetric datasets, with a focus on industrial computed tomography.</h2>
-    </section>
-
-    <section class="main-content">
-      <h3>Latest Stable Release: 2024.9</h3>
-      <div>
-        <div class="highlights"><strong>Highlights:</strong>
-          <ul>
-            <li>General:</li>
-              <ul>
-                <li>Info buttons for each view, leading to the documentation for this view</li>
-                <li>Raw file preview</li>
-                  <ul>
-                    <li>Asynchronous slice loading when parameters match the file size</li>
-                    <li>Including histogram, adjustable transfer function and slice number selection</li>
-                  </ul>
-                <li>Cut/Clip polygon mesh datasets by slicing planes</li>
-                <li>List of open windows</li>
-                <li>Volume renderer: add blend mode setting</li>
-                <li>Adjust transfer function ranges to data range if necessary</li>
-                <li>histograms: add upper bound for number of bins from number of voxels</li>
-                <li>Clear stale data from project file on saving</li>
-                <li>Improved integration testing - added various test projects for specific tools</li>
-                <li>Several minor and major fixes and improved error checking, e.g. avoid crash on closing data window/application when dataset is still loading</li>
-              </ul>
-            <li>Free slice plane:</li>
-              <ul>
-                <li>Optional synchronization to axis-aligned slicers</li>
-                <li>Resetting plane (+ doing that when dataset bounds change)</li>
-                <li>Optionally cut/clip 3D renderings of any loaded dataset by plane</li>
-                <li>Fix current slice plane position storage in project file</li>
-              </ul>
-            <li>Command line runner:</li>
-              <ul>
-                <li>Change to command word syntax instead of shorthand</li>
-                <li>Options for providing parameters to input/output fileformat</li>
-              </ul>
-            <li>FeatureScout:</li>
-              <ul>
-                <li>MObjects:</li>
-                  <ul>
-                    <li>Fix 3D rendering</li>
-                    <li>Fix transfer function display/editing</li>
-                    <li>Fix .stl export</li>
-                    <li>Computation now in background, allow aborting computation</li>
-                    <li>Store MObject state</li>
-                  </ul>
-                <li>Changeable parallel coordinate plot default settings</li>
-                <li>Option for storing only object IDs when exporting classes</li>
-                <li>Only store object IDs for classes in project files (smaller project files)</li>
-                <li>Fix .csv file loading with AutoID enabled</li>
-                <li>Fix potential crashes</li>
-                <li>Fix: multi-class rendering was modifying current class</li>
-              </ul>
-            <li>Labelling:</li>
-              <ul>
-                <li>Store to and load from project file</li>
-                <li>Several smaller fixes</li>
-              </ul>
-            <li>Double/Triple Histogram TF: Fix crash on start</li>
-            <li>Remote connections:</li>
-              <ul>
-                <li>Show listening port in respective client lists</li>
-                <li>Unity connection: Correct VR camera visualization</li>
-                <li>Configurable ports; automatic choice of next port if default port not available</li>
-              </ul>
-          </ul>
-        </div>
-        <div>The Windows binary release below excludes ASTRA reconstruction built on top of CUDA; if you need to use this module, you can still use <a href="https://github.com/3dct/open_iA/releases/download/2023.04/open_iA-2023.04-with-ASTRA.zip">the pre-built version 2023.04</a>.
-        <div>
-          <div class="line-heading">Windows</div>
-          <a href="https://github.com/3dct/open_iA/releases/download/2024.9/open_iA-2024.9.zip" class="btn">open_iA-2024.9.zip (65.7MB)</a>
-        </div><details class="checkSumLine">
-          <summary>Checksum (SHA512)</summary>
-          <ul id="checkSumContainer">
-              <li>open_iA-2024.9.zip:
-<pre>6df48ee0e8d545e24b44cda5eaec19e117dd107280aed2fb876e70d0183bf21fdce0d30a5c4071dc69ae2c6626fa74a9cb5ec2d50f2ba5f9e736ead0aaf52005</pre></li>
-          </ul>
-        </details><div>
-          <div class="line-heading">Linux</div>
-          <a href="https://github.com/3dct/open_iA/wiki/Flatpak" class="btn">Flatpak</a>
-        </div><div>
-          <div class="line-heading">Source Code</div>
-          <a href="https://github.com/3dct/open_iA/archive/refs/tags/2024.9.zip" class="btn">Source (.zip)</a>
-          <a href="https://github.com/3dct/open_iA/archive/refs/tags/2024.9.tar.gz" class="btn">Source (.tar.gz)</a>
-          <a href="https://api.3dct.at/latest/index.html" class="btn">API documentation</a>
-        </div>
-      </div>
-      <h3>More information</h3>
-      <div>
-        <div class="line-heading">Documentation</div>
-        <a href="https://github.com/3dct/open_ia/wiki" class="btn">Wiki</a>
-        <a href="https://github.com/3dct/open_iA/wiki/User-Guide" class="btn">User Guide</a>
-        <a href="https://youtube.com/@open_iA" class="btn">Demo Videos</a>
-      </div></div>
-        <div class="line-heading">Other</div>
-        <a href="https://github.com/3dct/open_iA" class="btn">View on GitHub</a>
-        <a href="https://github.com/3dct/open_iA/releases/download/2020.09/open_iA-TestDatasets-2020.09.zip" class="btn">Test Datasets</a>
-        <a href="https://github.com/3dct/open_iA/issues" class="btn">Bug Tracker</a>
-      <div>
-      <div class="line-heading">Contact:</div>
-        <a href="mailto:bernhard.froehler@fh-wels.at">Bernhard Fröhler @ FH Wels</a> /
-        <a href="mailto:Christoph.Heinzl@uni-passau.de">Christoph Heinzl @ Uni Passau</a>
-      </div>
-      <footer class="site-footer">
-        <span class="site-footer-owner">open_iA is maintained by <a href="https://github.com/3dct">CTVis group (3dct)</a>, part of the <a href="https://forschung.fh-ooe.at/en/about-research/researchgroups/computed-tomography/">Research Group Computed Tomography</a> at the <a href="https://www.fh-ooe.at/en/">University of Applied Sciences Upper Austria, Wels Campus</a>.</span>
-        <span class="site-footer-credits">This page is using a modified version of the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
-      </footer>
-    </section>
-  </script>
-  </body>
+	<head>
+		<meta charset="UTF-8">
+		<title>open_iA</title>
+		<meta http-equiv="refresh" content="0; https://github.com/3dct/open_iA/wiki">
+		<link rel="canonical" href="https://github.com/3dct/open_iA/wiki">
+	</head>
+	<body>
+		<h1>open_iA</h1>
+		<p>You should be redirected automatically; if not, please <a href="https://github.com/3dct/open_iA/wiki">click here to go to the open_iA documentation</a>.</p>
+	</body>
 </html>
