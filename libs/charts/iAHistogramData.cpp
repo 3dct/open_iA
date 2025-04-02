@@ -196,6 +196,8 @@ double iAHistogramData::histoRange(double const range[2], size_t numBins, iAValu
 	return histRange;
 }
 
+/*
+#if HISTO_MODE == MODE_OWN
 template <typename T>
 void computeHistogram(std::shared_ptr<iAHistogramData> histData, vtkImageData* img, iAImageStatistics* imgStatistics, int component)
 {
@@ -253,6 +255,8 @@ void computeHistogram(std::shared_ptr<iAHistogramData> histData, vtkImageData* i
 		*imgStatistics = iAImageStatistics{ imgRng[0], imgRng[1], mean, stddev};
 	}
 }
+#endif
+*/
 
 std::shared_ptr<iAHistogramData> iAHistogramData::create(QString const& name,
 	vtkImageData* img, size_t desiredNumBin, iAImageStatistics* imgStatistics, int component)
