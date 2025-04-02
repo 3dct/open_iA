@@ -45,6 +45,33 @@
 		</screenshot>
 	</screenshots>
 	<releases>
+		<release version="2025.4" date="2025-04-09">
+			<description>
+			Many fixes and improvements:
+				- Faster histogram computation
+				- Annotations:
+					- Also shown in VR with new VRAnnotations module
+					- Automatic positioning of new annotations in renderer/slicer
+				- Surface/Mesh filters:
+					- Fix crash on flying edge surface extraction
+					- Split up combined surface extraction + simplification into separate filters
+					- add triangles/normal computation filters
+				- Slicer:
+					- Optional lines indicating other slicer positions
+					- Alternate color scheme for slicer/axis colors
+					- Fix crash of slice export after dataset 0 removal
+					- Option to hide ruler/scalar bar
+					- Compression level option for slice .png export
+					- (Arbitrary ->) Free slice plane: show plane parameters
+				- Proper dependency handling for filter parameters in GUI (parameters currently unavailable because of others are disabled)
+				- Option to hide slicer/renderer title bar
+				- Mesh renderer: Point/wireframe/surface option
+				- ARM compatibility
+				- ... and many more minor improvements and fixes, see https://github.com/3dct/open_iA/compare/2024.9...2025.4
+			open_iA is now also built automatically through github actions (see https://github.com/3dct/open_iA/actions)
+			</description>
+			<url>https://github.com/3dct/open_iA/releases/tag/2025.4</url>
+		</release>
 		<release version="2024.9" date="2024-09-06">
 			<description>
 			Many major and minor improvements:
