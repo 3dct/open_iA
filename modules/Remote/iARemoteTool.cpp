@@ -217,6 +217,9 @@ void iARemoteTool::init()
 		LOG(lvlError, "Invalid port configuration!");
 	}
 	LOG(lvlImportant, QString("You can reach the webserver under http://localhost:%1").arg(finalPort));
+#else
+	LOG(lvlImportant, QString("Webserver not available (not built into open_iA). "
+		"The websocket connection is available via ws://localhost:%1").arg(m_remoteRenderer->m_wsAPI->serverPort()));
 #endif
 
 	connect(annotTool, &iAAnnotationTool::annotationsUpdated, m_remoteRenderer->m_wsAPI.get(), &iAWebsocketAPI::updateCaptionList);
