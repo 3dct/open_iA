@@ -83,7 +83,7 @@ public:
 		m_max(max),
 		m_isLog(isLog)
 	{}
-	//! return a random number between 0 and max-1, uniformly distributed
+	//! return a random number between min and max, uniformly distributed
 	QVariant next() override
 	{
 		double randMin = m_isLog ? std::log(m_min) : m_min;
@@ -102,7 +102,7 @@ private:
 public:
 	iACategoryRandom(QStringList const & options):
 		m_options(options),
-		m_intRandom(0, static_cast<int>(options.size()), false)
+		m_intRandom(0, static_cast<int>(options.size()-1), false)
 	{}
 	QVariant next() override
 	{
