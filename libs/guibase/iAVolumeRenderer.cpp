@@ -210,7 +210,14 @@ void iAVolumeRenderer::applyAttributes(QVariantMap const& values)
 		auto spc = variantToVector<double>(values[Spacing]);
 		if (spc.size() == 3)
 		{
-			m_image->SetSpacing(spc.data());
+			if (spc[0] <= 0 || spc[1] <= 0 || spc[2]<= 0) {
+				LOG(lvlWarn,
+					QString("Given spacing (%1) contains at least one invalid value - all values must be > 0!")
+						.arg(joinNumbersAsString(spc, ",")));
+			} else
+			{
+				m_image->SetSpacing(spc.data());
+			}
 		}
 	}
 }
