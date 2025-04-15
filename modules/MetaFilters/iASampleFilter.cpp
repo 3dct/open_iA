@@ -22,8 +22,11 @@ iASampleFilter::iASampleFilter() :
 	algorithmTypes << atBuiltIn << atExternal;
 	addParameter(spnAlgorithmType, iAValueType::Categorical, algorithmTypes);
 	addParameter(spnFilter, iAValueType::FilterName, "Image Quality");
+	setDependency(spnFilter, spnAlgorithmType + "=" + atBuiltIn);
 	addParameter(spnExecutable, iAValueType::FileNameOpen, "");
+	setDependency(spnExecutable, spnAlgorithmType + "=" + atExternal);
 	addParameter(spnParameterDescriptor, iAValueType::FileNameOpen, "");
+	setDependency(spnParameterDescriptor, spnAlgorithmType + "=" + atExternal);
 	addParameter(spnAdditionalArguments, iAValueType::String, "");
 	QStringList samplingMethods(samplingMethodNames());
 	addParameter(spnSamplingMethod, iAValueType::Categorical, samplingMethods);

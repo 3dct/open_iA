@@ -27,6 +27,7 @@ iAOIFFileIO::iAOIFFileIO() : iAFileIO(iADataSetType::Volume, iADataSetType::None
 	selectOption(whatToLoad, AllChannelsStr);
 	addAttr(m_params[Load], WhatToLoadStr, iAValueType::Categorical, whatToLoad);
 	addAttr(m_params[Load], ChannelNumberStr, iAValueType::Discrete, 0, 0);
+	setDependency(m_params[Load], ChannelNumberStr, WhatToLoadStr + "=" + SingleChannelStr);
 }
 
 std::shared_ptr<iADataSet> iAOIFFileIO::loadData(QString const& fileName, QVariantMap const& paramValues, iAProgress const& progress)

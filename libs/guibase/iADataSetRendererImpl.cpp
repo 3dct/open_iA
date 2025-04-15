@@ -112,6 +112,7 @@ public:
 			addAttr(attr, PointRadius, iAValueType::Continuous, 5, 0.0000001, 100000000);
 			addAttr(attr, PointColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
 			addAttr(attr, PointColor, iAValueType::Color, "#FF0000");
+			setDependency(attr, PointColor, QString("%1=%2").arg(PointColorMode).arg(VaryModeFixed));
 			addAttr(attr, QString(PointPrefix) + iADataSetRenderer::Shading, iAValueType::Boolean, false);
 			addAttr(attr, QString(PointPrefix) + ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
 			addAttr(attr, QString(PointPrefix) + iADataSetRenderer::AmbientLighting, iAValueType::Continuous, 0.2);
@@ -120,6 +121,7 @@ public:
 			addAttr(attr, QString(PointPrefix) + iADataSetRenderer::SpecularPower, iAValueType::Continuous, 10.0);
 			addAttr(attr, LineWidth, iAValueType::Continuous, 1.0, 0.1, 100);
 			addAttr(attr, LineColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
+			setDependency(attr, LineColor, QString("%1=%2").arg(LineColorMode).arg(VaryModeFixed));
 			addAttr(attr, LineColor, iAValueType::Color, "#00FF00");
 			addAttr(attr, QString(LinePrefix) + iADataSetRenderer::Shading, iAValueType::Boolean, false);
 			addAttr(attr, QString(LinePrefix) + ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());

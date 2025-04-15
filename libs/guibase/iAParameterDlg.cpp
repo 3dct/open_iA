@@ -193,6 +193,7 @@ iAParameterDlg::iAParameterDlg(QWidget* parent, QString const& title, iAAttribut
 					comboBox->setCurrentIndex(comboBox->count() - 1);
 				}
 			}
+			connect(comboBox, &QComboBox::currentIndexChanged, this, &iAParameterDlg::updateDependencies);
 			newWidget = comboBox;
 			break;
 		}
@@ -439,7 +440,7 @@ void iAParameterDlg::updatedROI(QVariant value)
 
 void iAParameterDlg::updateDependencies()
 {
-	QMap<QString, bool> optValue;
+	QMap<QString, QString> optValue;
 	// determine values of all boolean parameters:
 	for (int i = 0; i < m_parameters.size(); ++i)
 	{
@@ -447,7 +448,12 @@ void iAParameterDlg::updateDependencies()
 		if (p->valueType() == iAValueType::Boolean)
 		{
 			auto t = qobject_cast<QCheckBox*>(m_widgetList[i]);
-			optValue[p->name()] = t->isChecked();
+			optValue[p->name()] = t->isChecked() ? "yes" : "no";
+		}
+		else if (p->valueType() == iAValueType::Categorical)
+		{
+			auto t = qobject_cast<QComboBox*>(m_widgetList[i]);
+			optValue[p->name()] = t->currentText();
 		}
 	}
 	for (int i = 0; i < m_parameters.size(); ++i)
@@ -463,12 +469,33 @@ void iAParameterDlg::updateDependencies()
 					inverted = true;
 					dep.remove(0, 1);
 				}
+				QString expectedVal;
+				if (dep.contains("=")) {
+					auto parts = dep.split("=");
+					if (parts.size() > 2)
+					{
+						LOG(lvlError,
+							QString("Parameter %1: Expected only 2 parts to dependency specification, got %2")
+								.arg(p->name())
+								.arg(parts.size()));
+					}
+					dep = parts[0];
+					expectedVal = parts[1];
+				}
 				if (!optValue.contains(dep)) {
 					LOG(lvlError, QString("For parameter %1, dependency %2 is not a known parameter here!").arg(p->name()).arg(dep));
 				}
-				auto test = optValue[dep];
-				if (inverted) {
-					test = !test;
+				bool test = false;
+				if (expectedVal.isEmpty())
+				{
+					test = optValue[dep] == "yes";
+					if (inverted) {
+						test = !test;
+					}
+				}
+				else
+				{
+					test = optValue[dep] == expectedVal;
 				}
 				if (!test) {
 					enabled = false;
