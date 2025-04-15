@@ -100,7 +100,7 @@ public:
 			addAttr(attr, FinalColorWindow, iAValueType::Continuous, 1.0);
 #if VTK_VERSION_NUMBER >= VTK_VERSION_CHECK(9, 2, 0)
 			addAttr(attr, GlobalIlluminationReach, iAValueType::Continuous, 0.0, 0.0, 1.0);
-			addAttr(attr, VolumetricScatteringBlending, iAValueType::Continuous, -1.0, 0.0, 2.0);
+			addAttr(attr, VolumetricScatteringBlending, iAValueType::Continuous, -1.0, -1.0, 2.0);
 #endif
 			selfRegister();
 		}
@@ -276,8 +276,8 @@ iAAttributes const& iAVolumeRenderer::attributes() const
 	if (attr.isEmpty())
 	{
 		attr = cloneAttributes(defaultAttributes());
-		// data-specific property:
-		addAttr(attr, Spacing, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}));
+		// data-specific property:                                                           // spacing must be larger than 0:
+		addAttr(attr, Spacing, iAValueType::Vector3, variantVector<double>({1.0, 1.0, 1.0}), std::numeric_limits<double>::epsilon());
 	}
 	return attr;
 }

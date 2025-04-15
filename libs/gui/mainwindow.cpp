@@ -770,7 +770,7 @@ void MainWindow::prefs()
 	setDependency(params, "Log File Name", "Log to file");
 	setDependency(params, "File Log Level", "Log to file");
 	addAttr(params, "Looks", iAValueType::Categorical, looks);
-	addAttr(params, "Font size", iAValueType::Discrete, QString::number(p.FontSize), 4, 120);
+	addAttr(params, "Font size", iAValueType::Discrete, p.FontSize, 2, 120);
 	addAttr(params, "Size limit for automatic 3D rendering (MB)", iAValueType::Discrete, p.LimitForAuto3DRender, 0);
 	const auto AxisColorThemes = QStringList() << "Default (X=red, Y=green, Z=blue)" << "Colorblind safe (Brewer 3-class Dark2)";
 	auto axisColorThemeSel(AxisColorThemes);

@@ -56,10 +56,10 @@ bool iATLGICTLoader::setup(QString const& baseDirectory, QWidget* parent)
 	}
 	QSettings iniLog(logFiles[0].absoluteFilePath(), QSettings::IniFormat);
 	double pixelSize = iniLog.value("Reconstruction/Pixel Size (um)", 1000).toDouble() / 1000;
-	iAAttributes params;
-	addAttr(params, "Spacing X", iAValueType::Continuous, pixelSize);
-	addAttr(params, "Spacing Y", iAValueType::Continuous, pixelSize);
-	addAttr(params, "Spacing Z", iAValueType::Continuous, pixelSize);
+	iAAttributes params;                                             // spacing must be larger than 0:
+	addAttr(params, "Spacing X", iAValueType::Continuous, pixelSize, std::numeric_limits<double>::epsilon());
+	addAttr(params, "Spacing Y", iAValueType::Continuous, pixelSize, std::numeric_limits<double>::epsilon());
+	addAttr(params, "Spacing Z", iAValueType::Continuous, pixelSize, std::numeric_limits<double>::epsilon());
 	addAttr(params, "Origin X", iAValueType::Continuous, 0);
 	addAttr(params, "Origin Y", iAValueType::Continuous, 0);
 	addAttr(params, "Origin Z", iAValueType::Continuous, 0);
