@@ -885,7 +885,7 @@ void iASamplingSettingsDlg::runClicked()
 			}
 		}
 		if ((desc->valueType() == iAValueType::Categorical || desc->valueType() == iAValueType::Boolean) &&
-			desc->defaultValue().toString().size() == 0)
+			desc->defaultValue().toStringList().size() == 0)
 		{
 			msg += QString("Parameter '%1': Currently, no value is selected; you must select at least one value!\n").arg(desc->name());
 		}
