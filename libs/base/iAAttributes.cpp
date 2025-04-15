@@ -164,7 +164,15 @@ void addAttr(iAAttributes& attributes, QString const& name, iAValueType valueTyp
 
 void setDependencies(iAAttributes& attributes, QString const& name, QStringList const & dependencies)
 {
-	attributes[findAttribute(attributes, name)]->setDependencies(dependencies);
+	auto idx = findAttribute(attributes, name);
+	if (idx == -1)
+	{
+		LOG(lvlError, QString("setDependencies: Parameter %1 not found!").arg(name));
+	}
+	else
+	{
+		attributes[idx]->setDependencies(dependencies);
+	}
 }
 
 void setDependency(iAAttributes& attributes, QString const& name, QString const& dependency)
