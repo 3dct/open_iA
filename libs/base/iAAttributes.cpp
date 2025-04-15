@@ -4,6 +4,8 @@
 
 #include "iAValueTypeVectorHelpers.h"
 
+#include <QColor>
+#include <QFileInfo>
 #include <QTextStream>
 
 std::shared_ptr<iAAttributes> createAttributes(QTextStream & in)
@@ -234,4 +236,174 @@ void loadAttributeValues(QDomNamedNodeMap const & xml, iAAttributes & attributes
 		}
 		a->setDefaultValue(v);
 	}
+}
+
+bool checkAttributes(iAAttributes const& attributes, QVariantMap const& values, QStringList* invalidValues)
+{
+	if (invalidValues)
+	{
+		invalidValues->clear();
+	}
+	for (auto param : attributes)
+	{
+		if (!attributeCheck(param, values[param->name()]))
+		{
+			if (invalidValues)
+			{
+				invalidValues->append(param->name());
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+	return invalidValues ? invalidValues->size() > 0 : true;
+}
+
+bool attributeCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const& paramValue)
+{
+	bool ok;
+	switch (param->valueType())
+	{
+	case iAValueType::Discrete:
+	{
+		long long value = paramValue.toLongLong(&ok);
+		if (!ok)
+		{
+			LOG(lvlError, QString("Parameter %1: Expected integer value, %2 given.")
+					.arg(param->name())
+					.arg(paramValue.toString()));
+			return false;
+		}
+		if (value < param->min() || value > param->max())
+		{
+			LOG(lvlError, QString("Parameter %1: Given value %2 outside of valid range [%3..%4].")
+					.arg(param->name())
+					.arg(paramValue.toString())
+					.arg(param->min())
+					.arg(param->max()));
+			return false;
+		}
+		break;
+	}
+	case iAValueType::Continuous:
+	{
+		double value = paramValue.toDouble(&ok);
+		if (!ok)
+		{
+			LOG(lvlError,
+				QString("Parameter %1: Expected double value, %2 given.")
+					.arg(param->name())
+					.arg(paramValue.toString()));
+			return false;
+		}
+		if (value < param->min() || value > param->max())
+		{
+			LOG(lvlError,
+				QString("Parameter %1: Given value %2 outside of valid range [%3..%4].")
+					.arg(param->name())
+					.arg(paramValue.toString())
+					.arg(param->min())
+					.arg(param->max()));
+			return false;
+		}
+		break;
+	}
+	case iAValueType::Categorical:
+	{
+		QStringList values = param->defaultValue().toStringList();
+		bool found = false;
+		for (QString s : values)
+		{
+			if (s.startsWith("!"))
+			{
+				s = s.right(s.length() - 1);
+			}
+			if (s == paramValue)
+			{
+				found = true;
+			}
+		}
+		if (!found)
+		{
+			LOG(lvlError,
+				QString("Parameter %1: Given value '%2' not in the list of valid values (%3).")
+					.arg(param->name())
+					.arg(paramValue.toString())
+					.arg(values.join(",")));
+			return false;
+		}
+		break;
+	}
+	case iAValueType::FileNameOpen:
+	{
+		QFileInfo file(paramValue.toString());
+		if (!file.isFile() || !file.isReadable())
+		{
+			LOG(lvlError,
+				QString("Parameter %1: Given filename '%2' either doesn't reference a file, "
+						   "the file does not exist, or it is not readable!")
+					.arg(param->name())
+					.arg(paramValue.toString()));
+			return false;
+		}
+		break;
+	}
+	case iAValueType::FileNamesOpen:
+	{
+		QStringList files = splitPossiblyQuotedString(paramValue.toString());
+		for (auto fileName : files)
+		{
+			QFileInfo file(fileName);
+			if (!file.isFile() || !file.isReadable())
+			{
+				LOG(lvlError,
+					QString("Parameter %1: Filename '%2' out of the given list '%3' either doesn't reference a file, "
+							"the file does not exist, or it is not readable!")
+						.arg(param->name())
+						.arg(fileName)
+						.arg(paramValue.toString()));
+				return false;
+			}
+		}
+		break;
+	}
+	case iAValueType::Folder:
+	{
+		// TODO: allow to specify whether the folder can be empty or not!
+		QFileInfo file(paramValue.toString());
+		if (!paramValue.toString().isEmpty() && !file.isDir())
+		{
+			LOG(lvlError,
+				QString("Parameter '%1': Given value '%2' doesn't reference a folder!")
+					.arg(param->name())
+					.arg(paramValue.toString()));
+			return false;
+		}
+		break;
+	}
+	case iAValueType::Color:
+	{
+		QColor color(paramValue.toString());
+		if (!color.isValid())
+		{
+			LOG(lvlError,
+				QString("Parameter '%1': '%2' is not a valid color value; "
+						   "please either give a color name (e.g. blue, green, ...) "
+						   "or a hexadecimal RGB specifier, like #RGB, #RRGGBB!")
+					.arg(param->name())
+					.arg(paramValue.toString()));
+			return false;
+		}
+		break;
+	}
+	case iAValueType::Invalid:
+		LOG(lvlError,
+			QString("Parameter '%1': Invalid parameter type (please contact developers!)!").arg(param->name()));
+		return false;
+	default:  // no checks
+		break;
+	}
+	return true;
 }

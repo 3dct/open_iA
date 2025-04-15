@@ -78,3 +78,15 @@ iAbase_API void loadAttributeValues(QDomNamedNodeMap const & xml, iAAttributes &
 iAbase_API void setDependencies(iAAttributes& attributes, QString const& name, QStringList const& dependencies);
 //! set attribute with name to depend on a single other attribute; @see setDependencies for more details
 iAbase_API void setDependency(iAAttributes& attributes, QString const& name, QString const& dependency);
+
+//! Check whether the given parameters values are valid; for example, for numeric
+//! parameters it checks whether they are within the given limits, for categorical
+//! whether the value is one of the given list of possible values etc.
+//! @param attributes a list of attribute specifications
+//! @param values values for the attributes, to be checked whether they are valid
+//! @param invalidValues if given (!= nullptr), after the call it contains a list of the names of all parameters with invalid values
+//! @return true if the given values are valid given the attribute specifications, false otherwise
+iAbase_API bool checkAttributes(iAAttributes const& attributes, QVariantMap const& values, QStringList* invalidValues = nullptr);
+
+//! the default check for a single parameter descriptor & value combination
+iAbase_API bool attributeCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const& paramValue);

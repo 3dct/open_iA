@@ -83,13 +83,14 @@ bool iASampleFilter::checkParameters(QVariantMap const& paramValues)
 {
 	for (auto const & param : parameters())
 	{
+		// skip parameter check of filter if algorithm type is external; and of executable and parameter descriptor if type is builtin
 		if ( (param->name() == spnFilter && paramValues[spnAlgorithmType].toString() == atExternal) ||
 			((param->name() == spnExecutable || param->name() == spnParameterDescriptor) &&
 				paramValues[spnAlgorithmType].toString() == atBuiltIn) )
 		{
 			continue;
 		}
-		if (!defaultParameterCheck(param, paramValues[param->name()]))
+		if (!attributeCheck(param, paramValues[param->name()]))
 		{
 			return false;
 		}

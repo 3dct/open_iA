@@ -81,15 +81,13 @@ public:
 	virtual void adaptParametersToInput(QVariantMap& parameters, std::map<size_t, std::shared_ptr<iADataSet>> const & dataSets);
 	//! Check whether the filter can be run with the given parameters. If
 	//! you need to perform special checks on your parameters, override this
-	//! method. The standard implementation here just checks parameters with
-	//! Discrete and Continuous value type for minimum and maximum values.
+	//! method. The standard implementation here uses the free checkParameters
+	//! method for the checks.
 	//! @param parameters the generic list of parameters that the filter will
 	//!     be called with
 	//! @return true if the given parameters are acceptable for the filter, false
 	//!     otherwise
 	virtual bool checkParameters(QVariantMap const & parameters);
-	//! the default check for a single parameter descriptor & value combination
-	bool defaultParameterCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const& paramValue);
 	//! Clears the list of input images to this filter.
 	//! Call this in case you are re-using a filter already called before,
 	//! and you want to call it with new input images

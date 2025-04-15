@@ -498,7 +498,7 @@ void iAParameterDlg::sourceChildClosed()
 QVariantMap iAParameterDlg::parameterValues() const
 {
 	QVariantMap result;
-	QStringList msgs;
+	QStringList invalidInput;
 	for (int i = 0; i < m_parameters.size(); ++i)
 	{
 		auto p = m_parameters[i];
@@ -519,7 +519,7 @@ QVariantMap iAParameterDlg::parameterValues() const
 			double value = t->text().toDouble(&ok);
 			if (!ok)
 			{
-				msgs << p->name();
+				invalidInput << p->name();
 			}
 			result.insert(p->name(), value);
 			/* // use double spin box?
@@ -593,7 +593,7 @@ QVariantMap iAParameterDlg::parameterValues() const
 			result.insert(p->name(), t->value(&ok));
 			if (!ok)
 			{
-				msgs << p->name();
+				invalidInput << p->name();
 			}
 			break;
 		}
@@ -605,9 +605,12 @@ QVariantMap iAParameterDlg::parameterValues() const
 		}
 		}
 	}
-	if (!msgs.isEmpty())
+	QStringList invalidValues;
+	checkAttributes(m_parameters, result, &invalidValues);
+	invalidInput.append(invalidValues);
+	if (!invalidInput.isEmpty())
 	{
-		QString msg = QString("Invalid values: %1. Please enter valid values!").arg(msgs.join(", "));
+		QString msg = QString("Invalid values: %1. Please enter valid values!").arg(invalidInput.join(", "));
 		LOG(lvlWarn, msg);
 	}
 	return result;
