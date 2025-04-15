@@ -39,7 +39,7 @@ bool setFromVectorVariant(U& dest, QVariant const& src)
 }
 
 template <typename T>
-QVector<T> variantToVector(QVariant const& src)
+QVector<T> variantToVector(QVariant const& src, bool* ok = nullptr)
 {
 	auto values = src.toString().split(Separator);
 	if (values.size() == 1)  // fallback to try " " as separator (used in older versions)
@@ -49,10 +49,14 @@ QVector<T> variantToVector(QVariant const& src)
 	QVector<T> result(values.size());
 	for (int i = 0; i < values.size(); ++i)
 	{
-		bool ok;
-		result[i] = iAConverter<T>::toT(values[i], &ok);
-		if (!ok)
+		bool localOk;
+		result[i] = iAConverter<T>::toT(values[i], &localOk);
+		if (!localOk)
 		{
+			if (ok)
+			{
+				*ok = localOk;
+			}
 			LOG(lvlDebug, QString("variantToVector: Could not convert element %1 (%2); full variant: %3").arg(i).arg(values[i]).arg(src.toString()));
 		}
 	}

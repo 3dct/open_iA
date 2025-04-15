@@ -261,6 +261,41 @@ bool checkAttributes(iAAttributes const& attributes, QVariantMap const& values, 
 	return invalidValues ? invalidValues->size() > 0 : true;
 }
 
+namespace
+{
+	template<typename T, int Size> bool checkVecType(iAAttributeDescriptor const& param, QVariant const& value)
+	{
+		bool ok;
+		auto valVec = variantToVector<T>(value, &ok);
+		if (valVec.size() != Size)
+		{
+			LOG(lvlError, QString("Parameter %1: Expected %2 values, got %3.").arg(param.name()).arg(Size).arg(valVec.size()));
+			return false;
+		}
+		if (!ok)
+		{
+			return false;
+		}
+		bool valOK = true;
+		for (qsizetype i=0; i<valVec.size(); ++i)
+		{
+			auto v = valVec[i];
+			if (v < param.min() || v > param.max())
+			{
+				valOK = false;
+				LOG(lvlError,
+					QString("Parameter %1: Value %2 for index %3 is outside of valid range %4..%5")
+						.arg(param.name())
+						.arg(v)
+						.arg(i)
+						.arg(param.min())
+						.arg(param.max()));
+			}
+		}
+		return valOK;
+	}
+}
+
 bool attributeCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const& paramValue)
 {
 	bool ok;
@@ -310,6 +345,14 @@ bool attributeCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const
 		}
 		break;
 	}
+	case iAValueType::Vector2:
+		return checkVecType<double, 2>(*param.get(), paramValue);
+	case iAValueType::Vector3:
+		return checkVecType<double, 3>(*param.get(), paramValue);
+	case iAValueType::Vector2i:
+		return checkVecType<int, 2>(*param.get(), paramValue);
+	case iAValueType::Vector3i:
+		return checkVecType<int, 3>(*param.get(), paramValue);
 	case iAValueType::Categorical:
 	{
 		QStringList values = param->defaultValue().toStringList();

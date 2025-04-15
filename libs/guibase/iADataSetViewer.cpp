@@ -116,13 +116,14 @@ void iADataSetViewer::createGUI(iAMdiChild* child, size_t dataSetIdx)
 			{
 				return;
 			}
-			auto newName = dlg.parameterValues()["Name"].toString();
+			auto values = dlg.parameterValues();
+			auto newName = values["Name"].toString();
 			if (m_dataSet->name() != newName)
 			{
 				m_dataSet->setMetaData(iADataSet::NameKey, newName);
 				child->dataSetListWidget()->setName(dataSetIdx, newName);
 			}
-			setAttributes(dlg.parameterValues());
+			setAttributes(values);
 			if (m_dataSet->unitDistance() != prevUnitDistance)
 			{
 				child->updatePositionMarkerSize();
