@@ -254,7 +254,11 @@ bool checkAttributes(iAAttributes const& attributes, QVariantMap const& values, 
 	}
 	for (auto param : attributes)
 	{
-		if (!attributeCheck(param, values[param->name()]))
+		if (!isAttributeEnabled(*param.get(), values))
+		{
+			continue;
+		}
+		if (!attributeCheck(*param.get(), values[param->name()]))
 		{
 			if (invalidValues)
 			{
@@ -304,10 +308,10 @@ namespace
 	}
 }
 
-bool attributeCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const& paramValue)
+bool attributeCheck(iAAttributeDescriptor const & param, QVariant const& paramValue)
 {
 	bool ok;
-	switch (param->valueType())
+	switch (param.valueType())
 	{
 	case iAValueType::Discrete:
 	{
@@ -315,17 +319,17 @@ bool attributeCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const
 		if (!ok)
 		{
 			LOG(lvlError, QString("Parameter %1: Expected integer value, %2 given.")
-					.arg(param->name())
+					.arg(param.name())
 					.arg(paramValue.toString()));
 			return false;
 		}
-		if (value < param->min() || value > param->max())
+		if (value < param.min() || value > param.max())
 		{
 			LOG(lvlError, QString("Parameter %1: Given value %2 outside of valid range [%3..%4].")
-					.arg(param->name())
+					.arg(param.name())
 					.arg(paramValue.toString())
-					.arg(param->min())
-					.arg(param->max()));
+					.arg(param.min())
+					.arg(param.max()));
 			return false;
 		}
 		break;
@@ -337,33 +341,33 @@ bool attributeCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const
 		{
 			LOG(lvlError,
 				QString("Parameter %1: Expected double value, %2 given.")
-					.arg(param->name())
+					.arg(param.name())
 					.arg(paramValue.toString()));
 			return false;
 		}
-		if (value < param->min() || value > param->max())
+		if (value < param.min() || value > param.max())
 		{
 			LOG(lvlError,
 				QString("Parameter %1: Given value %2 outside of valid range [%3..%4].")
-					.arg(param->name())
+					.arg(param.name())
 					.arg(paramValue.toString())
-					.arg(param->min())
-					.arg(param->max()));
+					.arg(param.min())
+					.arg(param.max()));
 			return false;
 		}
 		break;
 	}
 	case iAValueType::Vector2:
-		return checkVecType<double, 2>(*param.get(), paramValue);
+		return checkVecType<double, 2>(param, paramValue);
 	case iAValueType::Vector3:
-		return checkVecType<double, 3>(*param.get(), paramValue);
+		return checkVecType<double, 3>(param, paramValue);
 	case iAValueType::Vector2i:
-		return checkVecType<int, 2>(*param.get(), paramValue);
+		return checkVecType<int, 2>(param, paramValue);
 	case iAValueType::Vector3i:
-		return checkVecType<int, 3>(*param.get(), paramValue);
+		return checkVecType<int, 3>(param, paramValue);
 	case iAValueType::Categorical:
 	{
-		QStringList values = param->defaultValue().toStringList();
+		QStringList values = param.defaultValue().toStringList();
 		bool found = false;
 		for (QString s : values)
 		{
@@ -380,7 +384,7 @@ bool attributeCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const
 		{
 			LOG(lvlError,
 				QString("Parameter %1: Given value '%2' not in the list of valid values (%3).")
-					.arg(param->name())
+					.arg(param.name())
 					.arg(paramValue.toString())
 					.arg(values.join(",")));
 			return false;
@@ -395,7 +399,7 @@ bool attributeCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const
 			LOG(lvlError,
 				QString("Parameter %1: Given filename '%2' either doesn't reference a file, "
 						   "the file does not exist, or it is not readable!")
-					.arg(param->name())
+					.arg(param.name())
 					.arg(paramValue.toString()));
 			return false;
 		}
@@ -412,7 +416,7 @@ bool attributeCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const
 				LOG(lvlError,
 					QString("Parameter %1: Filename '%2' out of the given list '%3' either doesn't reference a file, "
 							"the file does not exist, or it is not readable!")
-						.arg(param->name())
+						.arg(param.name())
 						.arg(fileName)
 						.arg(paramValue.toString()));
 				return false;
@@ -428,7 +432,7 @@ bool attributeCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const
 		{
 			LOG(lvlError,
 				QString("Parameter '%1': Given value '%2' doesn't reference a folder!")
-					.arg(param->name())
+					.arg(param.name())
 					.arg(paramValue.toString()));
 			return false;
 		}
@@ -443,7 +447,7 @@ bool attributeCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const
 				QString("Parameter '%1': '%2' is not a valid color value; "
 						   "please either give a color name (e.g. blue, green, ...) "
 						   "or a hexadecimal RGB specifier, like #RGB, #RRGGBB!")
-					.arg(param->name())
+					.arg(param.name())
 					.arg(paramValue.toString()));
 			return false;
 		}
@@ -451,10 +455,63 @@ bool attributeCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const
 	}
 	case iAValueType::Invalid:
 		LOG(lvlError,
-			QString("Parameter '%1': Invalid parameter type (please contact developers!)!").arg(param->name()));
+			QString("Parameter '%1': Invalid parameter type (please contact developers!)!").arg(param.name()));
 		return false;
 	default:  // no checks
 		break;
 	}
 	return true;
+}
+
+bool isAttributeEnabled(iAAttributeDescriptor const & p, QVariantMap const& values)
+{
+	auto enabled = true;
+	for (auto d : p.dependencies())
+	{
+		auto dep = d;
+		auto inverted = false;
+		if (dep.startsWith("!"))
+		{
+			inverted = true;
+			dep.remove(0, 1);
+		}
+		QString expectedVal;
+		if (dep.contains("="))
+		{
+			auto parts = dep.split("=");
+			if (parts.size() > 2)
+			{
+				LOG(lvlError,
+					QString("Parameter %1: Expected only 2 parts to dependency specification, got %2")
+						.arg(p.name())
+						.arg(parts.size()));
+			}
+			dep = parts[0];
+			expectedVal = parts[1];
+		}
+		if (!values.contains(dep))
+		{
+			LOG(lvlError,
+				QString("For parameter %1, dependency %2 is not a known parameter here!").arg(p.name()).arg(dep));
+		}
+		bool test = false;
+		if (expectedVal.isEmpty())
+		{
+			test = values[dep].toBool();
+			if (inverted)
+			{
+				test = !test;
+			}
+		}
+		else
+		{
+			test = values[dep].toString() == expectedVal;
+		}
+		if (!test)
+		{
+			enabled = false;
+			break;
+		}
+	}
+	return enabled;
 }

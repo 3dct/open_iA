@@ -89,4 +89,7 @@ iAbase_API void setDependency(iAAttributes& attributes, QString const& name, QSt
 iAbase_API bool checkAttributes(iAAttributes const& attributes, QVariantMap const& values, QStringList* invalidValues = nullptr);
 
 //! the default check for a single parameter descriptor & value combination
-iAbase_API bool attributeCheck(std::shared_ptr<iAAttributeDescriptor> param, QVariant const& paramValue);
+iAbase_API bool attributeCheck(iAAttributeDescriptor const& param, QVariant const& paramValue);
+
+//! check whether an attribute is enabled, given its dependency specifications and collection of parameter values
+iAbase_API bool isAttributeEnabled(iAAttributeDescriptor const& param, QVariantMap const& values);

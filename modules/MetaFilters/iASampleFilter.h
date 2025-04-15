@@ -20,7 +20,6 @@ public:
 	void abort() override;
 private:
 	void performWork(QVariantMap const& parameters) override;
-	bool checkParameters(QVariantMap const& parameters) override;
 	std::map<size_t, std::shared_ptr<iADataSet>> m_input;
 	std::shared_ptr<iAAttributes> m_parameterRanges, m_parameterSpecs;
 	QString m_parameterRangeFile,

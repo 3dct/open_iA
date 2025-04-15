@@ -121,8 +121,8 @@ public:
 			addAttr(attr, QString(PointPrefix) + iADataSetRenderer::SpecularPower, iAValueType::Continuous, 10.0);
 			addAttr(attr, LineWidth, iAValueType::Continuous, 1.0, 0.1, 100);
 			addAttr(attr, LineColorMode, iAValueType::Categorical, QStringList() << VaryModeFixed << StoredColors);
-			setDependency(attr, LineColor, QString("%1=%2").arg(LineColorMode).arg(VaryModeFixed));
 			addAttr(attr, LineColor, iAValueType::Color, "#00FF00");
+			setDependency(attr, LineColor, QString("%1=%2").arg(LineColorMode).arg(VaryModeFixed));
 			addAttr(attr, QString(LinePrefix) + iADataSetRenderer::Shading, iAValueType::Boolean, false);
 			addAttr(attr, QString(LinePrefix) + ShadingInterpolation, iAValueType::Categorical, shadingInterpolationTypes());
 			addAttr(attr, QString(LinePrefix) + iADataSetRenderer::AmbientLighting, iAValueType::Continuous, 0.2);

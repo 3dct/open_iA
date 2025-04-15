@@ -82,25 +82,6 @@ void iASampleFilter::performWork(QVariantMap const& parameters)
 	loop.exec();	     // so wait for finished event
 }
 
-bool iASampleFilter::checkParameters(QVariantMap const& paramValues)
-{
-	for (auto const & param : parameters())
-	{
-		// skip parameter check of filter if algorithm type is external; and of executable and parameter descriptor if type is builtin
-		if ( (param->name() == spnFilter && paramValues[spnAlgorithmType].toString() == atExternal) ||
-			((param->name() == spnExecutable || param->name() == spnParameterDescriptor) &&
-				paramValues[spnAlgorithmType].toString() == atBuiltIn) )
-		{
-			continue;
-		}
-		if (!attributeCheck(param, paramValues[param->name()]))
-		{
-			return false;
-		}
-	}
-	return true;
-}
-
 void iASampleFilter::setParameters(std::map<size_t, std::shared_ptr<iADataSet>> input, std::shared_ptr<iAAttributes> parameterRanges,
 	std::shared_ptr<iAAttributes> parameterSpecs,
 	QString const& parameterRangeFile, QString const& parameterSetFile, QString const& derivedOutFile, int samplingID,

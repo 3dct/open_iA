@@ -440,70 +440,10 @@ void iAParameterDlg::updatedROI(QVariant value)
 
 void iAParameterDlg::updateDependencies()
 {
-	QMap<QString, QString> optValue;
-	// determine values of all boolean parameters:
+	auto values = parameterValues();
 	for (int i = 0; i < m_parameters.size(); ++i)
 	{
-		auto p = m_parameters[i];
-		if (p->valueType() == iAValueType::Boolean)
-		{
-			auto t = qobject_cast<QCheckBox*>(m_widgetList[i]);
-			optValue[p->name()] = t->isChecked() ? "yes" : "no";
-		}
-		else if (p->valueType() == iAValueType::Categorical)
-		{
-			auto t = qobject_cast<QComboBox*>(m_widgetList[i]);
-			optValue[p->name()] = t->currentText();
-		}
-	}
-	for (int i = 0; i < m_parameters.size(); ++i)
-	{
-		auto p = m_parameters[i];
-		if (p->dependencies().size() > 0)
-		{
-			auto enabled = true;
-			for (auto d: p->dependencies()) {
-				auto dep = d;
-				auto inverted = false;
-				if (dep.startsWith("!")) {
-					inverted = true;
-					dep.remove(0, 1);
-				}
-				QString expectedVal;
-				if (dep.contains("=")) {
-					auto parts = dep.split("=");
-					if (parts.size() > 2)
-					{
-						LOG(lvlError,
-							QString("Parameter %1: Expected only 2 parts to dependency specification, got %2")
-								.arg(p->name())
-								.arg(parts.size()));
-					}
-					dep = parts[0];
-					expectedVal = parts[1];
-				}
-				if (!optValue.contains(dep)) {
-					LOG(lvlError, QString("For parameter %1, dependency %2 is not a known parameter here!").arg(p->name()).arg(dep));
-				}
-				bool test = false;
-				if (expectedVal.isEmpty())
-				{
-					test = optValue[dep] == "yes";
-					if (inverted) {
-						test = !test;
-					}
-				}
-				else
-				{
-					test = optValue[dep] == expectedVal;
-				}
-				if (!test) {
-					enabled = false;
-					break;
-				}
-			}
-			m_widgetList[i]->setEnabled(enabled);
-		}
+		m_widgetList[i]->setEnabled(isAttributeEnabled(*m_parameters[i].get(), values));
 	}
 }
 
