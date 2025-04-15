@@ -664,13 +664,16 @@ void iASamplingSettingsDlg::samplingMethodChanged()
 	QVariantMap s;
 	getValues(s);
 	auto samplingMethod = createSamplingMethod(s);
-	for (int p = 0; p < m_paramSpecs->size(); ++p)
+	if (m_paramSpecs)
 	{
-		auto t = m_paramSpecs->at(p)->valueType();
-		if (t == iAValueType::Discrete || t == iAValueType::Continuous)
+		for (int p = 0; p < m_paramSpecs->size(); ++p)
 		{
-			auto inputs = dynamic_cast<iANumberParameterInputs*>(m_paramInputs[p].get());
-			inputs->numSamples->setVisible(samplingMethod->supportsSamplesPerParameter());
+			auto t = m_paramSpecs->at(p)->valueType();
+			if (t == iAValueType::Discrete || t == iAValueType::Continuous)
+			{
+				auto inputs = dynamic_cast<iANumberParameterInputs*>(m_paramInputs[p].get());
+				inputs->numSamples->setVisible(samplingMethod->supportsSamplesPerParameter());
+			}
 		}
 	}
 	m_ui->lbNumSamplesPerParam->setVisible(samplingMethod->supportsSamplesPerParameter());
@@ -747,6 +750,7 @@ void iASamplingSettingsDlg::setParametersFromFilter(QString const& filterName)
 	if (!filter)
 	{
 		LOG(lvlError, QString("Invalid filter name '%1'").arg(filterName));
+		return;
 	}
 	auto params = std::shared_ptr<iAAttributes>(new iAAttributes(filter->parameters()));
 	setParameters(params);
