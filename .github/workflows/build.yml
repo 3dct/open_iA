@@ -34,7 +34,6 @@ env:
   BOOST_VERSION: 1.88.0
   BOOST_VERSION_UNDERSCORE: 1_88_0
   OPENCL_VERSION: 2024.10.24
-  UBUNTU2004_GCC_VERSION: 10
   # EIGEN: tested, working commit from Jun 18, 2024:
   EIGEN_LONGREF: d791d48859c6fc7850c9fd5270d2b236c818068d
   EIGEN_SHORTREF: d791d48859c6
@@ -46,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-13, macos-latest, ubuntu-latest, ubuntu-20.04, ubuntu-24.04-arm, windows-latest]
+        os: [macos-13, macos-latest, ubuntu-latest, ubuntu-24.04-arm, windows-latest]
 
     steps:
 
@@ -56,34 +55,6 @@ jobs:
         submodules: true
         fetch-tags: true
         fetch-depth: 0
-
-    # On Ubuntu 20.04
-    #   - we cannot use the standard g++9 because it's not fully C++20 compatible yet (e.g. <numbers> header is not available on g++-9)
-    #     - install g++ 11
-    #     - update open_iA cmake config to use it
-    #         - explored option 1:
-    #             echo "OPENIA_CMAKE_OPTIONS=-DCMAKE_C_COMPILER=/usr/bin/gcc-11 -DCMAKE_CXX_COMPILER=/usr/bin/g++-11 ${{env.OPENIA_CMAKE_OPTIONS}}" >> "$GITHUB_ENV"
-    #             -> linker problem (https://github.com/3dct/open_iA/actions/runs/13563745786/job/37912093841 :
-    #                 /usr/bin/ld: ../bin/libiAio.so: undefined reference to `__isoc23_sscanf'
-    #                 /usr/bin/ld: ../bin/libiAio.so: undefined reference to `__isoc23_strtol'
-    #     - maybe not all necessary commands where used -> just set g++ 11 as default!
-    #         - set up alternatives for gcc and depending commands: https://stackoverflow.com/a/67453352
-    #         - scripted (non-interactive) setting of alternative: https://stackoverflow.com/a/70487421
-    #   - Also, aqt cannot install Qt > 6.8.0 there
-    #     - only aqt >= 3.1.19 can do that, but it's only available in version 3.1.18
-    #     - see https://github.com/miurahr/aqtinstall/issues/825
-    - if: matrix.os == 'ubuntu-20.04'
-      name: Set Qt version (Ubuntu 20.04)
-      run: |
-        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-        sudo apt update
-        sudo apt upgrade -y
-        sudo apt install -y g++-${{env.UBUNTU2004_GCC_VERSION}}
-        sudo update-alternatives --remove-all cpp
-        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 90 --slave /usr/bin/g++ g++ /usr/bin/g++-9 --slave /usr/bin/gcov gcov /usr/bin/gcov-9 --slave /usr/bin/gcc-ar gcc-ar /usr/bin/gcc-ar-9 --slave /usr/bin/gcc-ranlib gcc-ranlib /usr/bin/gcc-ranlib-9  --slave /usr/bin/cpp cpp /usr/bin/cpp-9
-        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${{env.UBUNTU2004_GCC_VERSION}} ${{env.UBUNTU2004_GCC_VERSION}}0 --slave /usr/bin/g++ g++ /usr/bin/g++-${{env.UBUNTU2004_GCC_VERSION}} --slave /usr/bin/gcov gcov /usr/bin/gcov-${{env.UBUNTU2004_GCC_VERSION}} --slave /usr/bin/gcc-ar gcc-ar /usr/bin/gcc-ar-${{env.UBUNTU2004_GCC_VERSION}} --slave /usr/bin/gcc-ranlib gcc-ranlib /usr/bin/gcc-ranlib-${{env.UBUNTU2004_GCC_VERSION}}  --slave /usr/bin/cpp cpp /usr/bin/cpp-${{env.UBUNTU2004_GCC_VERSION}}
-        sudo update-alternatives --set gcc /usr/bin/gcc-${{env.UBUNTU2004_GCC_VERSION}}
-        echo "QT_VERSION=6.7.3" >> "$GITHUB_ENV"
 
     - if: runner.os == 'macOS'
       name: Set up required libraries (macOS)
