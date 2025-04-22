@@ -585,7 +585,7 @@ void iASlicerImpl::setSliceNumber( int sliceNumber )
 	// also, maybe clamp to boundaries of all currently loaded datasets?
 
 	int sliceAxis = mapSliceToGlobalAxis(m_mode, iAAxisIndex::Z);
-	int maxSliceNr = m_channels[m_sliceNumberChannel]->input()->GetDimensions()[sliceAxis];
+	int maxSliceNr = m_channels[m_sliceNumberChannel]->input()->GetDimensions()[sliceAxis] - 1;
 	sliceNumber = clamp(0, maxSliceNr, sliceNumber);
 	if (sliceNumber == m_sliceNumber)
 	{
