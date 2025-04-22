@@ -620,7 +620,8 @@ void iASlicerImpl::setSlicePosition(double slicePos)
 	// TODO: once all occurrences of setSliceNumber have been replaced with setSlicePosition,
 	//    move implementation from there to here, should simplify stuff a little bit
 	//    (e.g., no more spacing computations required)
-	setSliceNumber(slicePos / spacing[sliceAxis]);
+	auto sliceNr = static_cast<int>( (slicePos + 0.5*spacing[sliceAxis]) / spacing[sliceAxis]);
+	setSliceNumber(sliceNr);
 }
 
 void iASlicerImpl::setOtherSlicePlanePos(int sliceAxis, double slicePos)
