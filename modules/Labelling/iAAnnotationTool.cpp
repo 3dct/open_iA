@@ -192,7 +192,7 @@ iAAnnotationTool::iAAnnotationTool(iAMainWindow* mainWnd, iAMdiChild* child):
 		auto s = child->slicer(i);
 		QObject::connect(s, &iASlicer::sliceNumberChanged, this, [this, i, s]()
 		{
-			for (auto& a : m_ui->m_annotations)
+			for (auto const& a : m_ui->m_annotations)
 			{
 				double dist = std::abs(a.m_coord[s->mode()] - s->slicePosition());
 				auto sMinMax = s->sliceRange();
@@ -373,11 +373,11 @@ void iAAnnotationTool::removeAnnotation(size_t id)
 
 void iAAnnotationTool::toggleAnnotation(size_t id)
 {
-	for (size_t i = 0; i < m_ui->m_annotations.size(); ++i)
+	for (auto const & a: m_ui->m_annotations)
 	{
-		if (m_ui->m_annotations[i].m_id == id)
+		if (a.m_id == id)
 		{
-			showAnnotation(id, !m_ui->m_annotations[i].m_show);
+			showAnnotation(id, !a.m_show);
 			break;
 		}
 	}
@@ -385,15 +385,15 @@ void iAAnnotationTool::toggleAnnotation(size_t id)
 
 void iAAnnotationTool::showAnnotation(size_t id, bool show)
 {
-	for (size_t i = 0; i < m_ui->m_annotations.size(); ++i)
+	for (auto& a: m_ui->m_annotations)
 	{
-		if (m_ui->m_annotations[i].m_id == id)
+		if (a.m_id == id)
 		{
-			if (m_ui->m_annotations[i].m_show == show)    // no change
+			if (a.m_show == show)    // no change
 			{
 				return;
 			}
-			m_ui->m_annotations[i].m_show = show;
+			a.m_show = show;
 			break;
 		}
 	}
@@ -556,7 +556,7 @@ void iAAnnotationTool::slicerPointClicked(double x, double y, double z)
 
 void iAAnnotationTool::focusToAnnotation(size_t id)
 {
-	for (auto annotation : m_ui->m_annotations)
+	for (auto const& annotation : m_ui->m_annotations)
 	{
 		if (annotation.m_id == id)
 		{
