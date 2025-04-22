@@ -53,7 +53,7 @@ bool iAWebsocketAPI::setRenderedImage(std::shared_ptr<iAJPGImage> img, QString v
 	// TODO: check other thread communication methods, e.g. locking images via mutex; currently using signal/slot
 	if (images.contains(viewID) && images[viewID]->data == img->data)
 	{
-		LOG(lvlDebug, "Setting same image again, ignoring!");
+		//LOG(lvlDebug, "Setting same image again, ignoring!");
 		return false;
 	}
 	images.insert(viewID, img);
