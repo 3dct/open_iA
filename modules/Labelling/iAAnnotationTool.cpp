@@ -15,7 +15,6 @@
 
 #include <iAStringHelper.h>
 
-#include <QCheckBox>
 #include <QHeaderView>
 #include <QSettings>
 #include <QStandardItemModel>
@@ -56,6 +55,13 @@ namespace
 	const double LinearRampFraction = 0.05;
 	//! number of voxel layers over which the opacity should at least vary close to the annotation
 	const int MinVoxelVisible = 2;
+	enum TableColumns
+	{
+		ColColor = 0,
+		ColName,
+		ColCoordinate,
+		ColShow,
+	};
 }
 
 //! GUI data for an annotation
@@ -80,6 +86,14 @@ public:
 		m_table->verticalHeader()->hide();
 		m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
 		m_table->setEditTriggers(QAbstractItemView::NoEditTriggers);
+		QObject::connect(m_table, &QTableWidget::itemChanged, tool, [this, tool](QTableWidgetItem * item) {
+			if (item->column() != ColShow)
+			{
+				return;
+			}
+			auto annotation_id = m_table->item(item->row(), ColColor)->data(Qt::UserRole).toULongLong();
+			tool->showAnnotation(annotation_id, item->checkState() == Qt::Checked);
+		});
 
 		auto buttons = new QWidget();
 		buttons->setLayout(new QVBoxLayout);
@@ -112,7 +126,7 @@ public:
 		QObject::connect(m_table, &QTableWidget::cellClicked, tool,
 			[tool, this](int row,int /*cell*/)
 			{
-				auto id = m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
+				auto id = m_table->item(row, ColColor)->data(Qt::UserRole).toULongLong();
 				emit tool->focusedToAnnotation(id);
 				tool->focusToAnnotation(id);
 			});
@@ -132,10 +146,10 @@ public:
 					return;
 				}
 				int row = rows[0].row();
-				auto id = m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
+				auto id = m_table->item(row, ColColor)->data(Qt::UserRole).toULongLong();
 
 				iAAttributes params;
-				addAttr(params, "Name", iAValueType::String, m_table->item(row, 1)->text());
+				addAttr(params, "Name", iAValueType::String, m_table->item(row, ColName)->text());
 				// would like to pass in tool as parent, but cannot, as it is const...
 				iAParameterDlg dlg(nullptr, "Annotation", params);
 				if (dlg.exec() == QDialog::Accepted)
@@ -153,7 +167,7 @@ public:
 					return;
 				}
 				int row = rows[0].row();
-				auto id = m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
+				auto id = m_table->item(row, ColColor)->data(Qt::UserRole).toULongLong();
 				tool->removeAnnotation(id);
 			});
 	}
@@ -265,29 +279,15 @@ void iAAnnotationTool::addAnnotation(iAAnnotation a)
 	auto colorItem = new QTableWidgetItem();
 	colorItem->setData(Qt::DecorationRole, a.m_color);
 	colorItem->setData(Qt::UserRole, static_cast<quint64>(a.m_id));
-	m_ui->m_table->setItem(row, 0, colorItem);
-	m_ui->m_table->setItem(row, 1, new QTableWidgetItem(a.m_name));
-	m_ui->m_table->setItem(row, 2, new QTableWidgetItem(a.m_coord.toString()));
-
-	auto showCB = new QCheckBox();
-	showCB->setStyleSheet("text-align: center; margin-left:50%; margin-right:50%; unchecked{ color: red; }; checked{ color: red; } ");
-	m_ui->m_table->setCellWidget(row, 3, showCB);
+	m_ui->m_table->setItem(row, ColColor, colorItem);
+	m_ui->m_table->setItem(row, ColName, new QTableWidgetItem(a.m_name));
+	m_ui->m_table->setItem(row, ColCoordinate, new QTableWidgetItem(a.m_coord.toString()));
+	auto showCell = new QTableWidgetItem();
+	showCell->setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEditable | Qt::ItemIsEnabled);
+	QSignalBlocker tblBlock(m_ui->m_table);
+	m_ui->m_table->setItem(row, ColShow, showCell);
 	m_ui->m_table->resizeColumnsToContents();
 	adjustTableItemShown(row, a.m_show);
-
-	QObject::connect(showCB, &QCheckBox::clicked, this,
-		[ this]()
-		{
-			auto rows = m_ui->m_table->selectionModel()->selectedRows();
-			if (rows.size() != 1)
-			{
-				LOG(lvlWarn, "Please select exactly one row for editing!");
-				return;
-			}
-			int row = rows[0].row();
-			auto annotation_id = m_ui->m_table->item(row, 0)->data(Qt::UserRole).toULongLong();
-			toggleAnnotation(annotation_id);
-		});
 
 	iAVtkAnnotationData vtkAnnot;
 	for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
@@ -327,9 +327,9 @@ void iAAnnotationTool::renameAnnotation(size_t id, QString const& newName)
 	}
 	for (auto row = 0; row < m_ui->m_table->rowCount(); ++row)
 	{
-		if (m_ui->m_table->item(row, 0)->data(Qt::UserRole).toULongLong() == id)
+		if (m_ui->m_table->item(row, ColColor)->data(Qt::UserRole).toULongLong() == id)
 		{
-			m_ui->m_table->item(row, 1)->setText(newName);
+			m_ui->m_table->item(row, ColName)->setText(newName);
 			break;
 		}
 	}
@@ -359,7 +359,7 @@ void iAAnnotationTool::removeAnnotation(size_t id)
 	}
 	for (auto row = 0; row < m_ui->m_table->rowCount(); ++row)
 	{
-		if (m_ui->m_table->item(row, 0)->data(Qt::UserRole).toULongLong() == id)
+		if (m_ui->m_table->item(row, ColColor)->data(Qt::UserRole).toULongLong() == id)
 		{
 			m_ui->m_table->removeRow(row);
 			break;
@@ -389,6 +389,10 @@ void iAAnnotationTool::showAnnotation(size_t id, bool show)
 	{
 		if (m_ui->m_annotations[i].m_id == id)
 		{
+			if (m_ui->m_annotations[i].m_show == show)    // no change
+			{
+				return;
+			}
 			m_ui->m_annotations[i].m_show = show;
 			break;
 		}
@@ -396,7 +400,7 @@ void iAAnnotationTool::showAnnotation(size_t id, bool show)
 
 	for (auto row = 0; row < m_ui->m_table->rowCount(); ++row)
 	{
-		if (m_ui->m_table->item(row, 0)->data(Qt::UserRole).toULongLong() == id)
+		if (m_ui->m_table->item(row, ColColor)->data(Qt::UserRole).toULongLong() == id)
 		{
 			adjustTableItemShown(row, show);
 			break;
@@ -411,10 +415,9 @@ void iAAnnotationTool::showAnnotation(size_t id, bool show)
 void iAAnnotationTool::adjustTableItemShown(int row, bool show)
 {
 	auto color = show ? QColorConstants::Black : QColorConstants::Gray;
-	m_ui->m_table->item(row, 1)->setForeground(color);
-	m_ui->m_table->item(row, 2)->setForeground(color);
-	QCheckBox* checkBox = (QCheckBox*)m_ui->m_table->cellWidget(row, 3);
-	checkBox->setChecked(show);
+	m_ui->m_table->item(row, ColName)->setForeground(color);
+	m_ui->m_table->item(row, ColCoordinate)->setForeground(color);
+	m_ui->m_table->item(row, ColShow)->setCheckState(show ? Qt::Checked : Qt::Unchecked);
 }
 
 void iAAnnotationTool::showActors(size_t id, bool show)

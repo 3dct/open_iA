@@ -50,6 +50,7 @@ public slots:
 	void removeAnnotation(size_t id);
 	void focusToAnnotation(size_t id);
 	void toggleAnnotation(size_t id);
+	void showAnnotation(size_t id, bool show);
 
 signals:
 	void annotationsUpdated(std::vector<iAAnnotation> const &);
@@ -61,7 +62,6 @@ private slots:
 
 private:
 	void addAnnotation(iAAnnotation a);
-	void showAnnotation(size_t id, bool show);
 	void showActors(size_t id, bool show);
 	void adjustTableItemShown(int row, bool show);
 	std::shared_ptr<iAAnnotationToolUI> m_ui;
