@@ -271,7 +271,7 @@ void MdiChild::updatePositionMarker(double x, double y, double z, int mode)
 		{
 			continue;
 		}
-		if (m_slicerSettings.LinkViews && m_slicer[i]->hasChannel(0))  // TODO: check for whether dataset is shown in slicer?
+		if (m_slicerSettings.LinkViews && m_slicer[i]->slicerChannel() != NotExistingChannel)
 		{
 			m_slicer[i]->setSlicePosition(pos[mapSliceToGlobalAxis(i, iAAxisIndex::Z)]);
 		}

@@ -195,6 +195,8 @@ public:
 
 	//! call if the dimension of the input in direction of the slice axis has changed.
 	void setSlicerRange(uint channelID);
+	//! get the ID of the channel currently used for slice numbers
+	uint slicerChannel() const;
 
 public slots:
 	//! Save an image of the image viewer native resolution or the current view.

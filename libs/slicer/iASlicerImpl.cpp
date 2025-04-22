@@ -876,6 +876,11 @@ void iASlicerImpl::setSlicerRange(uint channelID)
 	emit sliceRangeChanged(minIdx, maxIdx, m_sliceNumber);
 }
 
+uint iASlicerImpl::slicerChannel() const
+{
+	return m_sliceNumberChannel;
+}
+
 void iASlicerImpl::updateMagicLensColors()
 {
 	if (m_magicLens)
