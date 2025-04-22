@@ -269,6 +269,30 @@ namespace
 		//result->GetCaptionActor2D()->GetTextActor()->SetTextScaleModeToNone(); no effect?
 		return result;
 	}
+	//! execute a given function on a specific annotation (given by its id)
+	void callOnAnnotation(std::vector<iAAnnotation>& annotations, size_t id, std::function<void(iAAnnotation&, size_t idx)> func)
+	{
+		for (size_t idx = 0; idx < annotations.size(); ++idx)
+		{
+			if (annotations[idx].m_id == id)
+			{
+				func(annotations[idx], idx);
+				break;
+			}
+		}
+	}
+	//! execute a given function on the table row of an annotation with a given id
+	void callOnTableRow(QTableWidget* tbl, size_t id, std::function<void(QTableWidget* tbl, int row)> func)
+	{
+		for (auto row = 0; row < tbl->rowCount(); ++row)
+		{
+			if (tbl->item(row, ColColor)->data(Qt::UserRole).toULongLong() == id)
+			{
+				func(tbl, row);
+				break;
+			}
+		}
+	}
 }
 
 void iAAnnotationTool::addAnnotation(iAAnnotation a)
@@ -317,22 +341,10 @@ void iAAnnotationTool::addAnnotation(iAAnnotation a)
 
 void iAAnnotationTool::renameAnnotation(size_t id, QString const& newName)
 {
-	for (auto &a: m_ui->m_annotations)
-	{
-		if (a.m_id == id)
-		{
-			a.m_name = newName;
-			break;
-		}
-	}
-	for (auto row = 0; row < m_ui->m_table->rowCount(); ++row)
-	{
-		if (m_ui->m_table->item(row, ColColor)->data(Qt::UserRole).toULongLong() == id)
-		{
-			m_ui->m_table->item(row, ColName)->setText(newName);
-			break;
-		}
-	}
+	callOnAnnotation(m_ui->m_annotations, id, [newName](auto& a, size_t) { a.m_name = newName; });
+	callOnTableRow(m_ui->m_table, id, [newName](auto* tbl, int row){
+		tbl->item(row, ColName)->setText(newName);
+	});
 	for (size_t i = 0; i < m_ui->m_vtkAnnotateData.at(id).m_txtActor.size(); ++i)
 	{
 		m_ui->m_vtkAnnotateData.at(id).m_txtActor[i]->SetCaption(newName.toStdString().c_str());
@@ -349,22 +361,11 @@ void iAAnnotationTool::removeAnnotation(size_t id)
 		LOG(lvlWarn, QString("Invalid call to removeAnnotation - annotation with id=%1 not found!").arg(id));
 		return;
 	}
-	for (size_t i=0; i<m_ui->m_annotations.size(); ++i)
+	callOnAnnotation(m_ui->m_annotations, id, [this](auto&, size_t i)
 	{
-		if (m_ui->m_annotations[i].m_id == id)
-		{
-			m_ui->m_annotations.erase(m_ui->m_annotations.begin() + i);
-			break;
-		}
-	}
-	for (auto row = 0; row < m_ui->m_table->rowCount(); ++row)
-	{
-		if (m_ui->m_table->item(row, ColColor)->data(Qt::UserRole).toULongLong() == id)
-		{
-			m_ui->m_table->removeRow(row);
-			break;
-		}
-	}
+		m_ui->m_annotations.erase(m_ui->m_annotations.begin() + i);
+	});
+	callOnTableRow(m_ui->m_table, id, [](auto* tbl, int row) { tbl->removeRow(row); });
 	showActors(id, false);
 	m_ui->m_vtkAnnotateData.erase(id);
 	m_child->updateViews();
@@ -373,39 +374,25 @@ void iAAnnotationTool::removeAnnotation(size_t id)
 
 void iAAnnotationTool::toggleAnnotation(size_t id)
 {
-	for (auto const & a: m_ui->m_annotations)
-	{
-		if (a.m_id == id)
-		{
-			showAnnotation(id, !a.m_show);
-			break;
-		}
-	}
+	callOnAnnotation(m_ui->m_annotations, id, [this, id](const auto& a, size_t) { showAnnotation(id, !a.m_show); });
 }
 
 void iAAnnotationTool::showAnnotation(size_t id, bool show)
 {
-	for (auto& a: m_ui->m_annotations)
+	bool changed = false;
+	callOnAnnotation(m_ui->m_annotations, id, [&changed, show](auto& a, size_t)
 	{
-		if (a.m_id == id)
+		if (a.m_show != show)
 		{
-			if (a.m_show == show)    // no change
-			{
-				return;
-			}
-			a.m_show = show;
-			break;
+			changed = true;
 		}
-	}
-
-	for (auto row = 0; row < m_ui->m_table->rowCount(); ++row)
+		a.m_show = show;
+	});
+	if (!changed)
 	{
-		if (m_ui->m_table->item(row, ColColor)->data(Qt::UserRole).toULongLong() == id)
-		{
-			adjustTableItemShown(row, show);
-			break;
-		}
+		return;
 	}
+	callOnTableRow(m_ui->m_table, id, [this, show](auto*, int row) { adjustTableItemShown(row, show); });
 	showActors(id, show);
 	m_child->updateViews();
 
@@ -556,15 +543,11 @@ void iAAnnotationTool::slicerPointClicked(double x, double y, double z)
 
 void iAAnnotationTool::focusToAnnotation(size_t id)
 {
-	for (auto const& annotation : m_ui->m_annotations)
+	callOnAnnotation(m_ui->m_annotations, id, [this](auto& a, size_t)
 	{
-		if (annotation.m_id == id)
+		for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
 		{
-			for (int i = 0; i < iASlicerMode::SlicerCount; ++i)
-			{
-				m_child->slicer(i)->setSlicePosition(annotation.m_coord[i]);
-			}
-			break;
+			m_child->slicer(i)->setSlicePosition(a.m_coord[i]);
 		}
-	}
+	});
 }
