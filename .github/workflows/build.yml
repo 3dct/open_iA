@@ -83,7 +83,7 @@ jobs:
       with:
         version: ${{env.QT_VERSION}}
         modules: 'qtcharts qthttpserver qtwebsockets'
-        setup-python: false
+        setup-python: true
         cache: true
         cache-key-prefix: Qt
 
