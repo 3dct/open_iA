@@ -147,19 +147,19 @@ namespace
 
 	std::shared_ptr<iAJPGImage> nvJPEGCreateImage(QString viewID, vtkRenderWindow* window, int quality)
 	{
-		QElapsedTimer t1; t1.start();
+		//QElapsedTimer t1; t1.start();
 		static iACudaImageGen cudaImageGen;
 		vtkNew<vtkWindowToImageFilter> w2if;    // grabs RGB image
 		w2if->ShouldRerenderOff();
 		w2if->SetInput(window);
 		w2if->Update();
-		auto renderTime = window->GetRenderers()->GetFirstRenderer()->GetLastRenderTimeInSeconds() * 1000;
+		//auto renderTime = window->GetRenderers()->GetFirstRenderer()->GetLastRenderTimeInSeconds() * 1000;
 
 		// nvidia expects image flipped around y axis in comparison to VTK!
 		auto vtkImg = w2if->GetOutput();
 		auto const dim = vtkImg->GetDimensions();
-		QString debugMsg = QString("CUDA JPEG from %1 view (%2x%3); grab: %4 ms; last render: %5 ms")
-			.arg(viewID).arg(dim[0]).arg(dim[1]).arg(t1.elapsed()).arg(renderTime);
+		//QString debugMsg = QString("CUDA JPEG from %1 view (%2x%3); grab: %4 ms; last render: %5 ms")
+		//	.arg(viewID).arg(dim[0]).arg(dim[1]).arg(t1.elapsed()).arg(renderTime);
 		vtkNew<vtkImageFlip> flipYFilter;    // outside of if to avoid memory problems (release of output when filter goes out of scope)
 		if (dim[0] % 2 != 0 || dim[1] % 2 != 0)    // for CUDA-accelerated flip, both sizes need to be divisible by 2 (see also BitmapToJpegCUDA)
 		{
@@ -172,12 +172,12 @@ namespace
 			debugMsg += QString("; VTK flip: %1 ms").arg(tFlip.elapsed());
 		}
 
-		QElapsedTimer t2; t2.start();
+		//QElapsedTimer t2; t2.start();
 		unsigned char* buffer = static_cast<unsigned char*>(vtkImg->GetScalarPointer());
-		auto extractTime = t2.elapsed();
+		//auto extractTime = t2.elapsed();
 		assert(dim[2] == 1);
 
-		QElapsedTimer t3; t3.start();
+		//QElapsedTimer t3; t3.start();
 		auto data = cudaImageGen.BitmapToJpegCUDA(dim[0], dim[1], buffer, quality, debugMsg);
 		//LOG(lvlDebug, QString("%1; extract: %2 ms; nvJPEG: %3 ms; size: %4 kB")
 		//	.arg(debugMsg).arg(extractTime).arg(t3.elapsed()).arg(data.size()/1000.0));
