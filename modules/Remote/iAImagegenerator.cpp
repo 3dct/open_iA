@@ -88,7 +88,7 @@ namespace
 
 			//checkCuda("streamDestroy", cudaStreamDestroy(stream));
 		}
-		std::vector<unsigned char> BitmapToJpegCUDA(int width, int height, unsigned char* buffer, int quality, QString & debugMsg)
+		std::vector<unsigned char> BitmapToJpegCUDA(int width, int height, unsigned char* buffer, int quality/*, QString & debugMsg*/)
 		{
 			checknvj("encoderParamsSetSamplingFactors", nvjpegEncoderParamsSetSamplingFactors(nv_enc_params, NVJPEG_CSS_444, stream));
 			checknvj("encoderParamsSetQuality", nvjpegEncoderParamsSetQuality(nv_enc_params, quality, stream));
@@ -110,7 +110,7 @@ namespace
 				NppiAxis flip = NPP_HORIZONTAL_AXIS;  // a bit confusing - horizontal axis means switch vertically, i.e. flip y
 				// NppStatus nppiMirror_8u_C3IR(Npp8u *pSrcDst, int nSrcDstStep, NppiSize oROI, NppiAxis flip)
 				checknpp(nppiMirror_8u_C3IR(pCudaBuffer, lineStep, oROI, flip));
-				debugMsg += QString("; nppiMirror: %1 ms").arg(flipTimer.elapsed());
+				//debugMsg += QString("; nppiMirror: %1 ms").arg(flipTimer.elapsed());
 			}
 
 			// for "planar" memory layout:
@@ -169,7 +169,7 @@ namespace
 			flipYFilter->SetInputData(image);
 			flipYFilter->Update();
 			vtkImg = flipYFilter->GetOutput();
-			debugMsg += QString("; VTK flip: %1 ms").arg(tFlip.elapsed());
+			//debugMsg += QString("; VTK flip: %1 ms").arg(tFlip.elapsed());
 		}
 
 		//QElapsedTimer t2; t2.start();
@@ -178,7 +178,7 @@ namespace
 		assert(dim[2] == 1);
 
 		//QElapsedTimer t3; t3.start();
-		auto data = cudaImageGen.BitmapToJpegCUDA(dim[0], dim[1], buffer, quality, debugMsg);
+		auto data = cudaImageGen.BitmapToJpegCUDA(dim[0], dim[1], buffer, quality/*, debugMsg*/);
 		//LOG(lvlDebug, QString("%1; extract: %2 ms; nvJPEG: %3 ms; size: %4 kB")
 		//	.arg(debugMsg).arg(extractTime).arg(t3.elapsed()).arg(data.size()/1000.0));
 		auto result = std::make_shared<iAJPGImage>();
