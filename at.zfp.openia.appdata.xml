@@ -45,17 +45,15 @@
 		</screenshot>
 	</screenshots>
 	<releases>
-		<release version="2025.4" date="2025-04-09">
+		<release version="2025.4" date="2025-04-29">
 			<description>
 			Many fixes and improvements:
-				- Faster histogram computation
-				- Annotations:
-					- Also shown in VR with new VRAnnotations module
-					- Automatic positioning of new annotations in renderer/slicer
-				- Surface/Mesh filters:
-					- Fix crash on flying edge surface extraction
-					- Split up combined surface extraction + simplification into separate filters
-					- add triangles/normal computation filters
+				- General:
+					- Faster histogram computation
+					- Proper dependency handling for filter parameters in GUI (parameters currently unavailable because of other parameter values)
+					- Option to hide slicer/renderer title bar
+					- Mesh renderer: Point/wireframe/surface option
+					- ARM target architecture compatibility
 				- Slicer:
 					- Optional lines indicating other slicer positions
 					- Alternate color scheme for slicer/axis colors
@@ -63,10 +61,18 @@
 					- Option to hide ruler/scalar bar
 					- Compression level option for slice .png export
 					- (Arbitrary ->) Free slice plane: show plane parameters
-				- Proper dependency handling for filter parameters in GUI (parameters currently unavailable because of others are disabled)
-				- Option to hide slicer/renderer title bar
-				- Mesh renderer: Point/wireframe/surface option
-				- ARM compatibility
+					- Fix 0.5 spacing shift of linked slicers
+				- Annotations:
+					- Also shown in VR with new VRAnnotations module
+					- Automatic positioning of new annotations in renderer/slicer
+				- Surface/Mesh filters:
+					- Fix crash on flying edge surface extraction
+					- Split up combined surface extraction + simplification into separate filters
+					- add triangles/normal computation filters
+				- Remove outdated/unmaintained modules:
+					- Astra reconstruction
+					- Foam Characterization
+					- Uncertainty
 				- ... and many more minor improvements and fixes, see https://github.com/3dct/open_iA/compare/2024.9...2025.4
 			open_iA is now also built automatically through github actions (see https://github.com/3dct/open_iA/actions)
 			</description>
