@@ -687,8 +687,11 @@ void iASlicerImpl::applySettings( QVariantMap const & settings )
 	// from settings if decorations turned on:
 	m_settings[iASlicerImpl::ShowTooltip] = m_settings[iASlicerImpl::ShowTooltip].toBool() && m_decorations;
 	m_textInfo->setFontSize(settings[iASlicerImpl::ToolTipFontSize].toInt());
-	m_axisTextActor[0]->GetCaptionTextProperty()->SetFontSize(1.2 * settings[iASlicerImpl::ToolTipFontSize].toInt());
-	m_axisTextActor[1]->GetCaptionTextProperty()->SetFontSize(1.2 * settings[iASlicerImpl::ToolTipFontSize].toInt());
+	if (m_decorations)
+	{
+		m_axisTextActor[0]->GetCaptionTextProperty()->SetFontSize(1.2 * settings[iASlicerImpl::ToolTipFontSize].toInt());
+		m_axisTextActor[1]->GetCaptionTextProperty()->SetFontSize(1.2 * settings[iASlicerImpl::ToolTipFontSize].toInt());
+	}
 	setBackground(variantToColor(settings[iASlicerImpl::BackgroundColor]));
 	m_textInfo->show(m_settings[iASlicerImpl::ShowTooltip].toBool());
 	setMagicLensFrameWidth(m_settings[iASlicerImpl::MagicLensFrameWidth].toInt());
