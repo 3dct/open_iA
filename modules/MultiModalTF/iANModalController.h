@@ -81,7 +81,7 @@ private:
 
 	iAMdiChild* m_mdiChild;
 	QList<std::shared_ptr<iAImageData>> m_dataSets;
-	QList<std::shared_ptr<iANModalTFManager>> m_tfs;
+	QMap<size_t, std::shared_ptr<iANModalTFManager>> m_tfs;
 	vtkSmartPointer<vtkImageData> m_mask;
 	QMap<int, std::shared_ptr<iAImageData>> m_mapOverlayImageId2dataSet;
 	QMap<size_t, int> m_dataSetIdx2HistIdx;

@@ -410,7 +410,7 @@ void iANModalController::setDataSets(const QList<std::shared_ptr<iAImageData>>& 
 			LOG(lvlWarn, QString("No display data found for dataset %1!").arg(dataSet->name()));
 			continue;
 		}
-		m_tfs.append(std::make_shared<iANModalTFManager>(viewer->transfer()));
+		m_tfs.insert(dataSetIdx, std::make_shared<iANModalTFManager>(viewer->transfer()));
 		resetTf(dataSetIdx);
 	}
 }
@@ -469,9 +469,10 @@ void iANModalController::addSeeds(const QList<iANModalSeed>& seeds, const iANMod
 	{
 		auto dataSet = m_mapOverlayImageId2dataSet.value(seed.overlayImageId);
 		unsigned int x = dataSet->vtkImage()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
-		auto i = m_dataSets.lastIndexOf(dataSet);
-		assert(m_tfs.size() > 0);
-		auto tf = m_tfs[i];
+		//auto i = m_dataSets.lastIndexOf(dataSet);
+		//assert(m_tfs.size() > 0);
+		size_t dataSetIdx = m_mdiChild->dataSetIndex(dataSet.get());
+		auto tf = m_tfs[dataSetIdx];
 		tf->addControlPoint(x, label);
 	}
 	for (auto tf : m_tfs)
@@ -489,8 +490,9 @@ void iANModalController::removeSeeds(const QList<iANModalSeed>& seeds)
 	{
 		auto dataSet = m_mapOverlayImageId2dataSet.value(seed.overlayImageId);
 		unsigned int x = dataSet->vtkImage()->GetScalarComponentAsDouble(seed.x, seed.y, seed.z, 0);
-		auto i = m_dataSets.lastIndexOf(dataSet);
-		auto tf = m_tfs[i];
+		//auto i = m_dataSets.lastIndexOf(dataSet);
+		size_t dataSetIdx = m_mdiChild->dataSetIndex(dataSet.get());
+		auto tf = m_tfs[dataSetIdx];
 		tf->removeControlPoint(x);
 	}
 	for (auto tf : m_tfs)
