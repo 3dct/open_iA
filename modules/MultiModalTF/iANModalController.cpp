@@ -29,7 +29,6 @@
 #include <iAPlotTypes.h>
 
 #include <iALog.h>
-#include <iAPerformanceHelper.h>
 
 #include <vtkCamera.h>
 #include <vtkColorTransferFunction.h>
@@ -622,20 +621,10 @@ void iANModalController::updateHistograms()
 template <typename PixelType>
 void iANModalController::updateMainSlicers()
 {
-	iATimeAdder ta_color;
-	iATimeAdder ta_opacity;
-
 	const auto numDataSets = m_dataSets.size();
-
-	iATimeGuard testAll("Process (2D) slice images");
 
 	for (int mainSlicerIndex = 0; mainSlicerIndex < NUM_SLICERS; ++mainSlicerIndex)
 	{
-		QString testSliceCaption = QString("Process (2D) slice image %1/%2")
-									   .arg(QString::number(mainSlicerIndex + 1))
-									   .arg(QString::number(NUM_SLICERS));
-		iATimeGuard testSlice(testSliceCaption.toStdString());
-
 		auto slicerMode = slicerModes[mainSlicerIndex];
 		auto slicer = m_mdiChild->slicer(slicerMode);
 		std::vector<vtkSmartPointer<vtkImageData>> sliceImgs2D(numDataSets);
@@ -670,8 +659,6 @@ void iANModalController::updateMainSlicers()
 			assert(sliceImg2D->GetNumberOfScalarComponents() == 1);
 			//assert(sliceImg2D->GetScalarType() == VTK_UNSIGNED_SHORT);
 		}
-
-		testSlice.time("All info gathered");
 
 		auto sliceImg2D_out = m_sliceImages2D[mainSlicerIndex];
 
@@ -731,14 +718,8 @@ void iANModalController::updateMainSlicers()
 					sliceImgs2D[ds_i], x, y, z
 #endif
 				);
-				ta_color.resume();
 				const unsigned char* color = sliceColorTf[ds_i]->MapValue(scalar);  // 4 bytes (RGBA)
-				ta_color.pause();
-
-				ta_opacity.resume();
 				float opacity = sliceOpacityTf[ds_i]->GetValue(scalar);
-				ta_opacity.pause();
-
 				colors[ds_i] = {color[0], color[1], color[2]};  // RGB (ignore A)
 				opacities[ds_i] = opacity;
 				opacitySum += opacity;
@@ -773,24 +754,9 @@ void iANModalController::updateMainSlicers()
 			);
 		}  // end of FOR_VTKIMG_PIXELS
 
-		testSlice.time("All voxels processed");
-
 		sliceImg2D_out->Modified();
 		slicer->channel(0)->imageActor()->SetInputData(sliceImg2D_out);
 	}
-
-	double time_color = ta_color.elapsed();
-	double time_opacity = ta_opacity.elapsed();
-
-	QString duration_color = formatDuration(time_color);
-	QString duration_opacity = formatDuration(time_opacity);
-	QString duration_both = formatDuration(time_color + time_opacity);
-
-	LOG(lvlInfo, "Accumulated time for color TF mapping: " + duration_color);
-	LOG(lvlInfo, "Accumulated time for opacity TF mapping: " + duration_opacity);
-	LOG(lvlInfo, "Accumulated time for color + opacity TF mapping: " + duration_both);
-
-	testAll.time("Done!");
 
 	for (int i = 0; i < NUM_SLICERS; ++i)
 	{
