@@ -65,7 +65,7 @@ void iANModalTFManager::update()
 	// Naive parallelization of this loop here.
 	// Because of that, the result may contain more than two adjacent control points with the same color/opacity.
 	// That's ok though :)
-	iATimeGuard* tg = new iATimeGuard("Go through all 65536 control points");
+	//iATimeGuard* tg = new iATimeGuard("Go through all 65536 control points");
 #pragma omp parallel
 	{
 		bool repeated = false;
@@ -103,7 +103,7 @@ void iANModalTFManager::update()
 			addControlPointToTfs(prev);
 		}
 	}  // end of parallel block
-	delete tg;
+	//delete tg;
 
 	assert(m_tf->colorTF()->GetSize() == m_tf->opacityTF()->GetSize());
 

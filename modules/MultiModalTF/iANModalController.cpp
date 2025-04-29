@@ -165,7 +165,7 @@ inline iASlicer* iANModalController::initializeSlicer(std::shared_ptr<iAImageDat
 	auto slicerMode = iASlicerMode::XY;
 	int sliceNumber = m_mdiChild->slicer(slicerMode)->sliceNumber();
 	// Hide everything except the slice itself
-	auto slicer = new iASlicerImpl(nullptr, slicerMode, /*bool decorations = */ false);
+ 	auto slicer = new iASlicerImpl(nullptr, slicerMode, /*bool decorations = */ false);
 	slicer->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
 
 	auto image = dataSet->vtkImage();

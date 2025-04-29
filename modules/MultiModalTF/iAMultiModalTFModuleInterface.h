@@ -4,19 +4,14 @@
 
 #include <iAGUIModuleInterface.h>
 
-class dlg_tf_2mod;
-class dlg_tf_3mod;
-
-class iATripleHistogramTFTool;
-
-class iATripleHistogramTFModuleInterface : public iAGUIModuleInterface
+class iAMultiModalTFModuleInterface : public iAGUIModuleInterface
 {
 	Q_OBJECT
 public:
 	void Initialize() override;
-private:
-	iATripleHistogramTFTool* getOrCreateTool();
 private slots:
+	void nModalTF();
+	void modalitySPLOM();
 	void menuItemSelected_2mod();
 	void menuItemSelected_3mod();
 };
