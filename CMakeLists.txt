@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.26...3.29 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.26...4.0 FATAL_ERROR)
 # 3.26 required for copy_directory_if_different
 project(open_iA LANGUAGES CXX)
 
