@@ -2138,14 +2138,11 @@ void dlg_FeatureScout::showLengthDistribution(bool show, vtkScalarsToColors* lut
 void dlg_FeatureScout::itemClicked(const QModelIndex& index)
 {
 	showLengthDistribution(false);
-
 	// Gets right item depending on whether click was on class 'level'
 	auto item = (index.parent().row() == -1) ?
 		m_classTreeModel->item(index.row(), 0):
 		m_classTreeModel->itemFromIndex(index);
-
-	// Selected an empty class - nothing to render!
-	if (item->rowCount() == 0 && item->parent() == m_classTreeModel->invisibleRootItem())
+	if (!item->hasChildren() && item->parent() == nullptr)
 	{
 		QMessageBox::information(m_activeChild, "FeatureScout", "This class contains no object, nothing to show!");
 		return;
