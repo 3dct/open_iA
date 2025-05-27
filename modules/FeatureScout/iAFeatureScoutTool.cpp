@@ -171,12 +171,6 @@ bool iAFeatureScoutTool::init(iAMdiChild* child, iACsvConfig const& csvConfig, s
 	else
 	{
 		m_objDataSetIdx = m_child->addDataSet(objData);
-		connect(m_child, &iAMdiChild::dataSetRemoved, [this](size_t removedDataSetIdx) {
-			if (m_objDataSetIdx == removedDataSetIdx)
-			{   // FeatureScout will not work if object dataset is removed, it depends on object visualization being available
-				m_child->removeTool(iAFeatureScoutTool::ID);
-			}
-			});
 		auto viewer = dynamic_cast<iAObjectsViewer*>(m_child->dataSetViewer(m_objDataSetIdx));
 		objVis = viewer->objectVis();
 		auto colorPolyObjVis = dynamic_cast<iAColoredPolyObjectVis*>(objVis);
@@ -191,6 +185,13 @@ bool iAFeatureScoutTool::init(iAMdiChild* child, iACsvConfig const& csvConfig, s
 		auto renderer = dynamic_cast<iAObjectsRenderer*>(viewer->renderer());
 		connect(renderer->visActor(), &iAObjectVisActor::updated, m_child, &iAMdiChild::updateRenderer);
 	}
+	connect(m_child, &iAMdiChild::dataSetRemoved, [this](size_t removedDataSetIdx)
+	{
+		if (m_objDataSetIdx == removedDataSetIdx)
+		{  // FeatureScout will not work if object dataset is removed, it depends on object visualization being available
+			m_child->removeTool(iAFeatureScoutTool::ID);
+		}
+	});
 	m_featureScout = new dlg_FeatureScout(m_child, csvConfig.objectType, csvConfig.fileName, objData.get(), objVis);
 
 	iAFeatureScoutToolbar::addForChild(m_mainWindow, child);
