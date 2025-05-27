@@ -2287,11 +2287,6 @@ void dlg_FeatureScout::setActiveClassItem(QStandardItem* item)
 
 void dlg_FeatureScout::recalculateChartTable(QStandardItem* item)
 {
-	if (!item->hasChildren())
-	{
-		return;
-	}
-
 	auto table = vtkSmartPointer<vtkTable>::New();
 	auto arr = vtkSmartPointer<vtkIntArray>::New();
 	arr->SetName(m_chartTable->GetColumnName(0));
@@ -2305,17 +2300,18 @@ void dlg_FeatureScout::recalculateChartTable(QStandardItem* item)
 	auto arrI = vtkSmartPointer<vtkIntArray>::New();
 	arrI->SetName(m_chartTable->GetColumnName(m_colCnt - 1));
 	table->AddColumn(arrI);
+	int rowCount = item->rowCount();
+	table->SetNumberOfRows(rowCount);
 
-	int oCount = item->rowCount();
-	table->SetNumberOfRows(oCount);
-
-	int csvID = 0;
-	for (int j = 0; j < oCount; ++j)
+	if (item->hasChildren())
 	{
-		csvID = item->child(j)->text().toInt();
-		auto arrRow = vtkSmartPointer<vtkVariantArray>::New();
-		m_csvTable->GetRow(csvID - 1, arrRow);
-		table->SetRow(j, arrRow);
+		for (int j = 0; j < rowCount; ++j)
+		{
+			int csvID = item->child(j)->text().toInt();
+			auto arrRow = vtkSmartPointer<vtkVariantArray>::New();
+			m_csvTable->GetRow(csvID - 1, arrRow);
+			table->SetRow(j, arrRow);
+		}
 	}
 	int itemID = item->index().row();
 	if (itemID < m_tableList.size())
