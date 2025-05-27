@@ -2413,14 +2413,14 @@ void dlg_FeatureScout::showContextMenu(const QPoint& pnt)
 	QList<QAction*> actions;
 	if (m_classTreeView->indexAt(pnt).isValid())
 	{
-		if (item->hasChildren()) // actions for classes:
-		{
+		if (item->hasChildren())
+		{	// actions for classes:
 			actions.append(m_blobRendering);
 			actions.append(m_blobRemoveRendering);
 			actions.append(m_saveBlobMovie);
 		}
 		else if (item->parent() && item->parent()->index().row() != 0)
-		{                        // actions for single objects:
+		{	// actions for single objects, not in unclassified:
 			actions.append(m_objectDelete);
 		}
 	}
