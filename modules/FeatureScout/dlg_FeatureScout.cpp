@@ -2433,56 +2433,42 @@ void dlg_FeatureScout::showContextMenu(const QPoint& pnt)
 void dlg_FeatureScout::deleteObject()
 {
 	QStandardItem* item = m_classTreeModel->itemFromIndex(m_classTreeView->currentIndex());
-	if (item->hasChildren())
-	{
-		return;
+	if (item->hasChildren() ||  // defensive programming: if item is a class
+		item->parent()->index() == m_classTreeModel->invisibleRootItem()->child(0)->index())
+	{                           // or if it is an unclassified item
+		return;                 // do nothing
 	}
+	int oID = item->text().toInt();
+	m_csvTable->SetValue(oID - 1, m_colCnt - 1, 0);
 
-	// if the parent item is the unclassified item
-	if (item->parent()->index() == m_classTreeModel->invisibleRootItem()->child(0)->index())
+	QStandardItem* unclassifiedItem = m_classTreeModel->invisibleRootItem()->child(0);
+	QStandardItem* newItem = new QStandardItem(QString("%1").arg(oID));
+
+	if (unclassifiedItem->rowCount() == 0 || oID < unclassifiedItem->child(0)->text().toInt())
 	{
-		QMessageBox::information(m_activeChild, "FeatureScout", "An object in the unclassified class can not be deleted.");
-		return;
+		unclassifiedItem->insertRow(0, newItem);
 	}
-
-	if (item->parent()->rowCount() == 1)
+	else if (oID > unclassifiedItem->child(unclassifiedItem->rowCount() - 1)->text().toInt())
 	{
-		classDeleteButton();
+		unclassifiedItem->appendRow(newItem);
 	}
 	else
 	{
-		int oID = item->text().toInt();
-		m_csvTable->SetValue(oID - 1, m_colCnt - 1, 0);
-
-		QStandardItem* sItem = m_classTreeModel->invisibleRootItem()->child(0);
-		QStandardItem* newItem = new QStandardItem(QString("%1").arg(oID));
-
-		if (oID == 1 || sItem->rowCount() == 0)
+		int i = 0;
+		while (oID > unclassifiedItem->child(i)->text().toInt())
 		{
-			sItem->insertRow(0, newItem);
+			++i;
 		}
-		else if (oID > sItem->child(sItem->rowCount() - 1)->text().toInt())
-		{
-			sItem->appendRow(newItem);
-		}
-		else
-		{
-			int i = 0;
-			while (oID > sItem->child(i)->text().toInt())
-			{
-				++i;
-			}
-			sItem->insertRow(i, newItem);
-		}
-		updateClassStatistics(sItem);
-		recalculateChartTable(sItem);
-
-		QStandardItem* rItem = item->parent();
-		rItem->removeRow(item->index().row());
-		updateClassStatistics(rItem);
-		recalculateChartTable(rItem);
-		setActiveClassItem(rItem);
+		unclassifiedItem->insertRow(i, newItem);
 	}
+	updateClassStatistics(unclassifiedItem);
+	recalculateChartTable(unclassifiedItem);
+
+	QStandardItem* removeItem = item->parent();
+	removeItem->removeRow(item->index().row());
+	updateClassStatistics(removeItem);
+	recalculateChartTable(removeItem);
+	setActiveClassItem(removeItem);
 }
 
 void dlg_FeatureScout::updateClassStatistics(QStandardItem* item)
