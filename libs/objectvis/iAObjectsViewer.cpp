@@ -174,6 +174,11 @@ void iAObjectsRenderer::removeCuttingPlane(vtkPlane* p)
 	}
 }
 
+iAObjectVisActor* iAObjectsRenderer::visActor()
+{
+	return m_objActor.get();
+}
+
 void iAObjectsRenderer::showDataSet()
 {
 	if (m_objActor)

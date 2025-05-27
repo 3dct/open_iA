@@ -31,6 +31,7 @@ public:
 
 	void addCuttingPlane(vtkPlane* p) override;
 	void removeCuttingPlane(vtkPlane* p) override;
+	iAObjectVisActor* visActor();
 
 private:
 	void showDataSet() override;

@@ -10,6 +10,7 @@
 #include <iALabeledVolumeVis.h>
 #include <iAObjectsData.h>
 #include <iAObjectsViewer.h>
+#include <iAObjectVisActor.h>
 #include <iAObjectVisFactory.h>
 
 #include <iAMainWindow.h>
@@ -164,6 +165,8 @@ bool iAFeatureScoutTool::init(iAMdiChild* child, iACsvConfig const& csvConfig, s
 		QColor defaultColor(dlg_FeatureScout::UnclassifiedColorName);
 		m_objVis = std::make_shared<iALabeledVolumeVis>(tf, objData.get(), bounds);
 		objVis = m_objVis.get();
+		connect(objVis, &iAObjectVis::dataChanged, m_child, &iAMdiChild::updateRenderer);
+		connect(objVis, &iAObjectVis::renderRequired, m_child, &iAMdiChild::updateRenderer);
 	}
 	else
 	{
@@ -185,6 +188,8 @@ bool iAFeatureScoutTool::init(iAMdiChild* child, iACsvConfig const& csvConfig, s
 		{
 			LOG(lvlWarn, "FeatureScout: No colored poly object vis encountered where one was expected");
 		}
+		auto renderer = dynamic_cast<iAObjectsRenderer*>(viewer->renderer());
+		connect(renderer->visActor(), &iAObjectVisActor::updated, m_child, &iAMdiChild::updateRenderer);
 	}
 	m_featureScout = new dlg_FeatureScout(m_child, csvConfig.objectType, csvConfig.fileName, objData.get(), objVis);
 
