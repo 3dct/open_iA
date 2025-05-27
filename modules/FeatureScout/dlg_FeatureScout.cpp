@@ -147,10 +147,10 @@ namespace
 		return sum / arr->GetNumberOfTuples();
 	}
 
-	QList<QStandardItem*> prepareRow(const QString& first, const QString& second, const QString& third)
+	//! prepare the class header rows for a class in tree view (first grade child unter root item)
+	//! for adding objects to this class, use item.first()->appendRow()
+	QList<QStandardItem*> prepareClassRow(const QString& first, const QString& second, const QString& third)
 	{
-		// prepare the class header rows for class tree view first grade child unter rootitem
-		// for adding child object to this class, use item.first()->appendRow()
 		QList<QStandardItem*> rowItems;
 		rowItems << new QStandardItem(first);
 		rowItems << new QStandardItem(second);
@@ -426,18 +426,17 @@ void dlg_FeatureScout::setupClassExplorer()
 	m_classTreeModel->setHorizontalHeaderItem(0, new QStandardItem("Class"));
 	m_classTreeModel->setHorizontalHeaderItem(1, new QStandardItem("Count"));
 	m_classTreeModel->setHorizontalHeaderItem(2, new QStandardItem("Percent"));
-	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
-	QList<QStandardItem*> stammItem = prepareRow("Unclassified", QString("%1").arg(m_objCnt), "100");
-	stammItem.first()->setData(QColor(UnclassifiedColorName), Qt::DecorationRole);
+	auto unclassifiedItem = prepareClassRow("Unclassified", QString("%1").arg(m_objCnt), "100");
+	unclassifiedItem.first()->setData(QColor(UnclassifiedColorName), Qt::DecorationRole);
 	m_colorList.push_back(QColor("darkGray"));
-	rootItem->appendRow(stammItem);
+	m_classTreeModel->invisibleRootItem()->appendRow(unclassifiedItem);
 	for (int i = 0; i < m_objCnt; ++i)
 	{
 		vtkVariant v = m_chartTable->GetColumn(0)->GetVariantValue(i);
-		QStandardItem* item = new QStandardItem(QString::fromUtf8(v.ToString().c_str()).trimmed());
-		stammItem.first()->appendRow(item);
+		auto objectItem = new QStandardItem(QString::fromUtf8(v.ToString().c_str()).trimmed());
+		unclassifiedItem.first()->appendRow(objectItem);
 	}
-	m_activeClassItem = stammItem.first();
+	m_activeClassItem = unclassifiedItem.first();
 	m_classTreeView->setContextMenuPolicy(Qt::CustomContextMenu);
 	m_classExplorer->ClassLayout->addWidget(m_classTreeView);
 	m_classExplorer->ElementLayout->addWidget(m_elementTableView);
@@ -610,10 +609,8 @@ void dlg_FeatureScout::multiClassRendering()
 		return;
 	}
 	showOrientationDistribution();
-	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
-	int classCount = rootItem->rowCount();
-
-	if (classCount == 1)
+	auto rootItem = m_classTreeModel->invisibleRootItem();
+	if (rootItem->rowCount() == 1)  // currently, only 1 class exists
 	{
 		return;
 	}
@@ -938,12 +935,10 @@ void dlg_FeatureScout::classAddButton()
 		return;
 	}
 	m_colorList.push_back(cColor);
-	// get the root item from class tree
-	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
 
-	// create a first level child under rootItem as new class
+	auto rootItem = m_classTreeModel->invisibleRootItem();
 	double percent = 100.0 * CountObject / m_objCnt;
-	auto newClassRow = prepareRow(cText, QString("%1").arg(CountObject), QString::number(percent, 'f', 1));
+	auto newClassRow = prepareClassRow(cText, QString("%1").arg(CountObject), QString::number(percent, 'f', 1));
 	auto newClassItem = newClassRow.first();
 	newClassItem->setData(cColor, Qt::DecorationRole);
 
@@ -1662,10 +1657,10 @@ void dlg_FeatureScout::loadClassesXML(QXmlStreamReader& reader)
 				const auto count = reader.attributes().value(CountAttribute).toString();
 				const auto percent = reader.attributes().value(PercentAttribute).toString();
 
-				QList<QStandardItem*> stammItem = prepareRow(name, count, percent);
-				stammItem.first()->setData(color, Qt::DecorationRole);
+				auto classItem = prepareClassRow(name, count, percent);
+				classItem.first()->setData(color, Qt::DecorationRole);
 				m_colorList.append(color);
-				rootItem->appendRow(stammItem);
+				rootItem->appendRow(classItem);
 				activeItem = rootItem->child(idxClass);
 				++idxClass;
 			}
@@ -1689,24 +1684,23 @@ void dlg_FeatureScout::loadClassesXML(QXmlStreamReader& reader)
 void dlg_FeatureScout::classDeleteButton()
 {
 	QStandardItem* rootItem = m_classTreeModel->invisibleRootItem();
-	QStandardItem* stammItem = rootItem->child(0);
+	QStandardItem* unclassifiedItem = rootItem->child(0);
 	if (m_activeClassItem->index().row() == 0)
 	{
 		QMessageBox::warning(m_activeChild, "FeatureScout", "You are trying to delete the unclassified class, please select another class.");
 		return;
 	}
 
-	// define a list to sort the items in stammItem
-	QList<int> list;
-	// get Class_ID
 	int deleteClassID = m_activeClassItem->index().row();
 	int countActive = m_activeClassItem->rowCount();
 
-	// append stamm item values to list
-	for (int i = 0; i < stammItem->rowCount(); ++i)
+	QList<int> list;  //< a list to sort items in unclassified
+	// append existing unclassified item values to list:
+	for (int i = 0; i < unclassifiedItem->rowCount(); ++i)
 	{
-		list.append(stammItem->child(i)->text().toInt());
+		list.append(unclassifiedItem->child(i)->text().toInt());
 	}
+	// append items from deleted class to unclassified:
 	for (int j = 0; j < countActive; ++j)
 	{
 		int labelID = m_activeClassItem->child(j)->text().toInt();
@@ -1716,14 +1710,13 @@ void dlg_FeatureScout::classDeleteButton()
 		list.append(labelID);
 	}
 	m_splom->classDeleted(deleteClassID);
-	// sort the new stamm list
-	std::sort(list.begin(), list.end());
-	// give the values from list to stammitem
-	stammItem->removeRows(0, stammItem->rowCount());
-	for (int k = 0; k < list.size(); ++k)
+
+	std::sort(list.begin(), list.end());  // sort items for new unclassified list
+	unclassifiedItem->removeRows(0, unclassifiedItem->rowCount());  // clear unclassified
+	for (int k = 0; k < list.size(); ++k) // re-add sorted items
 	{
 		QStandardItem* item = new QStandardItem(QString("%1").arg(list.at(k)));
-		stammItem->appendRow(item);
+		unclassifiedItem->appendRow(item);
 	}
 
 	// remove the deleted class from tree view, its entry in m_tableList and its color
@@ -1756,9 +1749,9 @@ void dlg_FeatureScout::classDeleteButton()
 		}
 	}
 
-	updateClassStatistics(stammItem);
-	recalculateChartTable(stammItem);
-	setActiveClassItem(stammItem);
+	updateClassStatistics(unclassifiedItem);
+	recalculateChartTable(unclassifiedItem);
+	setActiveClassItem(unclassifiedItem);
 	QSignalBlocker ctvBlocker(m_classTreeView);
 	m_classTreeView->setCurrentIndex(m_classTreeView->model()->index(0, 0));
 

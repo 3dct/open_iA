@@ -228,6 +228,5 @@ private:
 
 	std::shared_ptr<iAFeatureScoutSPLOM> m_splom;
 	iAObjectVis* m_3dvis;  //!< object visualization; FeatureScout is NOT owner (typically, dataset viewer is)
-	std::shared_ptr<iAObjectVisActor> m_3dactor;
 	std::shared_ptr<iAMeanObject> m_meanObject;
 };
