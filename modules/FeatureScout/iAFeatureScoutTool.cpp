@@ -171,6 +171,26 @@ bool iAFeatureScoutTool::init(iAMdiChild* child, iACsvConfig const& csvConfig, s
 	else
 	{
 		m_objDataSetIdx = m_child->addDataSet(objData);
+		// workaround for potential race condition - not ideal!
+		auto renderer = dynamic_cast<iAObjectsRenderer*>(m_child->dataSetViewer(m_objDataSetIdx)->renderer());
+		if (renderer)
+		{
+			LOG(lvlDebug, "Direct connect");
+			connect(renderer->visActor(), &iAObjectVisActor::updated, m_child, &iAMdiChild::updateRenderer);
+		}
+		else
+		{
+			connect(m_child, &iAMdiChild::dataSetRendered, this, [this](size_t dataSetIdx)
+			{
+				if (dataSetIdx != m_objDataSetIdx)
+				{
+					return;
+				}
+				LOG(lvlDebug, "Indirect connect");
+				auto renderer = dynamic_cast<iAObjectsRenderer*>(m_child->dataSetViewer(m_objDataSetIdx)->renderer());
+				connect(renderer->visActor(), &iAObjectVisActor::updated, m_child, &iAMdiChild::updateRenderer);
+			});
+		}
 		auto viewer = dynamic_cast<iAObjectsViewer*>(m_child->dataSetViewer(m_objDataSetIdx));
 		objVis = viewer->objectVis();
 		auto colorPolyObjVis = dynamic_cast<iAColoredPolyObjectVis*>(objVis);
@@ -182,8 +202,6 @@ bool iAFeatureScoutTool::init(iAMdiChild* child, iACsvConfig const& csvConfig, s
 		{
 			LOG(lvlWarn, "FeatureScout: No colored poly object vis encountered where one was expected");
 		}
-		auto renderer = dynamic_cast<iAObjectsRenderer*>(viewer->renderer());
-		connect(renderer->visActor(), &iAObjectVisActor::updated, m_child, &iAMdiChild::updateRenderer);
 	}
 	connect(m_child, &iAMdiChild::dataSetRemoved, [this](size_t removedDataSetIdx)
 	{
