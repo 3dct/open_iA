@@ -28,11 +28,15 @@ void iAFeatureScoutToolbar::addForChild(iAMainWindow* mainWnd, iAMdiChild* child
 	}
 	connect(child, &iAMdiChild::closed, tlbFeatureScout, [child]
 	{
+		if (!tlbFeatureScout)
+		{
+			return;
+		}
 		iAFeatureScoutToolbar::tlbFeatureScout->childClosed(child);
 	});
 	connect(child, &iAMdiChild::toolRemoved, tlbFeatureScout, [](QString const& key)
 	{
-		if (key == iAFeatureScoutTool::ID)
+		if (tlbFeatureScout && key == iAFeatureScoutTool::ID)
 		{
 			iAFeatureScoutToolbar::tlbFeatureScout->childClosed(nullptr);
 		}
