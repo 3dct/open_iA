@@ -270,7 +270,7 @@
     <bool>true</bool>
    </property>
    <property name="windowTitle">
-    <string>Tools</string>
+    <string>Slicer</string>
    </property>
    <property name="iconSize">
     <size>
@@ -291,7 +291,7 @@
   </widget>
   <widget class="QToolBar" name="rendererToolbar">
    <property name="windowTitle">
-    <string>RayCaster</string>
+    <string>3D Renderer</string>
    </property>
    <property name="iconSize">
     <size>
@@ -341,7 +341,7 @@
   </widget>
   <widget class="QToolBar" name="interactionToolbar">
    <property name="windowTitle">
-    <string>toolBar</string>
+    <string>Interaction Mode</string>
    </property>
    <property name="iconSize">
     <size>
