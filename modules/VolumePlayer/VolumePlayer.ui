@@ -155,6 +155,7 @@
              </item>
             </layout>
            </item>
+<!--
            <item>
             <widget class="QCheckBox" name="blending">
              <property name="text">
@@ -162,6 +163,7 @@
              </property>
             </widget>
            </item>
+-->
            <item>
             <layout class="QVBoxLayout" name="SpeedLayout">
              <item>

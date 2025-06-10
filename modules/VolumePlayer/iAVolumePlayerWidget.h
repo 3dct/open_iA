@@ -29,7 +29,7 @@ private:
 	size_t listToVolumeIndex(int listIndex);
 	int getNumberOfCheckedVolumes();
 	void adjustSliderMax();
-	bool m_isBlendingOn;
+	//bool m_isBlendingOn;
 	QTimer m_timer;
 	int m_old_r;
 	int m_dimColumn, m_spacColumn, m_fileColumn, m_checkColumn, m_sortColumn;
@@ -60,7 +60,7 @@ private slots:
 	void fileNameActive();
 	void spacingActive();
 	void dimensionsActive();
-	void blendingStateChanged(int state);
+	//void blendingStateChanged(int state);
 	void enableVolume(int state);
 	void applyForAll();
 };

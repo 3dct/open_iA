@@ -53,7 +53,7 @@ namespace
 	const float TimerMinFPS = 0.25f;
 	const float TimerMaxFPS = 20.0f;
 	const int MilliSecondsPerSecond = 1000;
-	const int BlendSteps = 100;
+	//const int BlendSteps = 100;
 	const int NumberOfColumns = 5;
 	const auto NoStep = -1;
 	const auto NoVolIdx = std::numeric_limits<size_t>::max();
@@ -68,7 +68,7 @@ iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolu
 	m_child(child)
 {
 	m_ui->setupUi(this);
-	m_isBlendingOn = m_ui->blending->isChecked();
+	//m_isBlendingOn = m_ui->blending->isChecked();
 	setSpeed();
 
 	m_ui->volumeSlider->setMaximum(static_cast<int>(m_volumeViewers.size() - 1));
@@ -87,11 +87,13 @@ iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolu
 	connect(m_ui->tbApplyForAll, &QToolButton::clicked, this, &iAVolumePlayerWidget::applyForAll);
 	connect(m_ui->dataTable->horizontalHeader(), &QHeaderView::sectionClicked, this, &iAVolumePlayerWidget::selectAll);
 	connect(&m_timer, &QTimer::timeout, this, &iAVolumePlayerWidget::nextVolume);
+/*
 #if QT_VERSION < QT_VERSION_CHECK(6, 7, 0)
 	connect(m_ui->blending, &QCheckBox::stateChanged, this, &iAVolumePlayerWidget::blendingStateChanged);
 #else
 	connect(m_ui->blending, &QCheckBox::checkStateChanged, this, &iAVolumePlayerWidget::blendingStateChanged);
 #endif
+*/
 
 	m_ui->sbSpeed->setMinimum(TimerMinFPS);
 	m_ui->sbSpeed->setMaximum(TimerMaxFPS);
@@ -163,7 +165,7 @@ iAVolumePlayerWidget::~iAVolumePlayerWidget() = default;
 
 void iAVolumePlayerWidget::applyForAll()
 {
-	assert(!m_isBlendingOn);
+	//assert(!m_isBlendingOn);
 	auto currentIdx = listToVolumeIndex(m_ui->volumeSlider->value());
 	auto tf = m_volumeViewers[currentIdx]->transfer();
 	for (size_t i = 0; i < m_volumeViewers.size(); ++i)
@@ -197,18 +199,18 @@ void iAVolumePlayerWidget::sliderChanged()
 {
 	int step = m_ui->volumeSlider->value();
 	//if (m_isBlendingOn)
-	{
+	//{
 		//float listIdx = static_cast<float>(step / BlendSteps);
 		//QSet<size_t> tohide;
 		//if (m_prevVolIdx.first != NoVolIdx && m_prevVolIdx.second != NoVolIdx &&
-		//	m_prevVolIdx.first != std::floor(listToVolumeIndex(listIdx)) || m_prevVolIdx.second != std::ceil(listToVolumeIndex(listIdx)))
+		//      m_prevVolIdx.first != std::floor(listToVolumeIndex(listIdx)) || m_prevVolIdx.second != std::ceil(listToVolumeIndex(listIdx)))
 		//{
-		//	tohide.insert(m_prevVolIdx.first);
-		//	tohide.insert(m_prevVolIdx.second);
+		//      tohide.insert(m_prevVolIdx.first);
+		//      tohide.insert(m_prevVolIdx.second);
 		//}
 		//if (step % BlendSteps == 0)
 		//{
-		//	tohide.insert(m_prevVolIdx.first);  // possibly not accurate, does this consider each case (automatic/manual switching?)
+		//      tohide.insert(m_prevVolIdx.first);  // possibly not accurate, does this consider each case (automatic/manual switching?)
 		//}
 		//auto fadeOutVolIdx = listToVolumeIndex(std::floor(listIdx));
 		//auto fadeInVolIdx = listToVolumeIndex(static_cast<int>(std::trunc(listIdx + 1)) % getNumberOfCheckedVolumes());
@@ -219,34 +221,36 @@ void iAVolumePlayerWidget::sliderChanged()
 		//
 		//for (auto h : tohide)
 		//{
-		//	if (!toshow.contains(h))
-		//	{
-		//		m_volumeViewers[h]->renderer()->setVisible(false);
-		//	}
+		//      if (!toshow.contains(h))
+		//      {
+		//              m_volumeViewers[h]->renderer()->setVisible(false);
+		//      }
 		//}
 		//for (auto s : toshow)
 		//{
-		//	m_volumeViewers[s]->renderer()->setVisible(true);
+		//      m_volumeViewers[s]->renderer()->setVisible(true);
 		//}
 		//// actual blending: modify TF - store original somewhere...
 		//for ()
 		//m_volumeViewers[fadeOutVolIdx]->transfer()->opacityTF
-
-	}
+	//}
 	//else
-	{
+	//{
 		if (m_prevVolIdx.first != NoVolIdx)
 		{
 			m_volumeViewers[m_prevVolIdx.first]->renderer()->setVisible(false);
 			m_volumeViewers[m_prevVolIdx.first]->showInSlicers(false);
 		}
 		auto volIdx = listToVolumeIndex(step);
-		m_volumeViewers[volIdx]->renderer()->setVisible(true);
-		m_child->updateRenderer();    // maybe do update in viewer?
-		m_volumeViewers[volIdx]->showInSlicers(true);
-		m_child->updateSlicers();     // maybe do update in viewer?
-		m_prevVolIdx.first = volIdx;
-	}
+		if (volIdx != NoVolIdx)
+		{
+			m_volumeViewers[volIdx]->renderer()->setVisible(true);
+			m_child->updateRenderer();    // maybe do update in viewer?
+			m_volumeViewers[volIdx]->showInSlicers(true);
+			m_child->updateSlicers();     // maybe do update in viewer?
+			m_prevVolIdx.first = volIdx;
+		}
+	//}
 }
 
 void iAVolumePlayerWidget::stopVolume()
@@ -271,8 +275,16 @@ void iAVolumePlayerWidget::setChecked(int r, int /*c*/)
 {
 	for (int i=1; i<NumberOfColumns;i++)
 	{
-		m_ui->dataTable->item(m_old_r,i)->setBackground(Qt::white);
-		m_ui->dataTable->item(r,i)->setBackground(Qt::lightGray);
+		auto oldItem = m_ui->dataTable->item(m_old_r, i);
+		if (oldItem)
+		{
+			oldItem->setBackground(Qt::white);
+		}
+		auto newItem = m_ui->dataTable->item(r, i);
+		if (newItem)
+		{
+			newItem->setBackground(Qt::lightGray);
+		}
 	}
 	m_old_r=r;
 }
@@ -338,9 +350,10 @@ float iAVolumePlayerWidget::currentSpeed() const
 
 void iAVolumePlayerWidget::adjustSliderMax()
 {
-	m_ui->volumeSlider->setMaximum((getNumberOfCheckedVolumes() - 1) * (m_isBlendingOn ? BlendSteps : 1));
+	m_ui->volumeSlider->setMaximum((getNumberOfCheckedVolumes() - 1) /* * (m_isBlendingOn ? BlendSteps : 1)*/);
 }
 
+/*
 void iAVolumePlayerWidget::blendingStateChanged(int state)
 {
 	m_isBlendingOn = state;
@@ -351,6 +364,7 @@ void iAVolumePlayerWidget::blendingStateChanged(int state)
 		: std::floor(static_cast<double>(oldVal + 1) / BlendSteps + 0.5));
 	m_ui->tbApplyForAll->setEnabled(!m_isBlendingOn);
 }
+*/
 
 void iAVolumePlayerWidget::enableVolume(int state)
 {
