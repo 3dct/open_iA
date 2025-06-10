@@ -683,7 +683,7 @@
     <string>Reset</string>
    </property>
    <property name="toolTip">
-    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Resets the Layout of the current mdichild&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+    <string>Resets the layout of the current child window</string>
    </property>
   </action>
   <action name="actionOpenTLGICTData">
