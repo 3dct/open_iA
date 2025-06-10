@@ -6,6 +6,7 @@
 
 #include "iAChannelData.h"
 #include "iADataSetRenderer.h"
+#include "iADockWidgetWrapper.h"
 #include "iAImageData.h"
 #include "iAMathUtility.h"
 #include "iAMdiChild.h"
@@ -23,8 +24,64 @@
 
 #include <QAction>
 #include <QCheckBox>
+#include <QTimer>
 
 #include <cassert>
+#include <vector>
+
+class iAVolumeViewer;
+class iAMdiChild;
+
+class QCheckBox;
+
+class Ui_VolumePlayer;
+
+class iAVolumePlayerWidget : public QWidget
+{
+public:
+	iAVolumePlayerWidget(iAMdiChild* child, std::vector<iAVolumeViewer*> const& volumes);
+	~iAVolumePlayerWidget();  //!< required because of unique_ptr
+
+private:
+	float currentSpeed() const;
+	size_t listToVolumeIndex(int listIndex);
+	int getNumberOfCheckedVolumes();
+	void adjustSliderMax();
+	//bool m_isBlendingOn;
+	QTimer m_timer;
+	int m_old_r;
+	int m_dimColumn, m_spacColumn, m_fileColumn, m_checkColumn, m_sortColumn;
+	bool m_dimShow, m_spacShow, m_fileShow;
+	QAction* m_contextDimensions;
+	QAction* m_contextSpacing;
+	QAction* m_contextFileName;
+	int m_selectedMaxSpeed;
+	std::vector<QCheckBox*> m_checkBoxes;
+	std::vector<iAVolumeViewer*> m_volumeViewers;
+	std::unique_ptr<Ui_VolumePlayer> m_ui;
+	int m_prevStep;
+	std::pair<size_t, size_t> m_prevVolIdx;
+	iAMdiChild* m_child;
+
+signals:
+	void setAllSelected(int c = 0);
+
+private slots:
+	void sliderChanged();
+	void nextVolume();
+	void previousVolume();
+	void stopVolume();
+	void setSpeed();
+	void speedEdited(double newSpeed);
+	void setChecked(int r, int c);
+	void selectAll(int c);
+	void fileNameActive();
+	void spacingActive();
+	void dimensionsActive();
+	//void blendingStateChanged(int state);
+	void enableVolume(int state);
+	void applyForAll();
+};
 
 const QString iAVolumePlayerTool::Name("VolumePlayer");
 
@@ -45,7 +102,9 @@ iAVolumePlayerTool::iAVolumePlayerTool(iAMainWindow* wnd, iAMdiChild* child):
 		volumeViewers[v]->renderer()->setVisible(false);
 	}
 	m_volumePlayer = new iAVolumePlayerWidget(child, volumeViewers);
-	child->splitDockWidget(child->dataInfoDockWidget(), m_volumePlayer, Qt::Horizontal);
+	auto dw = new iADockWidgetWrapper(m_volumePlayer, "Volume Player", "VolumePlayer",
+		"https://github.com/3dct/open_iA/wiki/VolumePlayer");
+	child->splitDockWidget(child->dataInfoDockWidget(), dw, Qt::Horizontal);
 }
 
 namespace
@@ -60,7 +119,7 @@ namespace
 }
 
 iAVolumePlayerWidget::iAVolumePlayerWidget(iAMdiChild *child, std::vector<iAVolumeViewer*> const& volumes)
-	: QDockWidget(child),
+	: QWidget(child),
 	m_volumeViewers(volumes),
 	m_ui(std::make_unique<Ui_VolumePlayer>()),
 	m_prevStep(NoStep),
