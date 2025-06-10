@@ -14,7 +14,6 @@
 #include <vtkTable.h>
 
 #include <QAction>
-#include <QDockWidget>
 
 #include <cassert>
 

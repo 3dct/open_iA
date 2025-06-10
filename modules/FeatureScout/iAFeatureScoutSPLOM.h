@@ -14,7 +14,6 @@ class iAQSplom;
 class vtkTable;
 
 class QColor;
-class QDockWidget;
 
 class iAFeatureScoutSPLOM: public QObject
 {
