@@ -86,7 +86,6 @@ public:
 
 public slots:
 	void loadLayout();
-	void slicerSettings();
 
 signals:
 	void closing();

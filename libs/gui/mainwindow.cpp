@@ -289,7 +289,6 @@ MainWindow::MainWindow(QString const & appName, QString const & version, QString
 	addActionIcon(m_ui->actionIsometricViewInRaycaster, "iso");
 	addActionIcon(m_ui->actionMagicLens2D, "magic_lens_2d");
 	addActionIcon(m_ui->actionMagicLens3D, "magic_lens_3d");
-	addActionIcon(m_ui->actionSlicerSettings, "settings_slicer");
 	addActionIcon(m_ui->actionPreferences, "settings");
 	addActionIcon(m_ui->actionOpenTLGICTData, "open");
 	addActionIcon(m_ui->actionOpenRaw, "open");
@@ -812,28 +811,6 @@ void MainWindow::prefs()
 	iALogWidget::get()->setLogToFile(logToFile, logFileName, true);
 }
 
-void MainWindow::slicerSettings()
-{
-	QString dlgTitle = "Slicer settings";
-	iAAttributes params;
-	iASlicerSettings const& slicerSettings = activeMDI() ? activeMDI()->slicerSettings() : m_defaultSlicerSettings;
-	addAttr(params, "Link Views", iAValueType::Boolean, slicerSettings.LinkViews);
-	addAttr(params, "Link MDIs", iAValueType::Boolean, slicerSettings.LinkMDIs);
-	iAParameterDlg dlg(this, dlgTitle, params);
-	if (dlg.exec() != QDialog::Accepted)
-	{
-		return;
-	}
-	auto values = dlg.parameterValues();
-	m_defaultSlicerSettings.LinkViews = values["Link Views"].toBool();
-	m_defaultSlicerSettings.LinkMDIs = values["Link MDIs"].toBool();
-	if (activeMdiChild())
-	{
-		activeMDI()->applySlicerSettings(m_defaultSlicerSettings);
-	}
-	LOG(lvlInfo, "Changed slicer settings");
-}
-
 void MainWindow::changeInteractionMode(bool isChecked)
 {
 	if (activeMdiChild())
@@ -1158,7 +1135,6 @@ void MainWindow::connectSignalsToSlots(QString const& appName)
 
 	// "Edit" menu entries:
 	connect(m_ui->actionPreferences, &QAction::triggered, this, &MainWindow::prefs);
-	connect(m_ui->actionSlicerSettings, &QAction::triggered, this, &MainWindow::slicerSettings);
 	connect(m_ui->actionInteractionModeRegistration, &QAction::triggered, this, &MainWindow::changeInteractionMode);
 	connect(m_ui->actionInteractionModeCamera, &QAction::triggered, this, &MainWindow::changeInteractionMode);
 

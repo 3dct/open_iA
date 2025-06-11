@@ -104,7 +104,6 @@
      <addaction name="separator"/>
     </widget>
     <addaction name="actionPreferences"/>
-    <addaction name="actionSlicerSettings"/>
     <addaction name="separator"/>
     <addaction name="actionEditProfilePoints"/>
     <addaction name="menuInteractionMode"/>
@@ -263,7 +262,6 @@
    <addaction name="actionSaveDataSet"/>
    <addaction name="actionSaveProject"/>
    <addaction name="actionPreferences"/>
-   <addaction name="actionSlicerSettings"/>
   </widget>
   <widget class="QToolBar" name="slicerToolbar">
    <property name="enabled">
@@ -486,11 +484,6 @@
   <action name="actionPreferences">
    <property name="text">
     <string>Preferences</string>
-   </property>
-  </action>
-  <action name="actionSlicerSettings">
-   <property name="text">
-    <string>Slicer settings</string>
    </property>
   </action>
   <action name="actionLinkSliceViews">
