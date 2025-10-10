@@ -127,7 +127,7 @@ void iAExtractSurface::performWork(QVariantMap const& parameters)
 }
 
 iADiscreteExtractSurface::iADiscreteExtractSurface() :
-	iAFilter("Extract Surface", "Surfaces",
+	iAFilter("Discrete Extract Surface", "Surfaces",
 		"Extracts a surface from a label map.<br/>"
 		"A surface is extracted for the labeled objects, either using a discrete marching cubes, "
 		"discrete flying edges, or surface nets algorithm (optionally using constrained smoothing).<br/>"
@@ -149,8 +149,8 @@ iADiscreteExtractSurface::iADiscreteExtractSurface() :
 	addParameter("Compute scalars", iAValueType::Boolean, true);
 
 	addParameter("Smoothing", iAValueType::Boolean, true);
-	addParameter("Number of iterations", iAValueType::Discrete, true);
-	addParameter("Relaxation factor", iAValueType::Continuous, true);
+	addParameter("Number of iterations", iAValueType::Discrete, 1, 1, 999999);
+	addParameter("Relaxation factor", iAValueType::Continuous, 0.01);
 }
 
 void iADiscreteExtractSurface::performWork(QVariantMap const& parameters)
@@ -184,6 +184,7 @@ void iADiscreteExtractSurface::performWork(QVariantMap const& parameters)
 		surfaceNets->SetSmoothing(parameters["Smoothing"].toBool());
 		surfaceNets->SetNumberOfIterations(parameters["Number of iterations"].toInt());
 		surfaceNets->SetRelaxationFactor(parameters["Relaxation factor"].toDouble());
+		surfaceFilter = surfaceNets;
 		// and some more constraint smoothing parameters...
 	}
 	progress()->observe(surfaceFilter);
