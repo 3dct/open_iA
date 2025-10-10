@@ -9,6 +9,7 @@
 #include <iAValueTypeVectorHelpers.h>
 
 #include <vtkCleanPolyData.h>
+#include <vtkContourFilter.h>
 #include <vtkDataSetSurfaceFilter.h>
 #include <vtkDecimatePro.h>
 #include <vtkDelaunay3D.h>
@@ -21,9 +22,11 @@
 #include <vtkPolyDataNormals.h>
 #include <vtkQuadricDecimation.h>
 #include <vtkQuadricClustering.h>
+#include <vtkReverseSense.h>
 #include <vtkSmartPointer.h>
 #include <vtkSmoothPolyDataFilter.h>
 #include <vtkSurfaceNets3D.h>
+#include <vtkSurfaceReconstructionFilter.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTriangleFilter.h>
@@ -40,6 +43,7 @@ IAFILTER_DEFAULT_CLASS(iASimplifyMeshQuadricClustering);
 IAFILTER_DEFAULT_CLASS(iASimplifyMeshQuadricDecimation);
 IAFILTER_DEFAULT_CLASS(iASmoothMeshWindowedSinc);
 IAFILTER_DEFAULT_CLASS(iASmoothMeshLaplacian);
+IAFILTER_DEFAULT_CLASS(iASurfaceReconstruction);
 IAFILTER_DEFAULT_CLASS(iATransformPolyData);
 IAFILTER_DEFAULT_CLASS(iAMeshTriangle);
 
@@ -202,6 +206,48 @@ filter->Update();*/
 filter->SetInputConnection(normalGenerator->GetOutputPort());
 filter->Update();*/
 
+
+iASurfaceReconstruction::iASurfaceReconstruction() :
+	iAFilter("Surface Reconstruction", "Surfaces",
+		"Reconstruct mesh from surface points .<br/>"
+		"For more information, see the <a href=\"https://vtk.org/doc/nightly/html/classvtkSurfaceReconstructionFilter.html\">"
+		"Surface Reconstruction Filter</a> in the VTK documentation.", 0)
+{
+	setRequiredMeshInputs(1);
+	addParameter("Automatic sample spacing", iAValueType::Boolean, true);
+	addParameter("Sample spacing", iAValueType::Continuous, 0.01);
+	addParameter("Neighborhood Size", iAValueType::Discrete, 20, 1);
+}
+
+void iASurfaceReconstruction::performWork(QVariantMap const& parameters)
+{
+	// TODO: Multistep observer!
+	// inspired by https://examples.vtk.org/site/Cxx/Filtering/SurfaceFromUnorganizedPointsWithPostProc/
+	vtkNew<vtkSurfaceReconstructionFilter> surf;
+	surf->SetInputData(dynamic_cast<iAPolyData*>(input(0).get())->poly());
+	if (!parameters["Automatic sample spacing"].toBool())
+	{
+		surf->SetSampleSpacing(parameters["Sample spacing"].toDouble());
+	}
+	surf->SetNeighborhoodSize(parameters["Neighborhood Size"].toInt());
+	progress()->setStatus("Surface Reconstruction");
+	progress()->observe(surf);
+	surf->Update();
+	vtkNew<vtkContourFilter> contourFilter;
+	contourFilter->SetInputConnection(surf->GetOutputPort());
+	contourFilter->SetValue(0, 0.0);
+	progress()->setStatus("Contour Filtering");
+	progress()->observe(contourFilter);
+	contourFilter->Update();
+	vtkNew<vtkReverseSense> reverse;
+	reverse->SetInputConnection(contourFilter->GetOutputPort());
+	reverse->ReverseCellsOn();
+	reverse->ReverseNormalsOn();
+	progress()->setStatus("Reverse Sense");
+	progress()->observe(reverse);
+	reverse->Update();
+	addOutput(std::make_shared<iAPolyData>(reverse->GetOutput()));
+}
 
 
 iASimplifyMeshDecimatePro::iASimplifyMeshDecimatePro() :
