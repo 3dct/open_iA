@@ -12,6 +12,8 @@
 #include <vtkDataSetSurfaceFilter.h>
 #include <vtkDecimatePro.h>
 #include <vtkDelaunay3D.h>
+#include <vtkDiscreteFlyingEdges3D.h>
+#include <vtkDiscreteMarchingCubes.h>
 #include <vtkFillHolesFilter.h>
 #include <vtkFlyingEdges3D.h>
 #include <vtkImageData.h>
@@ -21,6 +23,7 @@
 #include <vtkQuadricClustering.h>
 #include <vtkSmartPointer.h>
 #include <vtkSmoothPolyDataFilter.h>
+#include <vtkSurfaceNets3D.h>
 #include <vtkTransform.h>
 #include <vtkTransformPolyDataFilter.h>
 #include <vtkTriangleFilter.h>
@@ -29,6 +32,7 @@
 IAFILTER_DEFAULT_CLASS(iACleanPolyData);
 IAFILTER_DEFAULT_CLASS(iAMeshComputeNormals);
 IAFILTER_DEFAULT_CLASS(iADelauny3D);
+IAFILTER_DEFAULT_CLASS(iADiscreteExtractSurface);
 IAFILTER_DEFAULT_CLASS(iAExtractSurface);
 IAFILTER_DEFAULT_CLASS(iAPolyFillHoles);
 IAFILTER_DEFAULT_CLASS(iASimplifyMeshDecimatePro);
@@ -115,6 +119,72 @@ void iAExtractSurface::performWork(QVariantMap const& parameters)
 		flyingEdges->SetNumberOfContours(1);
 		flyingEdges->SetValue(0, parameters["Iso value"].toDouble());
 		surfaceFilter = flyingEdges;
+	}
+	progress()->observe(surfaceFilter);
+	surfaceFilter->SetInputData(imageInput(0)->vtkImage());
+	surfaceFilter->Update();
+	addOutput(std::make_shared<iAPolyData>(surfaceFilter->GetOutput()));
+}
+
+iADiscreteExtractSurface::iADiscreteExtractSurface() :
+	iAFilter("Extract Surface", "Surfaces",
+		"Extracts a surface from a label map.<br/>"
+		"A surface is extracted for the labeled objects, either using a discrete marching cubes, "
+		"discrete flying edges, or surface nets algorithm (optionally using constrained smoothing).<br/>"
+		"For more information, see the "
+		"<a href=\"https://vtk.org/doc/nightly/html/classvtkDiscreteMarchingCubes.html\">"
+		"Discrete Marching Cubes Filter</a>, the "
+		"<a href=\"https://vtk.org/doc/nightly/html/classvtkDiscreteFlyingEdges3D.html\">"
+		"Discrete Flying Edges 3D Filter</a>, the "
+		"<a href=\"https://vtk.org/doc/nightly/html/classvtkSurfaceNets3D.html\">"
+		"Surface Nets Filter</a>, and the "
+		"<a href=\"https://vtk.org/doc/nightly/html/classvtkConstrainedSmoothingFilter.html\">"
+		"Constrained Smoothing Filter</a>in the VTK documentation.")
+{
+	QStringList AlgorithmNames;
+	AlgorithmNames << "Discrete Marching Cubes" << "Discrete Flying Edges" << "Surface Nets";
+	addParameter("Algorithm", iAValueType::Categorical, AlgorithmNames);
+	addParameter("Compute normals", iAValueType::Boolean, true);
+	addParameter("Compute gradients", iAValueType::Boolean, true);
+	addParameter("Compute scalars", iAValueType::Boolean, true);
+
+	addParameter("Smoothing", iAValueType::Boolean, true);
+	addParameter("Number of iterations", iAValueType::Discrete, true);
+	addParameter("Relaxation factor", iAValueType::Continuous, true);
+}
+
+void iADiscreteExtractSurface::performWork(QVariantMap const& parameters)
+{
+	vtkSmartPointer<vtkPolyDataAlgorithm> surfaceFilter;
+	if (parameters["Algorithm"].toString() == "Discrete Marching Cubes")
+	{
+		vtkNew<vtkDiscreteMarchingCubes> marchingCubes;
+		marchingCubes->SetComputeNormals(parameters["Compute normals"].toBool());
+		marchingCubes->SetComputeGradients(parameters["Compute gradients"].toBool());
+		marchingCubes->SetComputeScalars(parameters["Compute scalars"].toBool());
+		marchingCubes->SetNumberOfContours(1);
+		marchingCubes->SetValue(0, 1.0);
+		surfaceFilter = marchingCubes;
+	}
+	else if (parameters["Algorithm"].toString() == "Discrete Flying Edges")
+	{
+		vtkNew<vtkDiscreteFlyingEdges3D> flyingEdges;
+		flyingEdges->SetComputeNormals(parameters["Compute normals"].toBool());
+		flyingEdges->SetComputeGradients(parameters["Compute gradients"].toBool());
+		flyingEdges->SetComputeScalars(parameters["Compute scalars"].toBool());
+		flyingEdges->SetNumberOfContours(1);
+		flyingEdges->SetValue(0, 1.0);
+		surfaceFilter = flyingEdges;
+	}
+	else if (parameters["Algorithm"].toString() == "Surface Nets")
+	{
+		vtkNew<vtkSurfaceNets3D> surfaceNets;
+		surfaceNets->SetNumberOfContours(1);
+		surfaceNets->SetValue(0, 1.0);
+		surfaceNets->SetSmoothing(parameters["Smoothing"].toBool());
+		surfaceNets->SetNumberOfIterations(parameters["Number of iterations"].toInt());
+		surfaceNets->SetRelaxationFactor(parameters["Relaxation factor"].toDouble());
+		// and some more constraint smoothing parameters...
 	}
 	progress()->observe(surfaceFilter);
 	surfaceFilter->SetInputData(imageInput(0)->vtkImage());
