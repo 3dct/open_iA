@@ -763,8 +763,6 @@ endif()
 message(STATUS "Build version: ${openiA_VERSION}")
 set(BUILD_INFO "${BUILD_INFO}    \"git revision	${openiA_HASH}\\n\"\n")
 
-add_compile_definitions(UNICODE _UNICODE)    # Enable Unicode (probably not required anymore since Qt6 automatically defines these, see https://doc.qt.io/qt-6/cmake-qt5-and-qt6-compatibility.html#unicode-support-in-windows)
-
 if (UNIX)
 	set(CMAKE_INSTALL_RPATH "\$ORIGIN")      # Set RunPath in all created libraries / executables to $ORIGIN
 	#    set(CMAKE_BUILD_RPATH_USE_ORIGIN ON)

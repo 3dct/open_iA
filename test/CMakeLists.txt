@@ -2,6 +2,7 @@
 
 # StringHelperTest
 qt_add_executable(StringHelperTest iAStringHelperTest.cpp ../libs/base/iAStringHelper.cpp)      # for iAbase_export.h
+qt_disable_unicode_defines(StringHelperTest)
 target_include_directories(StringHelperTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_BINARY_DIR}/../libs)
 target_compile_definitions(StringHelperTest PRIVATE IABASE_STATIC_DEFINE)
 add_test(NAME StringHelperTest COMMAND StringHelperTest)
@@ -16,12 +17,14 @@ endif()
 
 # Vec3Test
 qt_add_executable(Vec3Test iAVec3Test.cpp)
+qt_disable_unicode_defines(Vec3Test)
 target_include_directories(Vec3Test PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base)
 target_compile_definitions(Vec3Test PRIVATE IABASE_STATIC_DEFINE)
 add_test(NAME Vec3Test COMMAND Vec3Test)
 
 # MathUtilTest
 qt_add_executable(MathUtilTest iAMathUtilityTest.cpp ../libs/base/iAMathUtility.cpp)        # for iAbase_export.h
+qt_disable_unicode_defines(MathUtilTest)
 target_include_directories(MathUtilTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_BINARY_DIR}/../libs)
 message(VERBOSE "MathUtilTest dependencies")
 target_compile_definitions(MathUtilTest PRIVATE IABASE_STATIC_DEFINE)
@@ -37,6 +40,7 @@ endif()
 
 # FunctionalBoxplotTest
 add_executable(FunctionalBoxplotTest iAFunctionalBoxplotTest.cpp)
+qt_disable_unicode_defines(FunctionalBoxplotTest)
 target_include_directories(FunctionalBoxplotTest PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../libs/base ${CMAKE_CURRENT_SOURCE_DIR}/../Toolkit/FunctionalBoxplot)
 target_compile_definitions(FunctionalBoxplotTest PRIVATE IABASE_STATIC_DEFINE)
 add_test(NAME FunctionalBoxplotTest COMMAND FunctionalBoxplotTest)

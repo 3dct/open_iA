@@ -2,7 +2,9 @@ if (openiA_TESTING_ENABLED)
 	get_filename_component(CoreSrcDir "../libs" REALPATH BASE_DIR "${CMAKE_CURRENT_SOURCE_DIR}")
 	get_filename_component(CoreBinDir "../libs" REALPATH BASE_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 	qt_add_executable(ImageGraphTest Segmentation/iAImageGraphTest.cpp Segmentation/iAImageGraph.cpp ${CoreSrcDir}/base/iAImageCoordinate.cpp)
+	qt_disable_unicode_defines(ImageGraphTest)
 	qt_add_executable(DistanceMeasureTest Segmentation/iADistanceMeasureTest.cpp Segmentation/iAVectorDistanceImpl.cpp Segmentation/iAVectorArrayImpl.cpp Segmentation/iAVectorTypeImpl.cpp ${CoreSrcDir}/base/iAImageCoordinate.cpp)
+	qt_disable_unicode_defines(DistanceMeasureTest)
 	set(VTK_REQUIRED_LIBS
 		CommonCore        # for vtkSmartPointer
 		CommonDataModel   # for vtkImageData

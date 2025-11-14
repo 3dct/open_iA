@@ -117,11 +117,9 @@ MODULE_HANDLE LoadModule(QFileInfo fileInfo, QStringList & errorMessages)
 #ifdef _MSC_VER
 	QString dllWinName(fileInfo.absoluteFilePath());
 	dllWinName.replace("/", "\\");
-	std::wstring stemp = dllWinName.toStdWString();
-	LPCWSTR dllName = stemp.c_str();
 	UINT prevErrorMode = GetErrorMode();
 	SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);  // to suppress message box on error
-	HINSTANCE hGetProcIDDLL = LoadLibrary(dllName);
+	HINSTANCE hGetProcIDDLL = LoadLibrary(dllWinName.toStdString().c_str());
 	SetErrorMode(prevErrorMode);
 	if (!hGetProcIDDLL)
 	{

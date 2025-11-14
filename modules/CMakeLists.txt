@@ -76,6 +76,7 @@ foreach (indx RANGE ${len} )
 	list(APPEND module_srcs "${CMAKE_CURRENT_BINARY_DIR}/${module_name}_factory.cpp")
 
 	add_library(${module_name} ${LIB_TYPE} ${module_srcs} ${module_hs} )
+	qt_disable_unicode_defines(${module_name})
 	if(MSVC)
 		set_target_properties(${module_name} PROPERTIES LINK_FLAGS "/SUBSYSTEM:WINDOWS")
 	endif()

@@ -4,8 +4,8 @@ set(EXECUTABLE_NAME open_iA_cmd)
 set(MAIN_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/main.cpp"
 	"${CMAKE_CURRENT_SOURCE_DIR}/iACommandLineProcessor.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/iACommandLineProcessor.h"
 	"${CMAKE_CURRENT_SOURCE_DIR}/iALoggerStdOut.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/iALoggerStdOut.h")
-add_executable( ${EXECUTABLE_NAME} ${MAIN_SOURCES} )
-
+add_executable(${EXECUTABLE_NAME} ${MAIN_SOURCES})
+qt_disable_unicode_defines(${EXECUTABLE_NAME})
 target_link_libraries(${EXECUTABLE_NAME} PRIVATE iA::guibase)
 target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_BINARY_DIR}) # for version.h
 
