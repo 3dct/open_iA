@@ -5,7 +5,7 @@
 #include "iAHDF5IO.h"
 
 #include "iAImageData.h"
-#include "iAToolsITK.h"    // for storeImage, pulls in iAITKIO
+#include "iAITKIO.h"    // for storeImage, pulls in iAITKIO
 #include "iAValueTypeVectorHelpers.h"
 
 #include <vtkImageData.h>

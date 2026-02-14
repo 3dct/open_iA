@@ -4,6 +4,7 @@
 
 #include <iAImageData.h>
 #include <iAToolsITK.h>
+#include <iAITKIO.h>
 #include <iAProgress.h>
 #include <iATypedCallHelper.h>
 

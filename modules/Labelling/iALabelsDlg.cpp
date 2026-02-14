@@ -13,6 +13,7 @@
 #include <iALog.h>
 //#include <iAPerformanceHelper.h>
 #include <iAToolsVTK.h>
+#include <iAVTKIO.h>
 #include <iAVtkDraw.h>
 #include <iAVec3.h>
 

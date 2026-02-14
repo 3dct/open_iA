@@ -5,7 +5,7 @@
 #include "iACalculateDensityMap.h"
 #include "iA4DCTVisWin.h"	// ToDo: Scale!
 
-#include <iAToolsVTK.h>
+#include <iAVTKIO.h>
 
 #include <itkBinaryThresholdImageFilter.h>
 #include <itkResampleImageFilter.h>

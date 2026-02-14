@@ -4,7 +4,7 @@
 
 #include "iAImageData.h"
 #include "iAProgress.h"
-#include "iAToolsVTK.h"   // for storeImage
+#include "iAVTKIO.h"   // for storeImage
 
 #include <vtkImageData.h>
 

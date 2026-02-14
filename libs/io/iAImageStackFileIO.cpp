@@ -12,6 +12,7 @@
 #include "iATypedCallHelper.h"
 #include "iAValueTypeVectorHelpers.h"
 
+#include "iAVTKIO.h"
 #include "iAITKFileIO.h"
 
 #include <QDir>

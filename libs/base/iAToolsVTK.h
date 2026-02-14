@@ -69,17 +69,6 @@ iAbase_API void multiplyImage(vtkSmartPointer<vtkImageData> imgDst, double value
 //! @param p if given, used to report progress
 iAbase_API void addImages(vtkSmartPointer<vtkImageData> imgDst, vtkSmartPointer<vtkImageData> const imgToAdd, iAProgress* p = nullptr);
 
-//! Stores an image on disk (typically in .mhd format).
-//! @param img the image to store
-//! @param filename the name of the file to write to.
-//! @param useCompression whether the file should be compressed (.zraw) or not (.raw) in case we are storing .mhd files
-//! @param progress an optional progress link; if != null, the file writer will trigger its progress signal
-iAbase_API void storeImage(vtkSmartPointer<vtkImageData> img, QString const & filename, bool useCompression = true, iAProgress const* progress = nullptr);
-
-//! Read an image from disk into a VTK image.
-//! @param filename the name of the file to read.
-iAbase_API vtkSmartPointer<vtkImageData> readImage(QString const& filename);
-
 //! Write a single slice image to a common 2D picture format
 //! @param filename the name of the file to write to; this is expected to have an extension of tif, png, jpg or bmp;
 //!        the type of the file written will be chosen according to this extension

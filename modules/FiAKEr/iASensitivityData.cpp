@@ -16,6 +16,7 @@
 #include <iAPerformanceHelper.h>
 #include <iAProgress.h>
 #include <iAToolsVTK.h>
+#include <iAVTKIO.h>
 
 #include <vtkImageData.h>
 #include <vtkTable.h>

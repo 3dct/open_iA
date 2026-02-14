@@ -42,7 +42,7 @@
 #include <iAConnector.h>
 #include <iALog.h>
 #include <iAMathUtility.h>
-#include <iAToolsVTK.h>    // for storeImage
+#include <iAVTKIO.h>    // for storeImage
 
 #ifdef __clang__
 #pragma clang diagnostic push

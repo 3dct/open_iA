@@ -11,7 +11,7 @@
 
 #include <iAConnector.h>
 #include <iAITKIO.h>
-#include <iAToolsVTK.h>
+#include <iAVTKIO.h>
 #include <iALog.h>
 
 #include <itkAddImageFilter.h>

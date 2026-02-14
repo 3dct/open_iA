@@ -4,6 +4,7 @@
 
 #include "iALog.h"
 #include "iAProgress.h"
+#include "iAToolsITK.h"
 #include "iATypedCallHelper.h"
 #include "iAExtendedTypedCallHelper.h"
 
@@ -136,3 +137,9 @@ void writeFile(QString const& fileName, ImagePtr image, ScalarType scalarType, b
 	ITK_TYPED_CALL(write_image_template, scalarType, useCompression, fileName, image, progress);
 }
 }  // namespace iAITKIO
+
+void storeImage(iAITKIO::ImagePtr image, QString const & filename, bool useCompression, iAProgress const * p)
+{
+	iAITKIO::writeFile(filename, image, itkScalarType(image), useCompression, p);
+}
+

@@ -8,7 +8,7 @@
 #include <defines.h>    // for DIM
 #include <iAAbortListener.h>
 #include <iALog.h>
-#include <iAToolsVTK.h>
+#include <iAVTKIO.h>
 
 // charts
 #include <iAPlotTypes.h>

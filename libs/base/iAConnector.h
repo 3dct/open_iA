@@ -4,7 +4,7 @@
 
 #include "iabase_export.h"
 
-#include "iAITKIO.h"
+#include "iAitkImageTypes.h"
 
 #include <vtkImageExport.h>
 #include <vtkImageImport.h>
