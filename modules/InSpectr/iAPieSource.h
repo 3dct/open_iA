@@ -82,7 +82,7 @@ protected:
 		auto newPoints = vtkSmartPointer<vtkPoints>::New();
 		newPoints->Allocate(numPts);
 		auto newPolys = vtkSmartPointer<vtkCellArray>::New();
-		newPolys->Allocate(newPolys->EstimateSize(numPolys, 3));
+		newPolys->AllocateEstimate(numPolys, 3);
 
 		//Create pie
 		double startAngleRad = vtkMath::RadiansFromDegrees( m_startAngle );
