@@ -25,7 +25,10 @@ std::shared_ptr<iADataSet> iANKCFileIO::loadData(QString const& fileName, QVaria
 	Q_UNUSED(paramValues);
 
 	QFile file(fileName);
-	file.open(QFile::ReadOnly | QFile::Text);
+	if (!file.open(QFile::ReadOnly | QFile::Text))
+	{
+		throw std::runtime_error(QString("Could not open file %1 for reading!").arg(fileName).toStdString());
+	}
 	QTextStream in(&file);
 	auto text = in.read(4096);
 

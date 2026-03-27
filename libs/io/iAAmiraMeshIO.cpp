@@ -321,7 +321,10 @@ void iAAmiraMeshIO::Write(QString const & filename, vtkImageData* img)
 	}
 
 	QFile file(filename);
-	file.open(QIODevice::WriteOnly);
+	if (!file.open(QIODevice::WriteOnly))
+	{
+		throw std::runtime_error(QString("iAAmiraMeshIO::Write: Could not open file %1 for writing!").arg(filename).toStdString());
+	}
 
 	QByteArray headerData;
 

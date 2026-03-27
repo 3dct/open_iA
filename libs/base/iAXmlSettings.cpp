@@ -145,7 +145,11 @@ void iAXmlSettings::saveTransferFunction(iATransferFunction* transferFunction)
 void iAXmlSettings::save(QString const & filename)
 {
 	QFile file(filename);
-	file.open(QIODevice::WriteOnly);
+	if (!file.open(QIODevice::WriteOnly))
+	{
+		LOG(lvlError, QString("iAXmlSettings::save Could not open file %1 for writing!").arg(filename));
+		return;
+	}
 	QTextStream ts(&file);
 	ts << domDocument.toString();
 	file.close();

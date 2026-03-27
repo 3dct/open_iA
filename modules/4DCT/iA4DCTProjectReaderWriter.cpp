@@ -15,7 +15,10 @@ void iA4DCTProjectReaderWriter::save( iA4DCTMainWin * mainWin, QString path )
 {
 	// open file
 	QFile file( path );
-	file.open( QFile::WriteOnly );
+	if (!file.open( QFile::WriteOnly ))
+	{
+		LOG(lvlError, QString("iA4DCTProjectReaderWriter::save: Could not open file %1 for writing").arg(path));
+	}
 	if( !file.isOpen( ) ) return;
 
 	iA4DCTData * stageData = mainWin->getStageData( );

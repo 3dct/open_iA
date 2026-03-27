@@ -55,7 +55,11 @@ void iALUT::loadMaps(QString const& folder)
 	{
 		QString fileName = it.next();
 		QFile jsonFile(fileName);
-		jsonFile.open(QIODevice::ReadOnly | QIODevice::Text);
+		if (!jsonFile.open(QIODevice::ReadOnly | QIODevice::Text))
+		{
+			LOG(lvlError, QString("iALUT::loadMaps: Could not open file %1 for reading!").arg(fileName));
+			continue;
+		}
 		auto jsonContent = jsonFile.readAll();
 		jsonFile.close();
 		QJsonDocument d = QJsonDocument::fromJson(jsonContent);
