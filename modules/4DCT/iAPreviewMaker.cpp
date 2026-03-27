@@ -17,7 +17,7 @@ void iAPreviewMaker::makeUsingType( QString fileName, QString thumbFileName )
 	imageIO = itk::ImageIOFactory::CreateImageIO( fileName.toStdString().c_str( ), itk::ImageIOFactory::ReadMode );
 	if( !imageIO )
 	{
-		//std::cerr << "Could not CreateImageIO for: " << inputFilename << std::endl;
+		LOG(lvlError, QString("Could not CreateImageIO for: %1").arg(fileName));
 		return;
 	}
 	imageIO->SetFileName( fileName.toStdString() );

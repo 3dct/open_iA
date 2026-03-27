@@ -198,7 +198,7 @@ vtkSmartPointer<vtkTexture> iAVREnvironment::ReadCubeMap(std::string const& fold
 	}
 	else
 	{
-		std::cerr << "ReadCubeMap(): invalid key, unable to continue." << std::endl;
+		LOG(lvlError, "ReadCubeMap(): invalid key, unable to continue.");
 		std::exit(EXIT_FAILURE);
 	}
 	vtkNew<vtkTexture> texture;

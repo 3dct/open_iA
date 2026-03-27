@@ -18,6 +18,8 @@
 #ifndef __itkLabelGeometryImageFilter2_hxx
 #define __itkLabelGeometryImageFilter2_hxx
 
+#include <iALog.h>
+
 #include "itkLabelGeometryImageFilter2.h"
 
 #include "itkImageRegionConstIterator.h"
@@ -69,7 +71,7 @@ CalculateRotationMatrix(vnl_symmetric_eigensystem< double > eig)
   else
     {
     matrixDet = 0.0f;
-    std::cerr << "ERROR: Determinant cannot be calculated for this dimension!" << std::endl;
+    LOG(lvlError, "ERROR: Determinant cannot be calculated for this dimension!");
     }
 
   if ( matrixDet < 0 )
@@ -363,9 +365,8 @@ LabelGeometryImageFilter2< TLabelImage, TIntensityImage >
     {
     if ( m_CalculateOrientedIntensityRegions )
       {
-      std::cerr
-      << "ERROR: An input intensity image must be used in order to calculate the oriented intensity image."
-      << std::endl;
+		LOG(lvlError,
+			"ERROR: An input intensity image must be used in order to calculate the oriented intensity image.");
       }
     m_CalculateOrientedIntensityRegions = false;
     }
