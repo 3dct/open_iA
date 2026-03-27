@@ -3,7 +3,7 @@
 #include "iADerivedOutputCalculator.h"
 
 #include <iAAttributes.h>
-#include <iAITKImageTypes.h>
+#include <iAitkCommonImageTypes.h>
 
 #include "iASingleResult.h"
 

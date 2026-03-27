@@ -12,7 +12,7 @@
 
 #ifndef NDEBUG
 #include <iAPerformanceHelper.h>  // TODO
-#include <iAToolsITK.h>
+#include <iAITKIO.h>
 #endif
 
 #include <itkImagePCAShapeModelEstimator.h>
@@ -20,6 +20,8 @@
 #include <itkImageRegionIterator.h>
 
 #include <vtkImageData.h>
+
+#include <omp.h>    // for  omp_get_thread_num
 
 // Input datasets must have the exact same dimensions
 QList<std::shared_ptr<iAImageData>> iANModalPCADataSetReducer::reduce(

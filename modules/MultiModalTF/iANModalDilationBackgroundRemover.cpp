@@ -8,9 +8,12 @@
 
 #include <iAConnector.h>
 #include <iAImageData.h>
+#include <iALog.h>
+#ifndef NDEBUG
+#include <iAITKIO.h>
+#endif
 #include <iAProgress.h>
 #include <iASlicer.h>
-#include <iAToolsITK.h>
 #include <iATypedCallHelper.h>
 
 #ifdef __clang__

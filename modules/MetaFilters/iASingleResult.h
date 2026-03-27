@@ -5,7 +5,7 @@
 #include "metafilters_export.h"
 
 #include <iAAttributes.h>
-#include <iAITKImageTypes.h>
+#include <iAitkCommonImageTypes.h>
 #include <iAITKIO.h>
 
 #include <QString>

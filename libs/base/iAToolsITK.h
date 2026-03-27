@@ -3,7 +3,7 @@
 #pragma once
 
 #include "iALog.h"
-#include "iAitkImageTypes.h"
+#include "iAitkBaseImageTypes.h"
 
 #include "iabase_export.h"
 

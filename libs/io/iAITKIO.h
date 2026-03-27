@@ -4,7 +4,7 @@
 
 #include "iaio_export.h"
 
-#include "iAitkImageTypes.h"
+#include "iAitkBaseImageTypes.h"
 
 class iAProgress;
 

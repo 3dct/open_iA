@@ -5,6 +5,8 @@
 #include "iA4DCTMainWin.h"
 #include "iA4DCTData.h"
 
+#include <iALog.h>
+
 #include <QDir>
 #include <QXmlStreamWriter>
 #include <QDomElement>

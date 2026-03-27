@@ -3,7 +3,6 @@
 #include "iAToolsVTK.h"
 
 #include "iAConnector.h"
-#include "iAitkImageTypes.h"
 #include "iALog.h"
 #include "iAMathUtility.h"      // for mapValue
 #include "iAProgress.h"
