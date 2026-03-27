@@ -268,7 +268,7 @@ iARendererImpl::iARendererImpl(QObject* parent, vtkGenericOpenGLRenderWindow* re
 
 	// add actors of helpers to renderer:
 	m_ren->GradientBackgroundOn();
-	m_ren->AddActor2D(m_txtActor);
+	m_ren->AddViewProp(m_txtActor);
 	m_ren->AddActor(m_posMarker.actor);
 	m_ren->AddActor(m_axesActor);
 	for (int i = 0; i < NumOfProfileLines; ++i)

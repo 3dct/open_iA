@@ -834,7 +834,7 @@ vtkSmartPointer<vtkPolyData> iACompUniformTable::drawZoomedPlane(
 
 	auto nc = vtkSmartPointer<vtkNamedColors>::New();
 	actor->GetProperty()->SetColor(nc->GetColor3d("DarkGray").GetData());
-	m_mainRenderer->AddActor2D(actor);
+	m_mainRenderer->AddViewProp(actor);
 
 	m_zoomedPlaneActors->push_back(actor);
 
@@ -1614,7 +1614,7 @@ void iACompUniformTable::removeBarCharShowingAmountOfObjects()
 	for (int i = 0; i < static_cast<int>(m_barActors->size()); i++)
 	{
 		m_mainRenderer->RemoveActor(m_barActors->at(i));
-		m_mainRenderer->RemoveActor2D(m_barTextActors->at(i));
+		m_mainRenderer->RemoveViewProp(m_barTextActors->at(i));
 	}
 
 	m_barActors->clear();

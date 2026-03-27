@@ -640,7 +640,7 @@ void iACompCorrelationMap::initializeLegend(vtkScalarBarWidget* widget)
 	titleTextProp->SetVerticalJustificationToTop();
 	titleTextProp->Modified();
 
-	m_graphLayoutView->GetRenderer()->AddActor2D(titleActor);
+	m_graphLayoutView->GetRenderer()->AddViewProp(titleActor);
 }
 
 void iACompCorrelationMap::initializeArcLegend()
@@ -1611,7 +1611,7 @@ void iAGraphInteractorStyle::setBaseClass(iACompCorrelationMap* baseClass)
 void iAGraphInteractorStyle::removeHighlighting()
 {
 	m_graphLayoutView->GetRenderer()->RemoveActor(highlightingActor);
-	m_graphLayoutView->GetRenderer()->RemoveActor2D(m_percentLegend);
+	m_graphLayoutView->GetRenderer()->RemoveViewProp(m_percentLegend);
 }
 
 /************************* iACorrelationGraphLayout *******************************************/

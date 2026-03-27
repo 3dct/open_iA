@@ -298,7 +298,7 @@ void dlg_DynamicVolumeLines::setupMultiRendererView()
 	m_mrvBGRen->SetLayer(0);
 	m_mrvBGRen->InteractiveOff();
 	m_mrvBGRen->SetBackground(1.0, 1.0, 1.0);
-	m_mrvBGRen->AddActor2D(m_mrvTxtAct);
+	m_mrvBGRen->AddViewProp(m_mrvTxtAct);
 
 
 		m_wgtContainer = new iAQVTKWidget();

@@ -730,7 +730,7 @@ void iACompTable::removeBarCharShowingAmountOfObjects()
 	for (int i = 0; i < static_cast<int>(m_barActors->size()); i++)
 	{
 		m_mainRenderer->RemoveActor(m_barActors->at(i));
-		m_mainRenderer->RemoveActor2D(m_barTextActors->at(i));
+		m_mainRenderer->RemoveViewProp(m_barTextActors->at(i));
 	}
 
 	m_barActors->clear();
@@ -830,7 +830,7 @@ void iACompTable::initializeLegend()
 	double col5[3];
 	iACompVisOptions::getDoubleArray(iACompVisOptions::BACKGROUNDCOLOR_GREY, col5);
 	m_rendererColorLegend->SetBackground(col5);
-	m_rendererColorLegend->AddActor2D(scalarBar);
+	m_rendererColorLegend->AddViewProp(scalarBar);
 
 	m_rendererColorLegend->ResetCamera();
 }

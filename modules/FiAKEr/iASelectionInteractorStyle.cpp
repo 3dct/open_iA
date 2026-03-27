@@ -394,7 +394,7 @@ void iASelectionInteractorStyle::assignToRenderWindow(vtkSmartPointer<vtkRenderW
 	m_renWin = renWin;
 	m_renWin->GetInteractor()->SetPicker(areaPicker);
 	m_renWin->GetInteractor()->SetInteractorStyle(this);
-	m_renWin->GetRenderers()->GetFirstRenderer()->AddActor2D(m_showModeActor);
+	m_renWin->GetRenderers()->GetFirstRenderer()->AddViewProp(m_showModeActor);
 	updateModeLabel();
 }
 

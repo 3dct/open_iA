@@ -88,7 +88,7 @@ void iACompBoxPlot::initializeChart()
 
 	for (int i = 0; i < ((int)m_legendAttributes->size()); i++)
 	{
-		m_view->GetRenderer()->RemoveActor2D(m_legendAttributes->at(i));
+		m_view->GetRenderer()->RemoveViewProp(m_legendAttributes->at(i));
 	}
 	m_legendAttributes->clear();
 

@@ -132,8 +132,8 @@ iALensData::iALensData(vtkGenericOpenGLRenderWindow* renderWindow, double opacit
 	m_bgRenderer->AddActor(m_bgActor);
 
 	m_guiRenderer->SetLayer(3);
-	m_guiRenderer->AddActor2D(m_frameActor);
-	m_guiRenderer->AddActor2D(m_textActor);
+	m_guiRenderer->AddViewProp(m_frameActor);
+	m_guiRenderer->AddViewProp(m_textActor);
 
 	if (enabled)
 	{
