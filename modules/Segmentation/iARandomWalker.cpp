@@ -133,10 +133,8 @@ namespace
 			pixelIndex[2] = coord.z;
 			if (imgVal < 0 || imgVal > 1 || qIsInf(imgVal) || qIsNaN(imgVal))
 			{
-				/*
-				addMsg(QString("Invalid pixel value at (%1, %2, %3): %4")
-					.arg(pixelIndex[0]).arg(pixelIndex[1]).arg(pixelIndex[2]).arg(imgVal));
-				*/
+			//	addMsg(QString("Invalid pixel value at (%1, %2, %3): %4")
+			//		.arg(pixelIndex[0]).arg(pixelIndex[1]).arg(pixelIndex[2]).arg(imgVal));
 				imgVal = 0;
 			}
 			pImg->SetPixel(pixelIndex,	imgVal);
@@ -518,11 +516,9 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 
 		//PriorModelImageType::IndexType idx;
 		iAImageCoordinate coord = imageGraph.converter().coordinatesFromIndex(voxelIdx);
-		/*
-		idx[0] = coord.x;
-		idx[1] = coord.y;
-		idx[2] = coord.z;
-		*/
+		// idx[0] = coord.x;
+		// idx[1] = coord.y;
+		// idx[2] = coord.z;
 		for (size_t labelIdx = 0; labelIdx < labelCount; ++labelIdx)
 		{
 			//sum += (*m_priorModel)[labelIdx]->GetPixel(idx);
@@ -553,11 +549,9 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 	CreateLaplacianPart(A, fullMap, fullMap, imageGraph, finalWeight, vertexWeightSum, vertexCount);
 #ifdef USE_EIGEN
 	A.makeCompressed();
-	/*
-	Sparse LU (with both eigen and VNL):
-	- very slow
-	- uses lots and lots of memory!
-	*/
+	// Sparse LU (with both eigen and VNL):
+	// - very slow
+	// - uses lots and lots of memory!
 	// Conjugate Gradient: very fast and small memory usage!
 	Eigen::ConjugateGradient<Eigen::SparseMatrix<double, Eigen::ColMajor> > solver;
 
@@ -585,11 +579,9 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 		{
 			//PriorModelImageType::IndexType idx;
 			iAImageCoordinate coord = imageGraph.converter().coordinatesFromIndex(voxelIdx);
-			/*
-			idx[0] = coord.x;
-			idx[1] = coord.y;
-			idx[2] = coord.z;
-			*/
+			// idx[0] = coord.x;
+			// idx[1] = coord.y;
+			// idx[2] = coord.z;
 			priorForLabel[voxelIdx] = priorModel[i]->vtkImage()->GetScalarComponentAsDouble(coord.x, coord.y, coord.z, 0);
 		}
 
@@ -599,7 +591,8 @@ void iAExtendedRandomWalker::performWork(QVariantMap const & parameters)
 #else
 		vnl_sparse_matrix_linear_system<double> problem(A, priorForLabel);
 		vnl_lsqr solver(problem);
-		/*int returnCode =*/ solver.minimize(x);
+		//int returnCode =
+		solver.minimize(x);
 		// in case sparse LU should be used, do this instead:
 		//linear_solver.solve(priorForLabel, &x);
 #endif
@@ -631,7 +624,7 @@ iAMaximumDecisionRule::iAMaximumDecisionRule() :
 {
 }
 
-void iAMaximumDecisionRule::performWork(QVariantMap const & /*parameters*/)
+void iAMaximumDecisionRule::performWork(QVariantMap const & ) // parameters (unused)
 {
 	if (inputCount() <= 1)
 	{
