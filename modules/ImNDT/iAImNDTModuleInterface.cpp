@@ -496,7 +496,15 @@ bool iAImNDTModuleInterface::setupVREnvironment()
 		LOG(lvlWarn, msg);
 		return false;
 	}
-	m_vrEnv = std::make_shared<iAVREnvironment>(backend);
+	try
+	{
+		m_vrEnv = std::make_shared<iAVREnvironment>(backend);
+	}
+	catch(std::runtime_error const & e)
+	{
+		LOG(lvlError, QString("Could not initialize VR Environment: %1").arg(e.what()));
+		return false;
+	}
 	connect(m_vrEnv.get(), &iAVREnvironment::started, this, &iAImNDTModuleInterface::vrStarted);
 	return true;
 }
