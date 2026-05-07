@@ -50,7 +50,7 @@ jobs:
     steps:
 
     - name: Checkout open_iA
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
       with:
         submodules: true
         fetch-tags: true
@@ -99,7 +99,7 @@ jobs:
 
     - if: runner.os == 'Windows'
       name: Check cache OpenXR
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       id: cache-openxr
       with:
         path: openxr-${{ env.OPENXR_VERSION }}
@@ -126,7 +126,7 @@ jobs:
     # see https://discourse.cmake.org/t/file-paths-to-dependencies-are-not-supported-on-cpack-with-runtime-dependency-set/11434/6
     - if: ${{ (runner.os == 'Windows') }}  #  || runner.os == 'Linux'
       name: Check cache OpenVR
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       id: cache-openvr
       with:
         path: openvr-${{ env.OPENVR_VERSION }}
@@ -171,7 +171,7 @@ jobs:
     # set up boost, required for VR:
     - if: ${{ (runner.os == 'Windows') }}  #  || runner.os == 'Linux'
       name: Check cache Boost
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       id: cache-boost
       with:
         path: boost_${{ env.BOOST_VERSION_UNDERSCORE }}
@@ -234,7 +234,7 @@ jobs:
 
     - name: Check cache for VTK build
       id: cache-vtk
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: vtk-${{ env.VTK_VERSION }}
         key: ${{ matrix.os }}-qt${{env.QT_VERSION}}-vtk-${{ env.VTK_VERSION }}
@@ -266,7 +266,7 @@ jobs:
     - if: runner.os != 'macOS'
       name: Check cache for OpenCL
       id: cache-opencl
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: opencl-${{ env.OPENCL_VERSION }}
         key: ${{ matrix.os }}-opencl-${{ env.OPENCL_VERSION }}
@@ -325,7 +325,7 @@ jobs:
 
     - name: Check cache for ITK build
       id: cache-itk
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: itk-${{ env.ITK_VERSION }}
         key: ${{ matrix.os }}-qt${{env.QT_VERSION}}-itk-${{ env.ITK_VERSION }}
@@ -361,7 +361,7 @@ jobs:
 
     - name: Check cache for eigen
       id: cache-eigen
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: eigen-${{env.EIGEN_SHORTREF}}
         key: ${{ matrix.os }}-eigen-${{env.EIGEN_SHORTREF}}
@@ -381,7 +381,7 @@ jobs:
 
     - name: Check cache for hdf5
       id: cache-hdf5
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: hdf5-${{env.HDF5_VERSION}}
         key: ${{ matrix.os }}-hdf5-${{env.HDF5_VERSION}}
@@ -403,7 +403,7 @@ jobs:
     # Node/npm (required for Remote module)
 
     - name: Install npm
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: 18
 
@@ -424,7 +424,7 @@ jobs:
         cmake --install . --config ${{env.BUILD_TYPE}} --prefix ${{github.workspace}}/install
 
     - name: Create zip archive
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: open_iA-${{matrix.os}}-${{env.OPENIA_BUILD_VERSION}}.zip
         path: ${{github.workspace}}/install
