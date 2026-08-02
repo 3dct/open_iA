@@ -119,7 +119,7 @@ MODULE_HANDLE LoadModule(QFileInfo fileInfo, QStringList & errorMessages)
 	dllWinName.replace("/", "\\");
 	UINT prevErrorMode = GetErrorMode();
 	SetErrorMode(SEM_FAILCRITICALERRORS | SEM_NOOPENFILEERRORBOX);  // to suppress message box on error
-	HINSTANCE hGetProcIDDLL = LoadLibrary(dllWinName.toStdString().c_str());
+	HINSTANCE hGetProcIDDLL = LoadLibrary(dllWinName.toUtf8().constData());
 	SetErrorMode(prevErrorMode);
 	if (!hGetProcIDDLL)
 	{
