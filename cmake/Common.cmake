@@ -524,7 +524,7 @@ endif()
 
 
 # CUDA:
-option(openiA_CUDA_ENABLED "Whether to enable search for CUDA toolkit. Default: enabled." ON)
+option(openiA_CUDA_ENABLED "Whether to enable search for CUDA toolkit. Default: disabled." OFF)
 if (openiA_CUDA_ENABLED)
 	find_package(CUDAToolkit REQUIRED)
 	if (CUDAToolkit_FOUND)
