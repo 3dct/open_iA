@@ -45,7 +45,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, ubuntu-latest, ubuntu-26.04, ubuntu-24.04-arm, ubuntu-26.04-arm, windows-latest]
+        os: [macos-latest, macos-26-intel, ubuntu-latest, ubuntu-26.04, ubuntu-24.04-arm, ubuntu-26.04-arm, windows-latest]
 
     steps:
 
@@ -62,7 +62,7 @@ jobs:
         brew install node
         brew install libomp
 
-    - if: ${{ (matrix.os != 'ubuntu-24.04-arm' && matrix.os != 'ubuntu-26.04-arm' && matrix.os != 'macos-latest') }}
+    - if: ${{ (matrix.os != 'ubuntu-24.04-arm' && matrix.os != 'ubuntu-26.04-arm' && matrix.os != 'macos-latest' && matrix.os != 'macos-latest') }}
       name: Qt install
       # see https://github.com/marketplace/actions/install-qt for details
       uses: jurplel/install-qt-action@v4
@@ -88,7 +88,7 @@ jobs:
     - if: matrix.os == 'macos-latest'
       name: Qt install / OpenMP (macOS ARM)
       run: |
-        sudo port -N install --use-binary qt6-qtbase qt6-qtcharts qt6-qthttpserver qt6-qtwebsockets
+        sudo port -N -b install qt6-qtbase qt6-qtcharts qt6-qthttpserver qt6-qtwebsockets
         #port contents qt6-qtcharts
         #port contents qt6-qthttpserver
         #port contents qt6-qtwebsockets
