@@ -62,7 +62,7 @@ jobs:
         brew install node
         brew install libomp
 
-    - if: ${{ (matrix.os != 'ubuntu-24.04-arm' && matrix.os != 'ubuntu-26.04-arm' && matrix.os != 'macos-latest' && matrix.os != 'macos-26-intel') }}
+    - if: ${{ (matrix.os != 'ubuntu-24.04-arm' && matrix.os != 'ubuntu-26.04-arm' && matrix.os != 'macos-latest') }}
       name: Qt install
       # see https://github.com/marketplace/actions/install-qt for details
       uses: jurplel/install-qt-action@v4
@@ -89,9 +89,6 @@ jobs:
       name: Qt install / OpenMP (macOS ARM)
       run: |
         sudo port -N install qt6-qtbase qt6-qtcharts qt6-qthttpserver qt6-qtwebsockets
-        #port contents qt6-qtcharts
-        #port contents qt6-qthttpserver
-        #port contents qt6-qtwebsockets
         echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DQt6Charts_DIR:PATH=/opt/local/libexec/qt6/lib/cmake/Qt6Charts -DQt6HttpServer_DIR:PATH=/opt/local/libexec/qt6/lib/cmake/Qt6HttpServer -DQt6WebSockets_DIR:PATH=/opt/local/libexec/qt6/lib/cmake/Qt6WebSockets -DOpenMP_CXX_FLAGS:STRING=\"-Xpreprocessor -fopenmp -lomp\" -DOpenMP_CXX_INCLUDE_DIR:PATH=\"/opt/homebrew/opt/libomp/include\" -DOpenMP_libomp_LIBRARY:FILEPATH=\"/opt/homebrew/opt/libomp/lib/libomp.dylib\"" >> "$GITHUB_ENV"
 
     ##################################################################
