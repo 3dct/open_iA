@@ -432,7 +432,7 @@ jobs:
         cmake --install . --config ${{env.BUILD_TYPE}} --prefix ${{github.workspace}}/install
 
     - name: Upload Build Artifacts
-      uses: actions/artifacts@v4
+      uses: actions/upload-artifact@v4
       with:
         name: open_iA-${{ matrix.os }}-${{ env.OPENIA_BUILD_VERSION }}
         path: install
@@ -471,7 +471,7 @@ jobs:
           gh release create "$TAG_NAME" \
             --title "Latest" \
             --draft \
-            --notes "$RELEASE_NOTES"
+            --notes "$RELEASE_NOTES" \
             --generate-notes
           gh release upload "$TAG_NAME" ./artifacts/open_iA-release-*/* --clobber
           gh release edit "$TAG_NAME" --draft=false
