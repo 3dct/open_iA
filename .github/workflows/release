@@ -1,0 +1,42 @@
+name: Create a new release
+on:
+  workflow_call:
+    inputs:
+      tagname:
+        required: true
+        type: string
+
+jobs:
+  create_release
+    steps:
+      # checkout, otherwise gh commands wont work
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+      - name: Create/Update release with artifacts
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG_NAME: ${{ inputs.tagname }}
+        run: |
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release delete "$TAG_NAME" --yes
+          fi
+          CURRENT_DATE=$(date +'%Y-%m-%d')
+          RELEASE_NOTES=$(cat <<EOF
+          ### Latest Build ($CURRENT_DATE)
+         
+          This build is automatically generated for each change to the main branch.
+          
+          *Note: This is a developer version. It could be unstable*
+          EOF
+          )          
+          gh release create "$TAG_NAME" \
+            --title "Latest" \
+            --draft \
+            --notes "$RELEASE_NOTES" \
+            --generate-notes
+          gh release upload "$TAG_NAME" ./artifacts/open_iA-release-*/* --clobber
+          gh release edit "$TAG_NAME" --draft=false
