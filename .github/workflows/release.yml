@@ -39,5 +39,5 @@ jobs:
             --draft \
             --notes "$RELEASE_NOTES" \
             --generate-notes
-          gh release upload "$TAG_NAME" ./artifacts/open_iA-release-*.zip --clobber
+          gh release upload "$TAG_NAME" ./artifacts/open_iA-* --clobber
           gh release edit "$TAG_NAME" --draft=false
