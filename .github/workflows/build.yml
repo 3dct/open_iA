@@ -52,6 +52,13 @@ jobs:
 
     steps:
 
+    - if: matrix.os == 'ubuntu-latest'
+      name: Delete Existing Nightly Release (only on ubuntu-latest)
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release delete nightly --yes --cleanup-tag || true
+
     - name: Checkout open_iA
       uses: actions/checkout@v6
       with:
@@ -80,13 +87,15 @@ jobs:
         echo "QT_VERSION=$(/usr/bin/dpkg -s qt6-base-dev | /usr/bin/grep 'Version' | /usr/bin/awk '{ split($2, a, "+"); print a[1]; }')" >> "$GITHUB_ENV"
 
     - if: runner.os == 'macOS'
-      name: Install Qt6, node, libomp via brew (macOS)
+      name: Install otool, Qt6, node, libomp via brew (macOS)
       env:
         HOMEBREW_NO_AUTO_UPDATE: '1'       # Saves 1-2 minutes skipping index syncs
         HOMEBREW_NO_INSTALL_CLEANUP: '1'   # Saves time bypassing post-install cleanups
       run: |
+        sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
         brew install node libomp qtbase qtcharts qthttpserver qtwebsockets
-        echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenMP_CXX_FLAGS:STRING=\"-Xpreprocessor -fopenmp -lomp\" -DOpenMP_CXX_INCLUDE_DIR:PATH=\"/opt/homebrew/opt/libomp/include\" -DOpenMP_libomp_LIBRARY:FILEPATH=\"/opt/homebrew/opt/libomp/lib/libomp.dylib\" -DCMAKE_PREFIX_PATH=\"/opt/homebrew\"" >> "$GITHUB_ENV"
+        BREW_PREFIX=$(brew --prefix)
+        echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenMP_CXX_FLAGS:STRING=\"-Xpreprocessor -fopenmp -lomp\" -DOpenMP_CXX_INCLUDE_DIR:PATH=\"$BREW_PREFIX/opt/libomp/include\" -DOpenMP_libomp_LIBRARY:FILEPATH=\"$BREW_PREFIX/opt/libomp/lib/libomp.dylib\" -DCMAKE_PREFIX_PATH=\"$BREW_PREFIX\"" >> "$GITHUB_ENV"
 
     ##################################################################
     # VR: OpenXR, OpenVR, boost
@@ -417,11 +426,20 @@ jobs:
         cmake --build . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}} --prefix ${{github.workspace}}/install
 
-    - name: Create zip archive
+    - if: runner.os == 'Windows'
+      name: Create zip archive (Windows)
+      shell: pwsh # Forces GitHub to execute using PowerShell Core
+      run: |
+        Compress-Archive -Path "install\*" -DestinationPath "open_iA-${{ matrix.os }}-${{ env.OPENIA_BUILD_VERSION }}.zip" -Force
+    - if: runner.os == 'macOS'
+      name: Create zip archive (macOS)
+      run: |
+        ditto -c -k --sequesterRsrc --keepParent install open_iA-${{ matrix.os }}-${{ env.OPENIA_BUILD_VERSION }}.zip
+    - if: runner.os == 'Linux'
+      name: Create zip archive (Linux)
       shell: bash
       run: |
-        cd "${{ github.workspace }}/install"
-        zip -r "../open_iA-${{ matrix.os }}-${{ env.OPENIA_BUILD_VERSION }}.zip" .
+        zip -r "open_iA-${{ matrix.os }}-${{ env.OPENIA_BUILD_VERSION }}.zip" install
 
     - name: Upload to Nightly Release
       uses: softprops/action-gh-release@v3
