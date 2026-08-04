@@ -38,6 +38,9 @@ env:
   EIGEN_LONGREF: d791d48859c6fc7850c9fd5270d2b236c818068d
   EIGEN_SHORTREF: d791d48859c6
 
+permissions:
+  contents: write
+
 jobs:
   build:
     name: Build open_iA
@@ -56,14 +59,8 @@ jobs:
         fetch-tags: true
         fetch-depth: 0
 
-    - if: runner.os == 'macOS'
-      name: Set up required libraries (macOS)
-      run: |
-        brew install node
-        brew install libomp
-
     - if: ${{ (matrix.os != 'ubuntu-24.04-arm' && matrix.os != 'ubuntu-26.04-arm' && matrix.os != 'macos-latest' && matrix.os != 'macos-26-intel') }}
-      name: Qt install
+      name: Install Qt6
       # see https://github.com/marketplace/actions/install-qt for details
       uses: jurplel/install-qt-action@v4
       with:
@@ -74,7 +71,7 @@ jobs:
         cache-key-prefix: Qt
 
     - if: ${{ (matrix.os == 'ubuntu-24.04-arm' || matrix.os == 'ubuntu-26.04-arm') }}
-      name: Qt install (Ubuntu ARM)
+      name: Install Qt6, npm via apt (Ubuntu ARM)
       run: |
         sudo apt update
         sudo apt install libgl1-mesa-dev libxt-dev libxt-dev libxcursor-dev libsdl2-dev
@@ -83,13 +80,13 @@ jobs:
         echo "QT_VERSION=$(/usr/bin/dpkg -s qt6-base-dev | /usr/bin/grep 'Version' | /usr/bin/awk '{ split($2, a, "+"); print a[1]; }')" >> "$GITHUB_ENV"
 
     - if: runner.os == 'macOS'
-      name: install macPorts (macOS ARM)
-      uses: melusina-org/setup-macports@v1
-    - if: runner.os == 'macOS'
-      name: Qt install / OpenMP (macOS ARM)
+      name: Install Qt6, node, libomp via brew (macOS)
+      env:
+        HOMEBREW_NO_AUTO_UPDATE: '1'       # Saves 1-2 minutes skipping index syncs
+        HOMEBREW_NO_INSTALL_CLEANUP: '1'   # Saves time bypassing post-install cleanups
       run: |
-        sudo port -N install qt6-qtbase qt6-qtcharts qt6-qthttpserver qt6-qtwebsockets
-        echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DQt6Charts_DIR:PATH=/opt/local/libexec/qt6/lib/cmake/Qt6Charts -DQt6HttpServer_DIR:PATH=/opt/local/libexec/qt6/lib/cmake/Qt6HttpServer -DQt6WebSockets_DIR:PATH=/opt/local/libexec/qt6/lib/cmake/Qt6WebSockets -DOpenMP_CXX_FLAGS:STRING=\"-Xpreprocessor -fopenmp -lomp\" -DOpenMP_CXX_INCLUDE_DIR:PATH=\"/opt/homebrew/opt/libomp/include\" -DOpenMP_libomp_LIBRARY:FILEPATH=\"/opt/homebrew/opt/libomp/lib/libomp.dylib\"" >> "$GITHUB_ENV"
+        brew install node libomp qtbase qtcharts qthttpserver qtwebsockets
+        echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenMP_CXX_FLAGS:STRING=\"-Xpreprocessor -fopenmp -lomp\" -DOpenMP_CXX_INCLUDE_DIR:PATH=\"/opt/homebrew/opt/libomp/include\" -DOpenMP_libomp_LIBRARY:FILEPATH=\"/opt/homebrew/opt/libomp/lib/libomp.dylib\" -DCMAKE_PREFIX_PATH=\"/opt/homebrew\"" >> "$GITHUB_ENV"
 
     ##################################################################
     # VR: OpenXR, OpenVR, boost
@@ -412,7 +409,7 @@ jobs:
       # clang: clang libomp-dev
       # if: runner.os == 'Linux' only runs on ubuntu currently anyway
 
-    - name: open_iA build
+    - name: open_iA build and install
       run: |
         mkdir bin
         cd bin
@@ -421,9 +418,15 @@ jobs:
         cmake --install . --config ${{env.BUILD_TYPE}} --prefix ${{github.workspace}}/install
 
     - name: Create zip archive
-      uses: actions/upload-artifact@v7
+      shell: bash
+      run: |
+        cd "${{ github.workspace }}/install"
+        zip -r "../open_iA-${{ matrix.os }}-${{ env.OPENIA_BUILD_VERSION }}.zip" .
+
+    - name: Upload to Nightly Release
+      uses: softprops/action-gh-release@v3
       with:
-        name: open_iA-${{matrix.os}}-${{env.OPENIA_BUILD_VERSION}}.zip
-        path: ${{github.workspace}}/install
-        if-no-files-found: error
-        overwrite: true
+        tag_name: nightly
+        target_commitish: ${{ github.sha }}
+        files: open_iA-${{ matrix.os }}-${{ env.OPENIA_BUILD_VERSION }}.zip
+        prerelease: true
