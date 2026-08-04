@@ -440,8 +440,6 @@ jobs:
   create_release:
     name: Create Nightly Release
     needs: build
-    steps:
-      - name: Create release
-        uses: ./.github/workflows/release.yml@main
-        with:
-          tagname: nightly
+    uses: ./.github/workflows/release.yml
+    with:
+      tagname: nightly
