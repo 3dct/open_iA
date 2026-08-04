@@ -3,12 +3,9 @@ name: "Build open_iA"
 on:
   # manual triggering allowed:
   workflow_dispatch:
-  #pull_request:
-  #  branches: [ "main" ]
-  # required for manual triggering when not in main branch:
   push:
     branches:
-      - '**'
+      - main
   #schedule:
     # trigger automatic build Mon-Sat at 4:39 UTC:
     #- cron: '39 4 * * 1-6'
@@ -439,42 +436,13 @@ jobs:
         retention-days: 1
 
 
-  # This job waits for the entire matrix above to complete
+  # Trigger release creation when entire matrix above is complete
   create_release:
     name: Create Nightly Release
     needs: build
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      # checkout, otherwise gh commands wont work
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Download All Artifacts
-        uses: actions/download-artifact@v4
+      - name: Create release
+        uses: ./.github/workflows/release.yaml
         with:
-          path: ./artifacts
-      - name: Create/Update nightly Release with artifacts
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG_NAME: nightly
-        run: |
-          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
-            gh release delete "$TAG_NAME" --yes
-          fi
-          CURRENT_DATE=$(date +'%Y-%m-%d')
-          RELEASE_NOTES=$(cat <<EOF
-          ### Latest Build ($CURRENT_DATE)
-         
-          This build is automatically generated for each change to the main branch.
-          
-          *Note: This is a developer version. It could be unstable*
-          EOF
-          )          
-          gh release create "$TAG_NAME" \
-            --title "Latest" \
-            --draft \
-            --notes "$RELEASE_NOTES" \
-            --generate-notes
-          gh release upload "$TAG_NAME" ./artifacts/open_iA-release-*/* --clobber
-          gh release edit "$TAG_NAME" --draft=false
+          tagname: nightly
