@@ -92,7 +92,17 @@ jobs:
         HOMEBREW_NO_AUTO_UPDATE: '1'       # Saves 1-2 minutes skipping index syncs
         HOMEBREW_NO_INSTALL_CLEANUP: '1'   # Saves time bypassing post-install cleanups
       run: |
-        sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
+        # Sucht die neueste installierte Xcode-App auf dem Runner
+        LATEST_XCODE=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -n1)
+        # Falls keine versionierte App gefunden wird, Fallback auf Standard
+        if [ -z "$LATEST_XCODE" ]; then
+          LATEST_XCODE="/Applications/Xcode.app"
+        fi
+        echo "Aktiviere Xcode unter: $LATEST_XCODE"
+        sudo xcode-select --switch "$LATEST_XCODE/Contents/Developer"
+        # Verifiziert, dass otool nun global verfügbar ist
+        which otool
+        otool --version
         brew install node libomp qtbase qtcharts qthttpserver qtwebsockets
         BREW_PREFIX=$(brew --prefix)
         echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenMP_CXX_FLAGS:STRING=\"-Xpreprocessor -fopenmp -lomp\" -DOpenMP_CXX_INCLUDE_DIR:PATH=\"$BREW_PREFIX/opt/libomp/include\" -DOpenMP_libomp_LIBRARY:FILEPATH=\"$BREW_PREFIX/opt/libomp/lib/libomp.dylib\" -DCMAKE_PREFIX_PATH=\"$BREW_PREFIX\"" >> "$GITHUB_ENV"
@@ -441,10 +451,26 @@ jobs:
       run: |
         zip -r "open_iA-${{ matrix.os }}-${{ env.OPENIA_BUILD_VERSION }}.zip" install
 
-    - name: Upload to Nightly Release
-      uses: softprops/action-gh-release@v3
-      with:
-        tag_name: nightly
-        target_commitish: ${{ github.sha }}
-        files: open_iA-${{ matrix.os }}-${{ env.OPENIA_BUILD_VERSION }}.zip
-        prerelease: true
+    - name: Ensure Nightly Release Exists as Draft
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        # The --draft flag bypasses the immutability lock
+        gh release create nightly --title "Nightly Build" --notes "Binaries created via nightly build." --draft || true
+
+    - name: Upload Asset to Nightly Release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release upload nightly open_iA-${{ matrix.os }}-${{ env.OPENIA_BUILD_VERSION }}.zip --clobber
+
+  # This job waits for the entire matrix above to complete
+  publish-release:
+    name: Finalize and Publish Nightly
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Publish Draft Release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit nightly --draft=false
