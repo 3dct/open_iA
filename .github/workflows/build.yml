@@ -62,7 +62,7 @@ jobs:
         brew install node
         brew install libomp
 
-    - if: ${{ (matrix.os != 'ubuntu-24.04-arm' && matrix.os != 'ubuntu-26.04-arm' && matrix.os != 'macos-latest') }}
+    - if: ${{ (matrix.os != 'ubuntu-24.04-arm' && matrix.os != 'ubuntu-26.04-arm' && matrix.os != 'macos-latest' && matrix.os != 'macos-26-intel') }}
       name: Qt install
       # see https://github.com/marketplace/actions/install-qt for details
       uses: jurplel/install-qt-action@v4
@@ -82,10 +82,10 @@ jobs:
         sudo apt install qt6-charts-dev qt6-httpserver-dev qt6-websockets-dev npm
         echo "QT_VERSION=$(/usr/bin/dpkg -s qt6-base-dev | /usr/bin/grep 'Version' | /usr/bin/awk '{ split($2, a, "+"); print a[1]; }')" >> "$GITHUB_ENV"
 
-    - if: matrix.os == 'macos-latest'
+    - if: runner.os == 'macOS'
       name: install macPorts (macOS ARM)
       uses: melusina-org/setup-macports@v1
-    - if: matrix.os == 'macos-latest'
+    - if: runner.os == 'macOS'
       name: Qt install / OpenMP (macOS ARM)
       run: |
         sudo port -N install qt6-qtbase qt6-qtcharts qt6-qthttpserver qt6-qtwebsockets
