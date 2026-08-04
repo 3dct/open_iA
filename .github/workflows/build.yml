@@ -447,6 +447,9 @@ jobs:
     permissions:
       contents: write
     steps:
+      # checkout, otherwise gh commands wont work
+      - name: Checkout code
+        uses: actions/checkout@v4
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
         with:
