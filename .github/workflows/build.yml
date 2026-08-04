@@ -52,19 +52,19 @@ jobs:
 
     steps:
 
-    - if: matrix.os == 'ubuntu-latest'
-      name: Delete Existing Nightly Release (only on ubuntu-latest)
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh release delete nightly --yes --cleanup-tag || true
-
     - name: Checkout open_iA
       uses: actions/checkout@v6
       with:
         submodules: true
         fetch-tags: true
         fetch-depth: 0
+
+    - if: matrix.os == 'ubuntu-latest'
+      name: Delete Existing Nightly Release (only on ubuntu-latest)
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release delete nightly --yes --cleanup-tag || true
 
     - if: ${{ (matrix.os != 'ubuntu-24.04-arm' && matrix.os != 'ubuntu-26.04-arm' && matrix.os != 'macos-latest' && matrix.os != 'macos-26-intel') }}
       name: Install Qt6
