@@ -440,9 +440,8 @@ jobs:
   create_release:
     name: Create Nightly Release
     needs: build
-    runs-on: ubuntu-latest
     steps:
       - name: Create release
-        uses: ./.github/workflows/release.yaml
+        uses: ./.github/workflows/release.yml@main
         with:
           tagname: nightly
