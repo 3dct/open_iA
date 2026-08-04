@@ -38,9 +38,6 @@ env:
   EIGEN_LONGREF: d791d48859c6fc7850c9fd5270d2b236c818068d
   EIGEN_SHORTREF: d791d48859c6
 
-permissions:
-  contents: write
-
 jobs:
   build:
     name: Build open_iA
@@ -434,41 +431,47 @@ jobs:
         cmake --build . --config ${{env.BUILD_TYPE}} -j 4
         cmake --install . --config ${{env.BUILD_TYPE}} --prefix ${{github.workspace}}/install
 
-    - if: runner.os == 'Windows'
-      name: Create zip archive (Windows)
-      shell: pwsh # Forces GitHub to execute using PowerShell Core
-      run: |
-        Compress-Archive -Path "install\*" -DestinationPath "open_iA-${{ matrix.os }}-${{ env.OPENIA_BUILD_VERSION }}.zip" -Force
-    - if: runner.os == 'macOS'
-      name: Create zip archive (macOS)
-      run: |
-        ditto -c -k --sequesterRsrc --keepParent install open_iA-${{ matrix.os }}-${{ env.OPENIA_BUILD_VERSION }}.zip
-    - if: runner.os == 'Linux'
-      name: Create zip archive (Linux)
-      shell: bash
-      run: |
-        zip -r "open_iA-${{ matrix.os }}-${{ env.OPENIA_BUILD_VERSION }}.zip" install
+    - name: Upload Build Artifacts
+      uses: actions/artifacts@v4
+      with:
+        name: open_iA-${{ matrix.os }}-${{ env.OPENIA_BUILD_VERSION }}
+        path: install
+        retention-days: 1
 
-    - name: Ensure Nightly Release Exists as Draft
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        # The --draft flag bypasses the immutability lock
-        gh release create nightly --title "Nightly Build" --notes "Binaries created via nightly build." --draft || true
-
-    - name: Upload Asset to Nightly Release
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        gh release upload nightly open_iA-${{ matrix.os }}-${{ env.OPENIA_BUILD_VERSION }}.zip --clobber
 
   # This job waits for the entire matrix above to complete
-  publish-release:
-    name: Finalize and Publish Nightly
+  create_release:
+    name: Create Nightly Release
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - name: Publish Draft Release
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+      - name: Create/Update nightly Release with artifacts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release edit nightly --draft=false
+          TAG_NAME: nightly
+        run: |
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release delete "$TAG_NAME" --yes
+          fi
+          CURRENT_DATE=$(date +'%Y-%m-%d')
+          RELEASE_NOTES=$(cat <<EOF
+          ### Latest Build ($CURRENT_DATE)
+         
+          This build is automatically generated for each change to the main branch.
+          
+          *Note: This is a developer version. It could be unstable*
+          EOF
+          )          
+          gh release create "$TAG_NAME" \
+            --title "Latest" \
+            --draft \
+            --notes "$RELEASE_NOTES"
+            --generate-notes
+          gh release upload "$TAG_NAME" ./artifacts/open_iA-release-*/* --clobber
+          gh release edit "$TAG_NAME" --draft=false
