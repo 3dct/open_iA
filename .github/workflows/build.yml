@@ -92,17 +92,15 @@ jobs:
         HOMEBREW_NO_AUTO_UPDATE: '1'       # Saves 1-2 minutes skipping index syncs
         HOMEBREW_NO_INSTALL_CLEANUP: '1'   # Saves time bypassing post-install cleanups
       run: |
-        # Sucht die neueste installierte Xcode-App auf dem Runner
+        # Nuke the conflicting MacPorts directory to prevent CMake tracing errors
+        sudo rm -rf /opt/local
+        # search newest Xcode-App
         LATEST_XCODE=$(ls -d /Applications/Xcode_*.app 2>/dev/null | sort -V | tail -n1)
-        # Falls keine versionierte App gefunden wird, Fallback auf Standard
+        # if no versioned App found, fallback to default
         if [ -z "$LATEST_XCODE" ]; then
           LATEST_XCODE="/Applications/Xcode.app"
         fi
-        echo "Aktiviere Xcode unter: $LATEST_XCODE"
         sudo xcode-select --switch "$LATEST_XCODE/Contents/Developer"
-        # Verifiziert, dass otool nun global verfügbar ist
-        which otool
-        otool --version
         brew install node libomp qtbase qtcharts qthttpserver qtwebsockets
         BREW_PREFIX=$(brew --prefix)
         echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenMP_CXX_FLAGS:STRING=\"-Xpreprocessor -fopenmp -lomp\" -DOpenMP_CXX_INCLUDE_DIR:PATH=\"$BREW_PREFIX/opt/libomp/include\" -DOpenMP_libomp_LIBRARY:FILEPATH=\"$BREW_PREFIX/opt/libomp/lib/libomp.dylib\" -DCMAKE_PREFIX_PATH=\"$BREW_PREFIX\"" >> "$GITHUB_ENV"
