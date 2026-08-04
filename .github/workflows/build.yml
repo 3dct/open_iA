@@ -103,7 +103,7 @@ jobs:
         sudo xcode-select --switch "$LATEST_XCODE/Contents/Developer"
         brew install node libomp qtbase qtcharts qthttpserver qtwebsockets
         BREW_PREFIX=$(brew --prefix)
-        echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenMP_CXX_FLAGS:STRING=\"-Xpreprocessor -fopenmp -lomp\" -DOpenMP_CXX_INCLUDE_DIR:PATH=\"$BREW_PREFIX/opt/libomp/include\" -DOpenMP_libomp_LIBRARY:FILEPATH=\"$BREW_PREFIX/opt/libomp/lib/libomp.dylib\" -DCMAKE_PREFIX_PATH=\"$BREW_PREFIX\"" >> "$GITHUB_ENV"
+        echo "OPENIA_CMAKE_OPTIONS=${{env.OPENIA_CMAKE_OPTIONS}} -DOpenMP_CXX_FLAGS:STRING=\"-Xpreprocessor -fopenmp\" -DOpenMP_CXX_INCLUDE_DIR:PATH=\"$BREW_PREFIX/opt/libomp/include\" -DOpenMP_libomp_LIBRARY:FILEPATH=\"$BREW_PREFIX/opt/libomp/lib/libomp.dylib\" -DCMAKE_PREFIX_PATH=\"$BREW_PREFIX\"" >> "$GITHUB_ENV"
 
     ##################################################################
     # VR: OpenXR, OpenVR, boost
