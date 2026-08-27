@@ -256,6 +256,12 @@ void iALensData::updatePosition(double const focalPt[3], double const * dir, dou
 	double camPos[3];
 	vtkMath::Subtract(focalPt, dir, camPos);
 	m_imageRenderer->GetActiveCamera()->SetPosition(camPos);
+	// camPos is only 1 world unit from focalPt (dir is a unit vector); for scenes with
+	// large physical coordinates the default/stale clipping range can end up not
+	// bracketing that tiny offset at all, silently clipping the lens content away
+	// (revealing whatever is in the layer below, e.g. the main slicer view) -- so
+	// always recompute it from the actor bounds actually being shown here:
+	m_imageRenderer->ResetCameraClippingRange();
 	updateViewPort(mousePos);
 }
 
