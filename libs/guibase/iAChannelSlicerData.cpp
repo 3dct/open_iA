@@ -220,6 +220,16 @@ void iAChannelSlicerData::setInterpolate(bool interpolate)
 void iAChannelSlicerData::setEnabled(vtkRenderer* ren, bool enable)
 {
 	m_enabled = enable;
+	if (enable)
+	{
+		// reslice axes origin may have been set while the channel was still disabled
+		// (in which case the pipeline update below was skipped); make sure the actor
+		// shows the current slice right away instead of the state from whenever the
+		// reslicer/colormapper were last updated:
+		m_reslicer->Update();
+		m_colormapper->Update();
+		m_imageActor->SetInputData(m_colormapper->GetOutput());
+	}
 	showActor(ren, m_imageActor, enable);
 }
 
