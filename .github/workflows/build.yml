@@ -438,11 +438,8 @@ jobs:
 
   # Trigger release creation when entire matrix above is complete
   create_release:
-    name: Create Nightly Release
+    name: Create Latest Release
     needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create release
-        uses: ./.github/workflows/release.yaml
-        with:
-          tagname: nightly
+    uses: ./.github/workflows/release.yml
+    with:
+      tagname: latest

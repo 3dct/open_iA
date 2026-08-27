@@ -7,15 +7,17 @@ on:
         type: string
 
 jobs:
-  create_release
+  create_release:
+    runs-on: ubuntu-latest
     steps:
       # checkout, otherwise gh commands wont work
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Download All Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: ./artifacts
+          skip-decompress: true
       - name: Create/Update release with artifacts
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -38,5 +40,5 @@ jobs:
             --draft \
             --notes "$RELEASE_NOTES" \
             --generate-notes
-          gh release upload "$TAG_NAME" ./artifacts/open_iA-release-*.zip --clobber
+          gh release upload "$TAG_NAME" ./artifacts/open_iA-*/*.zip --clobber
           gh release edit "$TAG_NAME" --draft=false
