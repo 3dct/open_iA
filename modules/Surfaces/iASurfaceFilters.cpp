@@ -19,6 +19,7 @@
 #include <vtkFlyingEdges3D.h>
 #include <vtkImageData.h>
 #include <vtkMarchingCubes.h>
+#include <vtkPolyData.h>
 #include <vtkPolyDataNormals.h>
 #include <vtkQuadricDecimation.h>
 #include <vtkQuadricClustering.h>
@@ -28,7 +29,7 @@
 #include <vtkSurfaceNets3D.h>
 #include <vtkSurfaceReconstructionFilter.h>
 #include <vtkTransform.h>
-#include <vtkTransformPolyDataFilter.h>
+#include <vtkTransformFilter.h>
 #include <vtkTriangleFilter.h>
 #include <vtkWindowedSincPolyDataFilter.h>
 
@@ -45,6 +46,7 @@ IAFILTER_DEFAULT_CLASS(iASmoothMeshWindowedSinc);
 IAFILTER_DEFAULT_CLASS(iASmoothMeshLaplacian);
 IAFILTER_DEFAULT_CLASS(iASurfaceReconstruction);
 IAFILTER_DEFAULT_CLASS(iATransformPolyData);
+IAFILTER_DEFAULT_CLASS(iAMoveMeshToOrigin);
 IAFILTER_DEFAULT_CLASS(iAMeshTriangle);
 
 namespace
@@ -521,12 +523,39 @@ void iATransformPolyData::performWork(QVariantMap const& parameters)
 	tr->RotateZ(rotate[2]);
 	tr->Translate(translate.data());
 	tr->Scale(scale.data());
-	vtkNew<vtkTransformPolyDataFilter> vtkFilter;
+	vtkNew<vtkTransformFilter> vtkFilter;
 	vtkFilter->SetTransform(tr);
 	progress()->observe(vtkFilter);
 	vtkFilter->SetInputData(dynamic_cast<iAPolyData*>(input(0).get())->poly());
 	vtkFilter->Update();
-	addOutput(std::make_shared<iAPolyData>(vtkFilter->GetOutput()));
+	addOutput(std::make_shared<iAPolyData>(vtkPolyData::SafeDownCast(vtkFilter->GetOutput())));
+}
+
+
+
+iAMoveMeshToOrigin::iAMoveMeshToOrigin() :
+	iAFilter("Move to origin", "Surfaces",
+		"Translate polydata so that the minimum of its bounding box lies at the origin.<br/>"
+		"See the <a href=\"https://vtk.org/doc/nightly/html/classvtkTransformPolyDataFilter.html\">"
+		"Transform PolyData filter</a> in the VTK documentation.", 0)
+{
+	setRequiredMeshInputs(1);
+}
+
+void iAMoveMeshToOrigin::performWork(QVariantMap const& parameters)
+{
+	Q_UNUSED(parameters);
+	auto poly = dynamic_cast<iAPolyData*>(input(0).get())->poly();
+	double bounds[6];
+	poly->GetBounds(bounds);
+	vtkNew<vtkTransform> tr;
+	tr->Translate(-bounds[0], -bounds[2], -bounds[4]);
+	vtkNew<vtkTransformFilter> vtkFilter;
+	vtkFilter->SetTransform(tr);
+	progress()->observe(vtkFilter);
+	vtkFilter->SetInputData(poly);
+	vtkFilter->Update();
+	addOutput(std::make_shared<iAPolyData>(vtkPolyData::SafeDownCast(vtkFilter->GetOutput())));
 }
 
 
